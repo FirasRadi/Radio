@@ -6,7 +6,7 @@
     <title>Radio & TV Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- مكتبة Hls.js لتشغيل قنوات التلفزيون بث مباشر دون مشاكل -->
+    <!-- مكتبة Hls.js لتشغيل قنوات التلفزيون مباشرة -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root {
@@ -37,8 +37,6 @@
             text-align: center;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        
-        /* أزرار التبديل في الأعلى */
         .mode-toggle {
             display: flex;
             background: rgba(0, 0, 0, 0.3);
@@ -67,8 +65,6 @@
             background: var(--primary);
             color: white;
         }
-
-        /* شاشة الفيديو واللوجو */
         .media-screen {
             width: 100%;
             height: 180px;
@@ -107,10 +103,8 @@
             background: black;
             display: none;
         }
-
         h2 { margin: 10px 0 5px; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         p { color: #888; font-size: 13px; margin: 0 0 20px 0; }
-
         .controls {
             display: flex;
             align-items: center;
@@ -138,7 +132,6 @@
             justify-content: center;
             font-size: 18px;
         }
-
         .support-btn {
             background: #0070ba;
             color: white;
@@ -152,7 +145,6 @@
             transition: 0.3s;
         }
         .support-btn:hover { background: #005ea6; }
-
         #loading {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -169,8 +161,6 @@
     <div id="loading"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
 
     <div class="player-container">
-        
-        <!-- أزرار التبديل في الأعلى -->
         <div class="mode-toggle">
             <button id="btn-tv" class="mode-btn active" onclick="setMode('tv')">
                 <i class="fas fa-tv"></i> تلفاز
@@ -180,7 +170,6 @@
             </button>
         </div>
 
-        <!-- شاشة العرض الموحدة للراديو والتلفاز -->
         <div class="media-screen">
             <div class="logo-fallback" id="fallback-icon"><i class="fas fa-tv"></i></div>
             <img id="channel-logo" src="" alt="logo">
@@ -206,72 +195,84 @@
         tg.ready();
         tg.expand();
 
-        let allChannels = [];
         let filteredChannels = [];
-        let allStreams = [];
         let currentIndex = 0;
-        let currentMode = 'tv'; // القيمة الافتراضية للبدء هي تلفاز
+        let currentMode = 'tv'; 
 
         const videoPlayer = document.getElementById('video-player');
         const playIcon = document.getElementById('play-icon');
         const channelLogo = document.getElementById('channel-logo');
         const fallbackIcon = document.getElementById('fallback-icon');
 
+        // جلب اسم الكود الثنائي من الرابط بشكل صارم دون وضع أي قيم افتراضية
         const urlParams = new URLSearchParams(window.location.search);
-        const countryName = urlParams.get('country') || "Egypt";
+        const countryCode = urlParams.get('country') ? urlParams.get('country').toUpperCase() : null; 
 
         let hls = null;
 
-        // جلب البيانات بالكامل
-        async function loadData() {
+        // جلب التلفزيون من IPTV-org
+        async function fetchTV() {
             try {
                 const channelsResponse = await fetch('https://iptv-org.github.io/api/channels.json');
-                allChannels = await channelsResponse.json();
+                const channels = await channelsResponse.json();
 
                 const streamsResponse = await fetch('https://iptv-org.github.io/api/streams.json');
-                allStreams = await streamsResponse.json();
+                const streams = await streamsResponse.json();
 
-                // تصفية البيانات المبدئية بناءً على الدولة
-                filterData();
+                const countryChannels = channels.filter(c => c.country === countryCode && (!c.categories || !c.categories.includes('radio')));
+
+                filteredChannels = countryChannels.map(c => {
+                    const stream = streams.find(s => s.channel === c.id);
+                    return {
+                        name: c.name,
+                        logo: c.logo,
+                        url: stream ? stream.url : null
+                    };
+                }).filter(c => c.url !== null);
+
+                if (filteredChannels.length > 0) {
+                    loadChannel(0);
+                } else {
+                    showNoChannels("تلفاز");
+                }
                 document.getElementById('loading').style.display = 'none';
             } catch (err) {
-                console.error("Error loading data", err);
-                document.getElementById('loading').innerText = "خطأ في الاتصال بالخادم";
+                console.error(err);
+                document.getElementById('loading').innerText = "خطأ في تحميل التلفاز";
             }
         }
 
-        // تصفية القنوات بناءً على الوضع الحالي (تلفاز أو راديو)
-        function filterData() {
+        // جلب الراديو من Radio-Browser
+        async function fetchRadio() {
+            try {
+                const response = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/${countryCode.toLowerCase()}?limit=50`);
+                const data = await response.json();
+
+                filteredChannels = data.map(r => ({
+                    name: r.name,
+                    logo: r.favicon,
+                    url: r.url_resolved || r.url
+                }));
+
+                if (filteredChannels.length > 0) {
+                    loadChannel(0);
+                } else {
+                    showNoChannels("راديو");
+                }
+                document.getElementById('loading').style.display = 'none';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').innerText = "خطأ في تحميل الراديو";
+            }
+        }
+
+        function showNoChannels(type) {
+            document.getElementById('title').innerText = "لا توجد قنوات";
+            document.getElementById('sub-title').innerText = `لا يوجد ${type} متاح لهذه الدولة حالياً`;
+            channelLogo.style.display = 'none';
             stopStream();
-
-            // الفلترة حسب الدولة المحددة
-            const countryChannels = allChannels.filter(c => 
-                c.country.toLowerCase() === countryName.toLowerCase() || 
-                (c.languages && c.languages.includes(countryName.toLowerCase()))
-            );
-
-            if (currentMode === 'radio') {
-                // راديو: القنوات التي تحتوي على فئة "radio" في تصنيفها
-                filteredChannels = countryChannels.filter(c => c.categories && c.categories.includes('radio'));
-                fallbackIcon.innerHTML = `<i class="fas fa-radio"></i>`;
-                videoPlayer.style.display = 'none'; // إخفاء مشغل الفيديو في وضع الراديو
-            } else {
-                // تلفاز: القنوات التي لا تحتوي على فئة "radio"
-                filteredChannels = countryChannels.filter(c => !c.categories || !c.categories.includes('radio'));
-                fallbackIcon.innerHTML = `<i class="fas fa-tv"></i>`;
-            }
-
-            currentIndex = 0;
-            if (filteredChannels.length > 0) {
-                loadChannel(0);
-            } else {
-                document.getElementById('title').innerText = "لا توجد قنوات";
-                document.getElementById('sub-title').innerText = currentMode === 'radio' ? "لا يوجد راديو متاح لهذه الدولة" : "لا يوجد تلفاز متاح لهذه الدولة";
-                channelLogo.style.display = 'none';
-            }
         }
 
-        // التبديل بين الأوضاع
         function setMode(mode) {
             if (currentMode === mode) return;
             currentMode = mode;
@@ -279,10 +280,19 @@
             document.getElementById('btn-tv').classList.toggle('active', mode === 'tv');
             document.getElementById('btn-radio').classList.toggle('active', mode === 'radio');
 
-            filterData();
+            document.getElementById('loading').style.display = 'flex';
+            stopStream();
+
+            if (currentMode === 'radio') {
+                fallbackIcon.innerHTML = `<i class="fas fa-radio"></i>`;
+                videoPlayer.style.display = 'none';
+                fetchRadio();
+            } else {
+                fallbackIcon.innerHTML = `<i class="fas fa-tv"></i>`;
+                fetchTV();
+            }
         }
 
-        // تشغيل البث بشكل متوافق مع كافة الأجهزة
         function playStream(url) {
             stopStream();
 
@@ -293,7 +303,6 @@
                 videoPlayer.style.display = 'none';
             }
 
-            // إذا كان الرابط m3u8 (HLS) نقوم بتشغيله بمكتبة hls.js للأندرويد والكمبيوتر
             if (url.includes('.m3u8')) {
                 if (Hls.isSupported()) {
                     hls = new Hls();
@@ -303,12 +312,10 @@
                         videoPlayer.play().catch(e => console.log("Play interrupted"));
                     });
                 } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-                    // دعم متصفحات آبل (Safari / iOS) تلقائياً
                     videoPlayer.src = url;
                     videoPlayer.play().catch(e => console.log("Play interrupted"));
                 }
             } else {
-                // الروابط الصوتية المباشرة (mp3 / ogg)
                 videoPlayer.src = url;
                 videoPlayer.play().catch(e => console.log("Play interrupted"));
             }
@@ -323,13 +330,11 @@
             videoPlayer.src = "";
         }
 
-        // عرض المحطة الحالية وجلب رابطها
         function loadChannel(index) {
             const channel = filteredChannels[index];
             document.getElementById('title').innerText = channel.name;
             document.getElementById('sub-title').innerText = "قناة " + (index + 1) + " من " + filteredChannels.length;
 
-            // تحديث اللوجو
             if (channel.logo) {
                 channelLogo.src = channel.logo;
                 channelLogo.style.display = 'block';
@@ -337,25 +342,19 @@
                 channelLogo.style.display = 'none';
             }
 
-            // البحث عن رابط البث المقابل في streams.json
-            const stream = allStreams.find(s => s.channel === channel.id);
-            if (stream && stream.url) {
-                playStream(stream.url);
+            if (channel.url) {
+                playStream(channel.url);
             } else {
-                document.getElementById('sub-title').innerText = "بث هذه القناة غير متوفر حالياً";
+                document.getElementById('sub-title').innerText = "البث غير متوفر حالياً";
                 stopStream();
             }
         }
 
         function togglePlay() {
-            if (videoPlayer.paused) {
-                videoPlayer.play();
-            } else {
-                videoPlayer.pause();
-            }
+            if (videoPlayer.paused) videoPlayer.play();
+            else videoPlayer.pause();
         }
 
-        // تحديث أيقونة الزر تلقائياً بناءً على حالة البث
         videoPlayer.addEventListener('play', () => playIcon.className = "fas fa-pause");
         videoPlayer.addEventListener('pause', () => playIcon.className = "fas fa-play");
 
@@ -371,7 +370,25 @@
             loadChannel(currentIndex);
         }
 
-        loadData();
+        // دالة بدء تشغيل وفحص صارم لوجود الدولة
+        function init() {
+            if (!countryCode) {
+                // إظهار واجهة تخبر المستخدم بضرورة إدخال الدولة أولاً في البوت وعدم تحميل أي شيء
+                document.getElementById('loading').innerHTML = `
+                    <div style="text-align: center; padding: 25px;">
+                        <i class="fas fa-search-location" style="font-size: 55px; color: var(--primary); margin-bottom: 20px;"></i>
+                        <h2>الرجاء اختيار دولة أولاً</h2>
+                        <p style="color: #888; font-size: 14px;">اكتب اسم الدولة في دردشة البوت لتتمكن من تشغيل الراديو والتلفاز الخاص بها.</p>
+                    </div>
+                `;
+                return; // إيقاف التحميل تماماً
+            }
+            
+            // في حال تم العثور على الدولة المكتوبة، يبدأ تحميل التلفزيون الخاص بها كوضع افتراضي
+            fetchTV();
+        }
+
+        init();
     </script>
 </body>
 </html>
