@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشغل الراديو المباشر</title>
+    <!-- مكتبة تليجرام الرسمية لتطبيقات الويب -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #000; /* شاشة سوداء كما طلبت */
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        h2 { color: #0088cc; }
+        p { margin-bottom: 30px; font-size: 18px; color: #ccc; }
+        
+        /* تصميم مشغل الصوت ليناسب الشاشة */
+        audio {
+            width: 90%;
+            max-width: 400px;
+            outline: none;
+        }
+        .error { color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+    <h2 id="country-title">جاري التحميل...</h2>
+    <p id="station-name">البحث عن محطة آمنة...</p>
+    
+    <!-- وسم الـ audio هو السحر الذي يمنع تنزيل الملفات ويجبرها على التشغيل -->
+    <audio id="player" controls autoplay></audio>
+
+    <script>
+        // إخبار تليجرام أن التطبيق جاهز لتوسيع الشاشة
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+
+        // 1. سحب اسم الدولة من الرابط القادم من البوت
+        const urlParams = new URLSearchParams(window.location.search);
+        const country = urlParams.get('country');
+
+        if (country) {
+            document.getElementById('country-title').innerText = "📻 راديو " + country;
+            fetchRadioStation(country);
+        } else {
+            document.getElementById('country-title').innerText = "❌ خطأ";
+            document.getElementById('station-name').innerText = "الرجاء كتابة اسم الدولة في البوت أولاً.";
+            document.getElementById('player').style.display = "none";
+        }
+
+        // 2. دالة جلب الراديو
+        function fetchRadioStation(countryName) {
+            // نجلب 10 محطات لفلترتها واختيار المحطة الآمنة
+            const apiUrl = `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(countryName)}?limit=10`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(stations => {
+                    if (stations.length > 0) {
+                        // فلترة: نبحث عن محطة صيغتها MP3 أو AAC ويكون لها bitrate صالح (لتجنب الملفات الخبيثة)
+                        let safeStation = stations.find(s => 
+                            (s.codec === 'MP3' || s.codec === 'AAC' || s.codec === 'OGG') && 
+                            s.url_resolved.indexOf(".m3u") === -1 &&
+                            s.url_resolved.indexOf(".php") === -1
+                        );
+
+                        // إذا لم نجد محطة مثالية، نأخذ الأولى على أي حال
+                        if (!safeStation) { safeStation = stations[0]; }
+
+                        // عرض اسم المحطة وتشغيل الرابط
+                        document.getElementById('station-name').innerText = safeStation.name || "محطة غير معروفة";
+                        document.getElementById('player').src = safeStation.url_resolved;
+                        
+                        // محاولة التشغيل التلقائي
+                        document.getElementById('player').play().catch(e => {
+                            console.log("التشغيل التلقائي يحتاج لتدخل المستخدم");
+                        });
+
+                    } else {
+                        document.getElementById('station-name').innerText = "لم يتم العثور على محطات لهذه الدولة.";
+                        document.getElementById('player').style.display = "none";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('station-name').innerText = "حدث خطأ في الاتصال بالخادم.";
+                    document.getElementById('station-name').className = "error";
+                });
+        }
+    </script>
+
+</body>
+</html>
