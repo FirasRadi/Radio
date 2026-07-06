@@ -272,9 +272,21 @@
         var nextBtn = document.getElementById('nextBtn');
         var audio = document.getElementById('audioPlayer');
 
-        var params = new URLSearchParams(window.location.search);
-        var countryName = params.get('name') || '';
 
+
+        
+        // 1. جلب الدولة من الرابط العادي (في حال استخدام الزر الأزرق Menu Button)
+var params = new URLSearchParams(window.location.search);
+var urlName = params.get('name') || '';
+// 2. جلب الدولة من تيليجرام مباشرة (في حال استخدام رابط startapp)
+var startParam = tg.initDataUnsafe.start_param || '';
+var tgName = startParam.replace(/_/g, ' '); // إعادة الشرطة السفلية إلى مسافة
+// 3. دمج الطريقتين: نأخذ القيمة من تيليجرام، وإذا كانت فارغة نأخذها من الرابط العادي
+var countryName = tgName || urlName;
+
+
+
+        
         var stations = [];
         var currentIndex = 0;
         var isPlaying = false;
