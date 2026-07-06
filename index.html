@@ -1,144 +1,174 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Radio & TV Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio & TV Pro Fixed</title>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-<style>
-body {
-    background:#0f1014;
-    color:white;
-    font-family:Arial;
-    text-align:center;
-    margin:0;
-}
+    <style>
+        body {
+            background:#0f1014;
+            color:white;
+            font-family: Arial;
+            margin:0;
+            text-align:center;
+        }
 
-.player {
-    width:90%;
-    max-width:420px;
-    margin:auto;
-    margin-top:30px;
-}
+        .player-container{
+            width:90%;
+            margin:auto;
+            margin-top:20px;
+        }
 
-video {
-    width:100%;
-    background:black;
-    border-radius:12px;
-}
+        button{
+            padding:10px;
+            margin:5px;
+        }
 
-button {
-    padding:10px;
-    margin:5px;
-    border:none;
-    border-radius:8px;
-}
-</style>
+        video{
+            width:100%;
+            background:black;
+        }
+
+        img{
+            width:100px;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="player">
+<div class="player-container">
 
-<h2 id="title">Loading...</h2>
-<p id="sub"></p>
+    <h2 id="title">Loading...</h2>
+    <p id="sub-title"></p>
 
-<video id="video" controls></video>
+    <div>
+        <button onclick="setMode('tv')">TV</button>
+        <button onclick="setMode('radio')">Radio</button>
+    </div>
 
-<div>
-    <button onclick="prev()">⏮</button>
-    <button onclick="toggle()">⏯</button>
-    <button onclick="next()">⏭</button>
-</div>
+    <img id="channel-logo" style="display:none">
+
+    <video id="video-player" controls></video>
 
 </div>
 
 <script>
 
-let countryCode = new URLSearchParams(location.search).get("code");
-let countryName = new URLSearchParams(location.search).get("name");
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-let channels = [];
-let streams = [];
-let index = 0;
+let filteredChannels = [];
+let allStreams = [];
+let currentMode = "tv";
 
-const video = document.getElementById("video");
+const urlParams = new URLSearchParams(window.location.search);
+const countryCode = (urlParams.get("code") || "").toLowerCase();
+const countryName = urlParams.get("name") || "";
 
-async function init() {
+const videoPlayer = document.getElementById("video-player");
+const channelLogo = document.getElementById("channel-logo");
 
-    if (!countryCode) {
-        document.getElementById("title").innerText = "No country";
-        return;
+let hls = null;
+
+async function init(){
+
+    try {
+
+        const [chRes, stRes] = await Promise.all([
+            fetch("https://iptv-org.github.io/api/channels.json").then(r=>r.json()),
+            fetch("https://iptv-org.github.io/api/streams.json").then(r=>r.json())
+        ]);
+
+        allStreams = stRes;
+
+        const countryChannels = chRes.filter(c =>
+            c.country && c.country.toLowerCase() === countryCode
+        );
+
+        window.tvList = countryChannels.filter(c =>
+            !c.categories || !c.categories.includes("radio")
+        );
+
+        window.radioList = countryChannels.filter(c =>
+            c.categories && (c.categories.includes("radio") || c.categories.includes("music"))
+        );
+
+        setMode("tv");
+
+    } catch(e){
+        document.body.innerHTML = "Error loading data";
+        console.log(e);
     }
+}
 
-    const [chRes, stRes] = await Promise.all([
-        fetch("https://iptv-org.github.io/api/channels.json").then(r => r.json()),
-        fetch("https://iptv-org.github.io/api/streams.json").then(r => r.json())
-    ]);
+function setMode(mode){
 
-    streams = stRes;
+    currentMode = mode;
 
-    channels = chRes.filter(c =>
-        c.country &&
-        c.country.toLowerCase() === countryCode.toLowerCase()
-    );
+    filteredChannels = (mode === "tv") ? window.tvList : window.radioList;
 
-    if (!channels.length) {
+    if(!filteredChannels || filteredChannels.length === 0){
         document.getElementById("title").innerText = "No channels";
         return;
     }
 
-    load(0);
+    loadChannel(0);
 }
 
-function load(i) {
+function loadChannel(index){
 
-    index = i;
+    const channel = filteredChannels[index];
 
-    let ch = channels[i];
-
-    document.getElementById("title").innerText = ch.name;
-    document.getElementById("sub").innerText =
-        countryName + " - " + (i+1) + "/" + channels.length;
-
-    let stream = streams.find(s => s.channel === ch.id);
-
-    if (!stream || !stream.url) {
-        document.getElementById("sub").innerText = "No stream available";
+    if(!channel){
+        document.getElementById("title").innerText = "No channel";
         return;
     }
 
-    play(stream.url);
-}
+    document.getElementById("title").innerText = channel.name;
+    document.getElementById("sub-title").innerText = countryName;
 
-function play(url) {
-
-    if (url.includes(".m3u8") && Hls.isSupported()) {
-        let hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    if(channel.logo){
+        channelLogo.src = channel.logo;
+        channelLogo.style.display = "block";
     } else {
-        video.src = url;
-        video.play();
+        channelLogo.style.display = "none";
+    }
+
+    const stream = allStreams.find(s => s.channel === channel.id);
+
+    if(stream && stream.url){
+        playStream(stream.url);
+    } else {
+        document.getElementById("sub-title").innerText = "No stream available";
     }
 }
 
-function next() {
-    index = (index + 1) % channels.length;
-    load(index);
-}
+function playStream(url){
 
-function prev() {
-    index = (index - 1 + channels.length) % channels.length;
-    load(index);
-}
+    if(hls){
+        hls.destroy();
+        hls = null;
+    }
 
-function toggle() {
-    if (video.paused) video.play();
-    else video.pause();
+    if(url.includes(".m3u8")){
+        if(Hls.isSupported()){
+            hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(videoPlayer);
+            hls.on(Hls.Events.MANIFEST_PARSED, ()=>videoPlayer.play());
+        } else {
+            videoPlayer.src = url;
+        }
+    } else {
+        videoPlayer.src = url;
+        videoPlayer.play();
+    }
 }
 
 init();
