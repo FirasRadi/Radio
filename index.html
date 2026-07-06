@@ -37,7 +37,6 @@
             overflow: hidden;
         }
 
-        /* زر التبرع - أزرق بشكل افتراضي */
         .donate-btn {
             position: fixed;
             bottom: 20px;
@@ -181,7 +180,6 @@
             display: none;
         }
 
-        /* ملاحظة تغيير الدولة */
         .footer-note {
             margin-top: 25px;
             padding-top: 15px;
@@ -254,46 +252,44 @@
 
         <audio id="audioPlayer" preload="metadata"></audio>
 
-        <!-- الملاحظة السفلية -->
         <div class="footer-note">
             <i class="fas fa-exchange-alt"></i> Change country via bot chat
         </div>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
+        var tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        const loading = document.getElementById('loading');
-        const logo = document.getElementById('stationLogo');
-        const title = document.getElementById('stationTitle');
-        const sub = document.getElementById('stationSub');
-        const playBtn = document.getElementById('playBtn');
-        const playIcon = document.getElementById('playIcon');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const audio = document.getElementById('audioPlayer');
+        var loading = document.getElementById('loading');
+        var logo = document.getElementById('stationLogo');
+        var title = document.getElementById('stationTitle');
+        var sub = document.getElementById('stationSub');
+        var playBtn = document.getElementById('playBtn');
+        var playIcon = document.getElementById('playIcon');
+        var prevBtn = document.getElementById('prevBtn');
+        var nextBtn = document.getElementById('nextBtn');
+        var audio = document.getElementById('audioPlayer');
 
-        const params = new URLSearchParams(window.location.search);
-        const countryName = params.get('name') || '';
+        var params = new URLSearchParams(window.location.search);
+        var countryName = params.get('name') || '';
 
-        let stations = [];
-        let currentIndex = 0;
-        let isPlaying = false;
-        let hasValid = false;
-        let errorCount = 0; // عداد الأخطاء لمنع التشنج
+        var stations = [];
+        var currentIndex = 0;
+        var isPlaying = false;
+        var hasValid = false;
+        var errorCount = 0;
         
-        // التحقق مما إذا كان المستخدم يستمع للراديو قبل تغيير الدولة
-        let autoPlayRequested = localStorage.getItem('radio_is_playing') === 'true';
+        var autoPlayRequested = localStorage.getItem('radio_is_playing') === 'true';
 
         async function fetchRadio(name) {
             if (!name) throw new Error('No country');
-            const url = `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`;
-            const resp = await fetch(url);
+            var url = "https://de1.api.radio-browser.info/json/stations/bycountry/" + encodeURIComponent(name) + "?order=votes&reverse=true";
+            var resp = await fetch(url);
             if (!resp.ok) throw new Error('Fetch failed');
-            const data = await resp.json();
-            return data.filter(s => s.url_resolved || s.url);
+            var data = await resp.json();
+            return data.filter(function(s) { return s.url_resolved || s.url; });
         }
 
         function setEmpty(msg) {
@@ -311,13 +307,13 @@
 
         function loadStation(index) {
             if (!stations.length || !hasValid) { setEmpty(); return; }
-            const item = stations[index];
+            var item = stations[index];
             
             title.textContent = item.name || 'Unknown Station';
-            sub.textContent = `Station ${index + 1} of ${stations.length}`;
+            sub.textContent = "Station " + (index + 1) + " of " + stations.length;
             
             if (item.favicon) {
-                const img = new Image();
+                var img = new Image();
                 img.src = item.favicon;
                 img.alt = "logo";
                 img.onload = function() {
@@ -338,32 +334,28 @@
             prevBtn.disabled = false;
             nextBtn.disabled = false;
             
-            // التشغيل التلقائي إذا كان يستمع مسبقاً أو ضغط على زر التشغيل
             if (isPlaying || autoPlayRequested) {
                 playAudio();
             }
         }
 
-        // دالة التشغيل مع معالجة الأخطاء بصمت
         function playAudio() {
-            audio.play().then(() => {
+            audio.play().then(function() {
                 isPlaying = true;
                 autoPlayRequested = false;
-                errorCount = 0; // تصفير عداد الأخطاء عند نجاح التشغيل
+                errorCount = 0;
                 playIcon.className = 'fas fa-pause';
                 logo.classList.add('playing');
-                localStorage.setItem('radio_is_playing', 'true'); // حفظ حالة التشغيل
-            }).catch(() => {
+                localStorage.setItem('radio_is_playing', 'true');
+            }).catch(function() {
                 handlePlayError();
             });
         }
 
-        // دالة تخطي المحطات المعطلة تلقائياً
         function handlePlayError() {
             errorCount++;
-            // محاولة التخطي لـ 15 محطة كحد أقصى لتجنب تشنج المتصفح إذا كانت كل المحطات معطلة
             if (errorCount < stations.length && errorCount < 15) {
-                setTimeout(nextStation, 400); // تخطي بعد جزء من الثانية
+                setTimeout(nextStation, 400);
             } else {
                 isPlaying = false;
                 playIcon.className = 'fas fa-play';
@@ -383,7 +375,7 @@
                 isPlaying = false;
                 playIcon.className = 'fas fa-play';
                 logo.classList.remove('playing');
-                localStorage.setItem('radio_is_playing', 'false'); // حفظ حالة الإيقاف
+                localStorage.setItem('radio_is_playing', 'false');
             }
         }
 
@@ -403,27 +395,26 @@
         nextBtn.addEventListener('click', nextStation);
         prevBtn.addEventListener('click', prevStation);
         
-        audio.addEventListener('pause', () => { 
+        audio.addEventListener('pause', function() { 
             isPlaying = false; 
             playIcon.className = 'fas fa-play'; 
             logo.classList.remove('playing');
         });
         
-        audio.addEventListener('play', () => { 
+        audio.addEventListener('play', function() { 
             isPlaying = true; 
             playIcon.className = 'fas fa-pause'; 
             logo.classList.add('playing');
         });
 
-        // إذا انقطع البث فجأة أثناء الاستماع، تخطى للمحطة التالية
-        audio.addEventListener('error', () => {
+        audio.addEventListener('error', function() {
             if(isPlaying || autoPlayRequested) {
                 handlePlayError();
             }
         });
 
         async function init() {
-            const name = countryName.trim();
+            var name = countryName.trim();
             if (!name) {
                 setEmpty('No Country Selected');
                 loading.style.display = 'none';
@@ -431,17 +422,17 @@
             }
             
             try {
-                const data = await fetchRadio(name);
+                var data = await fetchRadio(name);
                 if (data.length) {
                     stations = data;
                     hasValid = true;
                     currentIndex = 0;
                     loadStation(0);
                 } else {
-                    const fallbackUrl = `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`;
-                    const fallbackResp = await fetch(fallbackUrl);
-                    const fallbackData = await fallbackResp.json();
-                    const validFallback = fallbackData.filter(s => s.url_resolved || s.url);
+                    var fallbackUrl = "https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(name) + "?order=votes&reverse=true";
+                    var fallbackResp = await fetch(fallbackUrl);
+                    var fallbackData = await fallbackResp.json();
+                    var validFallback = fallbackData.filter(function(s) { return s.url_resolved || s.url; });
                     
                     if(validFallback.length) {
                         stations = validFallback;
