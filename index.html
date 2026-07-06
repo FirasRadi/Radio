@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio & TV Pro</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
@@ -13,8 +12,8 @@ body {
     background:#0f1014;
     color:white;
     font-family:Arial;
-    margin:0;
     text-align:center;
+    margin:0;
 }
 
 .player {
@@ -29,9 +28,12 @@ video {
     background:black;
     border-radius:12px;
 }
+
 button {
     padding:10px;
     margin:5px;
+    border:none;
+    border-radius:8px;
 }
 </style>
 </head>
@@ -54,9 +56,6 @@ button {
 </div>
 
 <script>
-
-const tg = window.Telegram.WebApp;
-tg.ready();
 
 let countryCode = new URLSearchParams(location.search).get("code");
 let countryName = new URLSearchParams(location.search).get("name");
@@ -116,15 +115,15 @@ function load(i) {
 
 function play(url) {
 
-    if (Hls.isSupported() && url.includes(".m3u8")) {
+    if (url.includes(".m3u8") && Hls.isSupported()) {
         let hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
     } else {
         video.src = url;
+        video.play();
     }
-
-    video.play();
 }
 
 function next() {
