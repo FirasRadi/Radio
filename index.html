@@ -8,75 +8,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root {
-            --primary: #0088cc;
-            --bg: #0f1014;
-            --card: rgba(255, 255, 255, 0.1);
-        }
-        body {
-            background-color: var(--bg);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .player-container {
-            width: 85%;
-            max-width: 400px;
-            background: var(--card);
-            backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .mode-toggle {
-            display: flex;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 50px;
-            padding: 5px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .mode-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #888;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+        :root { --primary: #0088cc; --bg: #0f1014; --card: rgba(255, 255, 255, 0.1); }
+        body { background-color: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .player-container { width: 85%; max-width: 400px; background: var(--card); backdrop-filter: blur(10px); padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .mode-toggle { display: flex; background: rgba(0, 0, 0, 0.3); border-radius: 50px; padding: 5px; margin-bottom: 20px; }
+        .mode-btn { flex: 1; background: none; border: none; color: #888; padding: 10px; border-radius: 50px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .mode-btn.active { background: var(--primary); color: white; }
-        .media-screen {
-            width: 100%; height: 180px; background: linear-gradient(145deg, #1e1e1e, #111);
-            margin: 0 auto 20px; border-radius: 20px; display: flex; align-items: center;
-            justify-content: center; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .logo-fallback { font-size: 60px; color: var(--primary); position: absolute; z-index: 1; }
-        #channel-logo { width: 100%; height: 100%; object-fit: cover; border-radius: 20px; position: absolute; z-index: 2; display: none; }
-        video { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; position: absolute; z-index: 3; background: black; display: none; }
+        .media-screen { width: 100%; height: 180px; background: #000; margin-bottom: 20px; border-radius: 20px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        #channel-logo { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 2; }
+        video { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 3; background: black; display: none; }
         h2 { margin: 10px 0 5px; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         p { color: #888; font-size: 13px; margin: 0 0 20px 0; }
         .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 0 15px; }
-        .btn { background: none; border: none; color: white; font-size: 22px; cursor: pointer; transition: 0.3s; padding: 10px; }
-        .btn:hover { color: var(--primary); transform: scale(1.1); }
-        .btn-play { width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .support-btn { background: #0070ba; color: white; text-decoration: none; padding: 10px 20px; border-radius: 50px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .support-btn:hover { background: #005ea6; }
+        .btn { background: none; border: none; color: white; font-size: 22px; cursor: pointer; padding: 10px; }
+        .btn-play { width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .support-btn { background: #0070ba; color: white; text-decoration: none; padding: 10px 20px; border-radius: 50px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; }
     </style>
 </head>
@@ -85,24 +31,18 @@
     <div id="loading"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
 
     <div class="player-container">
-        
         <div class="mode-toggle">
-            <button id="btn-tv" class="mode-btn active" onclick="setMode('tv')">
-                <i class="fas fa-tv"></i> تلفاز
-            </button>
-            <button id="btn-radio" class="mode-btn" onclick="setMode('radio')">
-                <i class="fas fa-radio"></i> راديو
-            </button>
+            <button id="btn-tv" class="mode-btn active" onclick="setMode('tv')"><i class="fas fa-tv"></i> تلفاز</button>
+            <button id="btn-radio" class="mode-btn" onclick="setMode('radio')"><i class="fas fa-radio"></i> راديو</button>
         </div>
 
         <div class="media-screen">
-            <div class="logo-fallback" id="fallback-icon"><i class="fas fa-tv"></i></div>
-            <img id="channel-logo" src="" alt="logo">
+            <img id="channel-logo" src="" alt="">
             <video id="video-player" controls autoplay playsinline></video>
         </div>
 
-        <h2 id="title">الرجاء تحديد الدولة عبر البوت</h2>
-        <p id="sub-title">...</p>
+        <h2 id="title">جاري التحميل...</h2>
+        <p id="sub-title">يرجى الانتظار</p>
 
         <div class="controls">
             <button class="btn" onclick="prevChannel()"><i class="fas fa-step-backward"></i></button>
@@ -117,135 +57,100 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        tg.ready(); tg.expand();
 
-        let allChannels = [];
         let filteredChannels = [];
         let allStreams = [];
         let currentIndex = 0;
         let currentMode = 'tv';
 
-        // قراءة الرمز الذي جلبه البوت بناءً على فكرتك
         const urlParams = new URLSearchParams(window.location.search);
-        const targetCountryCode = urlParams.get('code'); 
-        const displayCountryName = urlParams.get('name') || "";
+        const countryCode = urlParams.get('code') ? urlParams.get('code').toLowerCase() : "";
+        const countryName = urlParams.get('name') || "";
 
         const videoPlayer = document.getElementById('video-player');
         const playIcon = document.getElementById('play-icon');
         const channelLogo = document.getElementById('channel-logo');
-        const fallbackIcon = document.getElementById('fallback-icon');
-
         let hls = null;
 
-        async function loadData() {
-            if (!targetCountryCode) {
+        async function init() {
+            if (!countryCode) {
+                document.getElementById('title').innerText = "خطأ في الدولة";
                 document.getElementById('loading').style.display = 'none';
                 return;
             }
 
             try {
-                const channelsResponse = await fetch('https://iptv-org.github.io/api/channels.json');
-                allChannels = await channelsResponse.json();
+                // جلب القنوات والروابط
+                const [chRes, stRes] = await Promise.all([
+                    fetch('https://iptv-org.github.io/api/channels.json').then(r => r.json()),
+                    fetch('https://iptv-org.github.io/api/streams.json').then(r => r.json())
+                ]);
 
-                const streamsResponse = await fetch('https://iptv-org.github.io/api/streams.json');
-                allStreams = await streamsResponse.json();
+                allStreams = stRes;
 
-                filterData();
+                // تصفية القنوات حسب رمز الدولة (code) فقط لمنع العشوائية
+                const countryChannels = chRes.filter(c => c.country && c.country.toLowerCase() === countryCode);
+
+                // فصل الراديو عن التلفاز
+                window.radioList = countryChannels.filter(c => c.categories && (c.categories.includes('radio') || c.categories.includes('music')));
+                window.tvList = countryChannels.filter(c => !c.categories || (!c.categories.includes('radio') && !c.categories.includes('music')));
+
+                setMode('tv'); // البدء بوضع التلفاز
                 document.getElementById('loading').style.display = 'none';
             } catch (err) {
-                console.error("Error loading data", err);
-                document.getElementById('loading').innerText = "خطأ في الاتصال بالخادم";
-            }
-        }
-
-        function filterData() {
-            stopStream();
-
-            // استخدام الرمز (مثال: sy, eg) لجلب القنوات
-            const countryChannels = allChannels.filter(c => 
-                c.country && c.country.toLowerCase() === targetCountryCode
-            );
-
-            if (currentMode === 'radio') {
-                filteredChannels = countryChannels.filter(c => c.categories && c.categories.includes('radio'));
-                fallbackIcon.innerHTML = `<i class="fas fa-radio"></i>`;
-                videoPlayer.style.display = 'none';
-            } else {
-                filteredChannels = countryChannels.filter(c => !c.categories || !c.categories.includes('radio'));
-                fallbackIcon.innerHTML = `<i class="fas fa-tv"></i>`;
-            }
-
-            currentIndex = 0;
-            if (filteredChannels.length > 0) {
-                loadChannel(0);
-            } else {
-                document.getElementById('title').innerText = "لا توجد قنوات";
-                document.getElementById('sub-title').innerText = "لا تتوفر قنوات لـ " + displayCountryName;
-                channelLogo.style.display = 'none';
+                document.getElementById('loading').innerText = "خطأ في تحميل البيانات";
             }
         }
 
         function setMode(mode) {
-            if (currentMode === mode) return;
             currentMode = mode;
             document.getElementById('btn-tv').classList.toggle('active', mode === 'tv');
             document.getElementById('btn-radio').classList.toggle('active', mode === 'radio');
-            filterData();
-        }
+            
+            filteredChannels = mode === 'tv' ? window.tvList : window.radioList;
+            currentIndex = 0;
 
-        function playStream(url) {
-            stopStream();
-            if (currentMode === 'tv') {
-                videoPlayer.style.display = 'block';
-                channelLogo.style.display = 'none';
+            if (filteredChannels.length > 0) {
+                loadChannel(0);
             } else {
-                videoPlayer.style.display = 'none';
+                showEmpty();
             }
-
-            if (url.includes('.m3u8')) {
-                if (Hls.isSupported()) {
-                    hls = new Hls();
-                    hls.loadSource(url);
-                    hls.attachMedia(videoPlayer);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        videoPlayer.play().catch(e => console.log("Play interrupted"));
-                    });
-                } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-                    videoPlayer.src = url;
-                    videoPlayer.play().catch(e => console.log("Play interrupted"));
-                }
-            } else {
-                videoPlayer.src = url;
-                videoPlayer.play().catch(e => console.log("Play interrupted"));
-            }
-        }
-
-        function stopStream() {
-            if (hls) { hls.destroy(); hls = null; }
-            videoPlayer.pause();
-            videoPlayer.src = "";
         }
 
         function loadChannel(index) {
+            stopPlayback();
             const channel = filteredChannels[index];
             document.getElementById('title').innerText = channel.name;
-            document.getElementById('sub-title').innerText = "قناة " + (index + 1) + " من " + filteredChannels.length;
+            document.getElementById('sub-title').innerText = `${countryName} - قناة ${index + 1} من ${filteredChannels.length}`;
+            
+            if (channel.logo) { channelLogo.src = channel.logo; channelLogo.style.display = 'block'; }
+            else { channelLogo.style.display = 'none'; }
 
-            if (channel.logo) {
-                channelLogo.src = channel.logo;
-                channelLogo.style.display = 'block';
-            } else {
-                channelLogo.style.display = 'none';
-            }
-
+            // البحث عن الرابط
             const stream = allStreams.find(s => s.channel === channel.id);
             if (stream && stream.url) {
-                playStream(stream.url);
+                startPlayback(stream.url);
             } else {
-                document.getElementById('sub-title').innerText = "بث هذه القناة غير متوفر حالياً";
-                stopStream();
+                document.getElementById('sub-title').innerText = "بث غير متوفر حالياً";
             }
+        }
+
+        function startPlayback(url) {
+            if (currentMode === 'tv') videoPlayer.style.display = 'block';
+            else videoPlayer.style.display = 'none';
+
+            if (url.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    hls = new Hls(); hls.loadSource(url); hls.attachMedia(videoPlayer);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => videoPlayer.play());
+                } else { videoPlayer.src = url; }
+            } else { videoPlayer.src = url; }
+        }
+
+        function stopPlayback() {
+            if (hls) { hls.destroy(); hls = null; }
+            videoPlayer.pause(); videoPlayer.src = "";
         }
 
         function togglePlay() {
@@ -253,22 +158,19 @@
             else videoPlayer.pause();
         }
 
+        function nextChannel() { if (filteredChannels.length > 0) { currentIndex = (currentIndex + 1) % filteredChannels.length; loadChannel(currentIndex); } }
+        function prevChannel() { if (filteredChannels.length > 0) { currentIndex = (currentIndex - 1 + filteredChannels.length) % filteredChannels.length; loadChannel(currentIndex); } }
+        
+        function showEmpty() {
+            document.getElementById('title').innerText = "لا توجد قنوات";
+            document.getElementById('sub-title').innerText = "لم يتم العثور على محتوى لهذه الدولة";
+            channelLogo.style.display = 'none'; stopPlayback();
+        }
+
         videoPlayer.addEventListener('play', () => playIcon.className = "fas fa-pause");
         videoPlayer.addEventListener('pause', () => playIcon.className = "fas fa-play");
 
-        function nextChannel() {
-            if (filteredChannels.length === 0) return;
-            currentIndex = (currentIndex + 1) % filteredChannels.length;
-            loadChannel(currentIndex);
-        }
-
-        function prevChannel() {
-            if (filteredChannels.length === 0) return;
-            currentIndex = (currentIndex - 1 + filteredChannels.length) % filteredChannels.length;
-            loadChannel(currentIndex);
-        }
-
-        loadData();
+        init();
     </script>
 </body>
 </html>
