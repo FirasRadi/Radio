@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Radio & TV Pro</title>
+    <title>Pure Radio · Electro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,119 +16,92 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --bg-start: #070b14;
-            --bg-end: #0f1829;
-            --gold: #d4af37;
-            --gold-dim: rgba(212, 175, 55, 0.25);
-            --blue-accent: #00b4d8;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(212, 175, 55, 0.15);
-            --text-primary: #f0f4fa;
-            --text-secondary: #a0b3cc;
-            --radius: 32px;
-            --shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.8);
-        }
-
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: linear-gradient(145deg, var(--bg-start), var(--bg-end));
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             margin: 0;
-            color: var(--text-primary);
-        }
-
-        .app-card {
-            width: 100%;
-            max-width: 440px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-radius: var(--radius);
-            padding: 28px 22px 32px;
-            box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--glass-border);
+            background: #080c1a;
             position: relative;
-            transition: 0.3s;
+            overflow: hidden;
         }
 
-        .app-card::before {
+        /* خلفية متدرجة عميقة مع كرات ضبابية */
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(circle at 20% 30%, #1a2a6c, #080c1a 70%);
+        }
+
+        .bg-glow::after {
             content: '';
             position: absolute;
-            inset: -2px;
-            border-radius: var(--radius);
-            padding: 1.5px;
-            background: linear-gradient(135deg, var(--gold), transparent 40%, transparent 60%, var(--gold));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 5px;
-            border-radius: 60px;
-            margin-bottom: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px 0;
-            border: none;
-            border-radius: 40px;
-            font-size: 15px;
-            font-weight: 600;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            letter-spacing: 0.3px;
-            font-family: inherit;
-        }
-
-        .tab-btn i {
-            font-size: 16px;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, #0b1a2e, #142b44);
-            color: var(--gold);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(212, 175, 55, 0.2);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-
-        .tab-btn:not(.active):hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .logo-frame {
-            width: 120px;
-            height: 120px;
-            margin: 6px auto 18px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 180, 255, 0.08), transparent 70%);
+            top: -100px;
+            right: -100px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #1a2639, #0a0f1a);
+            animation: floatGlow 20s ease-in-out infinite alternate;
+        }
+
+        .bg-glow::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(130, 0, 255, 0.06), transparent 70%);
+            bottom: -100px;
+            left: -100px;
+            border-radius: 50%;
+            animation: floatGlow 25s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes floatGlow {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(60px, 40px) scale(1.3);
+            }
+        }
+
+        /* البطاقة الرئيسية – زجاجية نقية */
+        .app-card {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 44px;
+            padding: 32px 24px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            position: relative;
+            z-index: 2;
+            transition: 0.3s;
+        }
+
+        /* شعار الراديو – دائرة زرقاء أنيقة */
+        .logo-frame {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #0d1f3c, #162a52);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
-            color: var(--gold);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(212, 175, 55, 0.2);
+            font-size: 32px;
+            color: #6ab0fe;
+            box-shadow: 0 8px 24px rgba(0, 100, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.06);
             overflow: hidden;
             transition: 0.3s;
-            border: 1px solid rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(100, 180, 255, 0.1);
         }
 
         .logo-frame img {
@@ -138,15 +111,16 @@
         }
 
         .logo-frame i {
-            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.2));
+            filter: drop-shadow(0 0 12px rgba(60, 160, 255, 0.2));
         }
 
+        /* النصوص */
         .station-name {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             text-align: center;
+            color: #f0f6ff;
             letter-spacing: -0.2px;
-            color: #fff;
             margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
@@ -156,13 +130,13 @@
         .station-meta {
             font-size: 13px;
             font-weight: 400;
-            color: var(--text-secondary);
+            color: #8892b0;
             text-align: center;
-            margin-bottom: 22px;
-            direction: ltr;
-            letter-spacing: 0.2px;
+            margin-bottom: 26px;
+            letter-spacing: 0.3px;
         }
 
+        /* أزرار التحكم – تصميم عصري هادئ */
         .controls {
             display: flex;
             align-items: center;
@@ -174,12 +148,12 @@
         .ctrl-btn {
             background: none;
             border: none;
-            color: var(--text-secondary);
-            font-size: 22px;
+            color: #8892b0;
+            font-size: 20px;
             cursor: pointer;
-            transition: 0.2s;
-            width: 48px;
-            height: 48px;
+            transition: 0.25s;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -191,143 +165,183 @@
         .ctrl-btn:hover {
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
         }
 
         .ctrl-btn.play-btn {
-            width: 68px;
-            height: 68px;
-            background: linear-gradient(135deg, #0f263b, #1a3a57);
-            color: var(--gold);
-            font-size: 28px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(212, 175, 55, 0.25);
-            border: 1px solid rgba(212, 175, 55, 0.2);
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(145deg, #1a3a6a, #0f2347);
+            color: #8ac4ff;
+            font-size: 26px;
+            box-shadow: 0 8px 24px rgba(0, 80, 200, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(100, 180, 255, 0.15);
         }
 
         .ctrl-btn.play-btn:hover {
             transform: scale(1.04);
-            background: linear-gradient(135deg, #142f47, #1f4468);
-            border-color: var(--gold);
+            background: linear-gradient(145deg, #224a82, #132d5a);
+            box-shadow: 0 8px 32px rgba(0, 80, 255, 0.3);
+            color: #b5d8ff;
         }
 
         .ctrl-btn:disabled {
-            opacity: 0.3;
+            opacity: 0.25;
             cursor: not-allowed;
             pointer-events: none;
+            transform: none !important;
         }
 
+        /* مشغل الصوت – مخصص بلون أزرق هادئ */
         audio {
             width: 100%;
-            height: 44px;
+            height: 42px;
             border-radius: 40px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.25);
             outline: none;
             margin-top: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
         }
         audio::-webkit-media-controls-panel {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(8, 12, 26, 0.7);
+        }
+        audio::-webkit-media-controls-play-button {
+            background: #1a3a6a;
+            border-radius: 50%;
+        }
+        audio::-webkit-media-controls-timeline {
+            background: #2a4a7a;
+            border-radius: 10px;
+        }
+
+        /* صف الدعم – زر PayPal الدائري المتواضع */
+        .support-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 22px;
+            gap: 14px;
+        }
+
+        .paypal-circle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #003087, #003087);
+            color: #fff;
+            font-size: 22px;
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(0, 48, 135, 0.25);
+            transition: 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .paypal-circle i {
+            font-size: 24px;
+        }
+
+        .paypal-circle:hover {
+            transform: scale(1.06);
+            box-shadow: 0 6px 24px rgba(0, 48, 135, 0.4);
+            background: linear-gradient(145deg, #0037a0, #002a70);
+        }
+
+        .support-label {
+            font-size: 12px;
+            color: #5a6a8a;
+            font-weight: 400;
+            letter-spacing: 0.5px;
         }
 
         .footer-note {
-            margin-top: 22px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            font-size: 12px;
+            margin-top: 20px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 11px;
             font-weight: 400;
-            color: #6a7f9e;
+            color: #3a4a6a;
             text-align: center;
-            letter-spacing: 0.2px;
-            transition: 0.3s;
-            min-height: 38px;
+            letter-spacing: 0.3px;
         }
 
         .footer-note i {
-            margin-left: 8px;
-            color: var(--gold-dim);
-            font-size: 11px;
+            margin: 0 4px;
+            color: #4a6a9a;
+            font-size: 10px;
         }
 
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px 0 10px;
-            text-align: center;
-        }
-        .empty-state i {
-            font-size: 42px;
-            color: var(--gold-dim);
-            margin-bottom: 16px;
-        }
-        .empty-state h3 {
-            font-weight: 500;
-            font-size: 18px;
-            color: #c8d6e5;
-        }
-        .empty-state p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            max-width: 260px;
-            margin-top: 6px;
-        }
-
+        /* شاشة التحميل */
         #loading {
             position: fixed;
             inset: 0;
-            background: rgba(7, 11, 20, 0.92);
-            backdrop-filter: blur(8px);
+            background: rgba(8, 12, 26, 0.94);
+            backdrop-filter: blur(12px);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 18px;
+            gap: 16px;
             z-index: 999;
-            color: var(--text-secondary);
-            font-size: 14px;
+            color: #8892b0;
+            font-size: 13px;
+            letter-spacing: 0.5px;
         }
         #loading i {
-            font-size: 34px;
-            color: var(--gold);
+            font-size: 32px;
+            color: #6ab0fe;
+            animation: spinPulse 1.4s ease-in-out infinite;
         }
 
-        @media (max-width: 460px) {
+        @keyframes spinPulse {
+            0% {
+                transform: rotate(0deg) scale(0.9);
+                opacity: 0.4;
+            }
+            50% {
+                transform: rotate(180deg) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: rotate(360deg) scale(0.9);
+                opacity: 0.4;
+            }
+        }
+
+        @media (max-width: 440px) {
             .app-card {
-                padding: 20px 16px 24px;
+                padding: 24px 16px 22px;
+                border-radius: 32px;
             }
             .logo-frame {
-                width: 96px;
-                height: 96px;
-                font-size: 36px;
+                width: 68px;
+                height: 68px;
+                font-size: 28px;
             }
             .station-name {
-                font-size: 18px;
+                font-size: 17px;
             }
             .ctrl-btn.play-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
+                width: 58px;
+                height: 58px;
+                font-size: 22px;
             }
         }
     </style>
 </head>
 <body>
 
+    <div class="bg-glow"></div>
+
     <div id="loading">
-        <i class="fas fa-spinner fa-spin"></i>
-        <span>Loading stations...</span>
+        <i class="fas fa-signal"></i>
+        <span>Connecting to stations...</span>
     </div>
 
     <div class="app-card">
-
-        <div class="tabs">
-            <button class="tab-btn active" data-mode="radio" id="tabRadio">
-                <i class="fas fa-radio"></i> Radio
-            </button>
-            <button class="tab-btn" data-mode="tv" id="tabTv">
-                <i class="fas fa-tv"></i> TV
-            </button>
-        </div>
 
         <div class="logo-frame" id="stationLogo">
             <i class="fas fa-radio"></i>
@@ -344,28 +358,34 @@
 
         <audio id="audioPlayer" preload="metadata"></audio>
 
-        <!-- ملاحظة ثابتة تتغير حسب الوضع -->
-        <div class="footer-note" id="footerNote">
-            <i class="fas fa-info-circle"></i>
-            To change TV channels, please type a new country name in the bot chat.
+        <!-- صف الدعم مع دائرة PayPal الزرقاء المتواضعة -->
+        <div class="support-row">
+            <span class="support-label">support</span>
+            <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="paypal-circle" aria-label="PayPal">
+                <i class="fab fa-paypal"></i>
+            </a>
+        </div>
+
+        <div class="footer-note">
+            <i class="fas fa-circle" style="font-size:5px; vertical-align:middle;"></i>
+            change country via bot
+            <i class="fas fa-circle" style="font-size:5px; vertical-align:middle;"></i>
         </div>
 
     </div>
 
     <script>
-        // ============================================================
-        //  تهيئة Telegram WebApp
-        // ============================================================
+        // ================================================================
+        //  TELEGRAM WEB APP
+        // ================================================================
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // ============================================================
-        //  عناصر DOM
-        // ============================================================
+        // ================================================================
+        //  DOM REFS
+        // ================================================================
         const loading = document.getElementById('loading');
-        const tabRadio = document.getElementById('tabRadio');
-        const tabTv = document.getElementById('tabTv');
         const logo = document.getElementById('stationLogo');
         const title = document.getElementById('stationTitle');
         const sub = document.getElementById('stationSub');
@@ -374,80 +394,45 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const audio = document.getElementById('audioPlayer');
-        const footerNote = document.getElementById('footerNote');
 
-        // ============================================================
-        //  قراءة المعاملات من الرابط (كما يرسلها البوت)
-        //  - السيناريو 1: /radio2 France  →  ?name=France
-        //  - السيناريو 2: /setcountry France → ?code=FR&name=France
-        // ============================================================
+        // ================================================================
+        //  GET COUNTRY NAME (only "name" param)
+        // ================================================================
         const params = new URLSearchParams(window.location.search);
-        const countryCode = params.get('code') || '';   // مثال: "FR"
-        const countryName = params.get('name') || '';   // مثال: "France"
+        const countryName = params.get('name') || '';
 
-        // ============================================================
-        //  حالة التطبيق
-        // ============================================================
-        let currentMode = 'radio';
+        // ================================================================
+        //  STATE
+        // ================================================================
         let stations = [];
         let currentIndex = 0;
         let isPlaying = false;
         let hasValidCountry = false;
 
-        // ============================================================
-        //  دوال جلب البيانات (بدون أي قيم افتراضية)
-        // ============================================================
-
-        // --- راديو: يعتمد على الاسم (name) ---
+        // ================================================================
+        //  FETCH RADIO STATIONS (radio-browser.info)
+        // ================================================================
         async function fetchRadioStations(name) {
-            if (!name) throw new Error('No country name provided.');
+            if (!name) throw new Error('No country name.');
             const url =
                 `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}`;
             const resp = await fetch(url);
-            if (!resp.ok) throw new Error('Failed to fetch radio data.');
+            if (!resp.ok) throw new Error('Network error.');
             const data = await resp.json();
-            // تصفية للتأكد من تطابق الدولة (لزيادة الدقة)
             const filtered = data.filter(s =>
                 s.country && s.country.toLowerCase().includes(name.toLowerCase())
             );
             return filtered.length ? filtered : data;
         }
 
-        // --- تلفاز: يعتمد على الرمز (code) ---
-        async function fetchTvChannels(code) {
-            if (!code) throw new Error('No country code provided.');
-            const chResp = await fetch('https://iptv-org.github.io/api/channels.json');
-            if (!chResp.ok) throw new Error('Failed to fetch TV channels.');
-            const allChannels = await chResp.json();
-            const filtered = allChannels.filter(c =>
-                c.country && c.country.toUpperCase() === code.toUpperCase()
-            );
-            const stResp = await fetch('https://iptv-org.github.io/api/streams.json');
-            if (!stResp.ok) throw new Error('Failed to fetch streams.');
-            const allStreams = await stResp.json();
-            const streamMap = {};
-            for (const s of allStreams) {
-                if (!streamMap[s.channel]) streamMap[s.channel] = s.url;
-            }
-            const result = filtered
-                .map(ch => ({
-                    id: ch.id,
-                    name: ch.name,
-                    logo: ch.logo || null,
-                    url: streamMap[ch.id] || null,
-                }))
-                .filter(ch => ch.url !== null);
-            return result;
-        }
+        // ================================================================
+        //  UI FUNCTIONS
+        // ================================================================
 
-        // ============================================================
-        //  دوال العرض
-        // ============================================================
-
-        function setEmptyState() {
-            title.textContent = 'Select a country';
+        function setEmptyState(msg) {
+            title.textContent = msg || 'Select a country';
             sub.textContent = 'Use the bot to set your country';
-            logo.innerHTML = `<i class="fas fa-${currentMode === 'radio' ? 'radio' : 'tv'}"></i>`;
+            logo.innerHTML = `<i class="fas fa-radio"></i>`;
             audio.src = '';
             playBtn.disabled = true;
             prevBtn.disabled = true;
@@ -469,18 +454,14 @@
             title.textContent = item.name || 'Untitled';
             sub.textContent = `${index + 1} of ${stations.length}`;
 
-            if (item.logo) {
-                logo.innerHTML = `<img src="${item.logo}" alt="logo" />`;
+            if (item.favicon) {
+                logo.innerHTML = `<img src="${item.favicon}" alt="logo" />`;
             } else {
-                logo.innerHTML = `<i class="fas fa-${currentMode === 'radio' ? 'radio' : 'tv'}"></i>`;
+                logo.innerHTML = `<i class="fas fa-radio"></i>`;
             }
 
-            if (item.url) {
-                audio.src = item.url;
-                audio.load();
-            } else {
-                audio.src = '';
-            }
+            audio.src = item.url_resolved || item.url || '';
+            audio.load();
 
             playBtn.disabled = false;
             prevBtn.disabled = false;
@@ -518,98 +499,42 @@
             loadStation(currentIndex);
         }
 
-        // ============================================================
-        //  تبديل الوضع (راديو / تلفاز) مع منطق Bots.Business
-        // ============================================================
+        // ================================================================
+        //  INIT
+        // ================================================================
 
-        async function switchMode(mode) {
-            currentMode = mode;
-
-            // تحديث التبويبات
-            tabRadio.classList.toggle('active', mode === 'radio');
-            tabTv.classList.toggle('active', mode === 'tv');
-
-            // تحديث الملاحظة السفلية
-            if (mode === 'tv') {
-                footerNote.innerHTML = `
-                    <i class="fas fa-info-circle"></i>
-                    To change TV channels, please type a new country name in the bot chat.
-                `;
-            } else {
-                footerNote.innerHTML = `
-                    <i class="fas fa-radio"></i>
-                    To change Radio stations, type a new country in the bot chat.
-                `;
-            }
-
-            // إعادة ضبط القائمة
-            setEmptyState();
-            stations = [];
-            currentIndex = 0;
-
-            // --- التحقق من وجود البيانات المطلوبة حسب الوضع ---
+        async function initRadio() {
             const name = countryName.trim();
-            const code = countryCode.trim();
-
-            // إذا كان الوضع راديو ولا يوجد اسم دولة
-            if (mode === 'radio' && !name) {
-                title.textContent = 'No country selected';
-                sub.textContent = 'Use /radio2 [country] or /setcountry [country]';
-                return;
-            }
-            // إذا كان الوضع تلفاز ولا يوجد رمز دولة
-            if (mode === 'tv' && !code) {
-                title.textContent = 'No country code provided';
-                sub.textContent = 'Use /setcountry [country] to get TV channels';
+            if (!name) {
+                setEmptyState('No country selected');
+                loading.style.display = 'none';
                 return;
             }
 
-            // --- جلب البيانات ---
             loading.style.display = 'flex';
             try {
-                let data = [];
-                if (mode === 'radio') {
-                    data = await fetchRadioStations(name);
-                } else {
-                    data = await fetchTvChannels(code);
-                }
-
+                const data = await fetchRadioStations(name);
                 if (data && data.length > 0) {
                     stations = data;
                     hasValidCountry = true;
                     currentIndex = 0;
                     loadStation(0);
                 } else {
-                    title.textContent = `No ${mode === 'radio' ? 'radio stations' : 'TV channels'} found`;
-                    sub.textContent = `Try a different country`;
-                    hasValidCountry = false;
-                    playBtn.disabled = true;
-                    prevBtn.disabled = true;
-                    nextBtn.disabled = true;
+                    setEmptyState('No stations found');
+                    sub.textContent = 'Try a different country';
                 }
             } catch (err) {
                 console.error(err);
-                title.textContent = 'Loading error';
+                setEmptyState('Loading error');
                 sub.textContent = 'Please try again later';
-                hasValidCountry = false;
-                playBtn.disabled = true;
-                prevBtn.disabled = true;
-                nextBtn.disabled = true;
             } finally {
                 loading.style.display = 'none';
             }
         }
 
-        // ============================================================
-        //  ربط الأحداث
-        // ============================================================
-
-        tabRadio.addEventListener('click', () => {
-            if (currentMode !== 'radio') switchMode('radio');
-        });
-        tabTv.addEventListener('click', () => {
-            if (currentMode !== 'tv') switchMode('tv');
-        });
+        // ================================================================
+        //  EVENT LISTENERS
+        // ================================================================
 
         playBtn.addEventListener('click', togglePlay);
         nextBtn.addEventListener('click', nextStation);
@@ -624,31 +549,8 @@
             playIcon.className = 'fas fa-pause';
         });
 
-        // ============================================================
-        //  بدء التشغيل حسب البيانات المستلمة من البوت
-        // ============================================================
-
-        // 1. إذا كان هناك اسم دولة → نفتح الراديو (لأن /radio2 يمرر name فقط)
-        // 2. إذا كان هناك رمز دولة فقط → نفتح التلفاز (حالة نادرة)
-        // 3. إذا لم يوجد شيء → نعرض شاشة الترحيب
-
-        if (countryName.trim()) {
-            // يوجد اسم → نبدأ بالراديو (يدعمه /radio2 و /setcountry معاً)
-            switchMode('radio');
-        } else if (countryCode.trim()) {
-            // يوجد كود فقط → نبدأ بالتلفاز
-            switchMode('tv');
-        } else {
-            // لا توجد دولة → شاشة فارغة مع رسالة توضيحية
-            setEmptyState();
-            tabRadio.classList.add('active');
-            tabTv.classList.remove('active');
-            footerNote.innerHTML = `
-                <i class="fas fa-info-circle"></i>
-                Please use the bot commands: /radio2 [country] or /setcountry [country]
-            `;
-            loading.style.display = 'none';
-        }
+        // START
+        initRadio();
     </script>
 </body>
 </html>
