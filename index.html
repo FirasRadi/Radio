@@ -42,7 +42,6 @@
             color: var(--text-primary);
         }
 
-        /* ----- اللوحة الرئيسية (إطار مميز) ----- */
         .app-card {
             width: 100%;
             max-width: 440px;
@@ -57,7 +56,6 @@
             transition: 0.3s;
         }
 
-        /* إطار ذهبي خارجي خفيف (حضاري) */
         .app-card::before {
             content: '';
             position: absolute;
@@ -71,7 +69,6 @@
             pointer-events: none;
         }
 
-        /* ----- التبويبات (Radio / TV) ----- */
         .tabs {
             display: flex;
             gap: 10px;
@@ -117,7 +114,6 @@
             background: rgba(255, 255, 255, 0.03);
         }
 
-        /* ----- الشعار / الصورة ----- */
         .logo-frame {
             width: 120px;
             height: 120px;
@@ -145,7 +141,6 @@
             filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.2));
         }
 
-        /* ----- معلومات المحطة ----- */
         .station-name {
             font-size: 22px;
             font-weight: 700;
@@ -168,7 +163,6 @@
             letter-spacing: 0.2px;
         }
 
-        /* ----- أزرار التحكم ----- */
         .controls {
             display: flex;
             align-items: center;
@@ -222,7 +216,6 @@
             pointer-events: none;
         }
 
-        /* ----- مشغل الصوت ----- */
         audio {
             width: 100%;
             height: 44px;
@@ -235,7 +228,6 @@
             background: rgba(0, 0, 0, 0.3);
         }
 
-        /* ----- ملاحظة التلفاز (الثابتة) ----- */
         .footer-note {
             margin-top: 22px;
             padding-top: 16px;
@@ -255,7 +247,6 @@
             font-size: 11px;
         }
 
-        /* ----- رسالة "اختر دولة" ----- */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -281,7 +272,6 @@
             margin-top: 6px;
         }
 
-        /* ----- شاشة التحميل ----- */
         #loading {
             position: fixed;
             inset: 0;
@@ -301,7 +291,6 @@
             color: var(--gold);
         }
 
-        /* ----- استجابة للشاشات الصغيرة ----- */
         @media (max-width: 460px) {
             .app-card {
                 padding: 20px 16px 24px;
@@ -324,16 +313,13 @@
 </head>
 <body>
 
-    <!-- شاشة التحميل -->
     <div id="loading">
         <i class="fas fa-spinner fa-spin"></i>
         <span>Loading stations...</span>
     </div>
 
-    <!-- البطاقة الرئيسية -->
     <div class="app-card">
 
-        <!-- التبويبات -->
         <div class="tabs">
             <button class="tab-btn active" data-mode="radio" id="tabRadio">
                 <i class="fas fa-radio"></i> Radio
@@ -343,27 +329,22 @@
             </button>
         </div>
 
-        <!-- الشعار -->
         <div class="logo-frame" id="stationLogo">
             <i class="fas fa-radio"></i>
         </div>
 
-        <!-- اسم المحطة -->
         <div class="station-name" id="stationTitle">Select a country</div>
-        <!-- معلومات إضافية -->
         <div class="station-meta" id="stationSub">Use the bot to set your country</div>
 
-        <!-- أزرار التحكم -->
         <div class="controls">
             <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-step-backward"></i></button>
             <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
             <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-step-forward"></i></button>
         </div>
 
-        <!-- مشغل الصوت -->
         <audio id="audioPlayer" preload="metadata"></audio>
 
-        <!-- الملاحظة الثابتة (أسفل التلفاز) -->
+        <!-- ملاحظة ثابتة تتغير حسب الوضع -->
         <div class="footer-note" id="footerNote">
             <i class="fas fa-info-circle"></i>
             To change TV channels, please type a new country name in the bot chat.
@@ -372,16 +353,16 @@
     </div>
 
     <script>
-        // ======================================================
+        // ============================================================
         //  تهيئة Telegram WebApp
-        // ======================================================
+        // ============================================================
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // ======================================================
+        // ============================================================
         //  عناصر DOM
-        // ======================================================
+        // ============================================================
         const loading = document.getElementById('loading');
         const tabRadio = document.getElementById('tabRadio');
         const tabTv = document.getElementById('tabTv');
@@ -395,27 +376,29 @@
         const audio = document.getElementById('audioPlayer');
         const footerNote = document.getElementById('footerNote');
 
-        // ======================================================
-        //  قراءة المعاملات من الرابط (بدون قيم افتراضية)
-        // ======================================================
+        // ============================================================
+        //  قراءة المعاملات من الرابط (كما يرسلها البوت)
+        //  - السيناريو 1: /radio2 France  →  ?name=France
+        //  - السيناريو 2: /setcountry France → ?code=FR&name=France
+        // ============================================================
         const params = new URLSearchParams(window.location.search);
-        const countryCode = params.get('code') || '';   // مثلاً 'EG'
-        const countryName = params.get('name') || '';   // مثلاً 'Egypt'
+        const countryCode = params.get('code') || '';   // مثال: "FR"
+        const countryName = params.get('name') || '';   // مثال: "France"
 
-        // ======================================================
+        // ============================================================
         //  حالة التطبيق
-        // ======================================================
-        let currentMode = 'radio';    // 'radio' | 'tv'
+        // ============================================================
+        let currentMode = 'radio';
         let stations = [];
         let currentIndex = 0;
         let isPlaying = false;
         let hasValidCountry = false;
 
-        // ======================================================
-        //  دوال جلب البيانات (بدون قيم افتراضية)
-        // ======================================================
+        // ============================================================
+        //  دوال جلب البيانات (بدون أي قيم افتراضية)
+        // ============================================================
 
-        // --- راديو: radio-browser.info (بحث بالاسم) ---
+        // --- راديو: يعتمد على الاسم (name) ---
         async function fetchRadioStations(name) {
             if (!name) throw new Error('No country name provided.');
             const url =
@@ -423,24 +406,22 @@
             const resp = await fetch(url);
             if (!resp.ok) throw new Error('Failed to fetch radio data.');
             const data = await resp.json();
-            // تصفية للتأكد من تطابق الدولة
+            // تصفية للتأكد من تطابق الدولة (لزيادة الدقة)
             const filtered = data.filter(s =>
                 s.country && s.country.toLowerCase().includes(name.toLowerCase())
             );
             return filtered.length ? filtered : data;
         }
 
-        // --- تلفاز: iptv-org (بحث بالرمز) ---
+        // --- تلفاز: يعتمد على الرمز (code) ---
         async function fetchTvChannels(code) {
             if (!code) throw new Error('No country code provided.');
-            // 1. القنوات
             const chResp = await fetch('https://iptv-org.github.io/api/channels.json');
             if (!chResp.ok) throw new Error('Failed to fetch TV channels.');
             const allChannels = await chResp.json();
             const filtered = allChannels.filter(c =>
                 c.country && c.country.toUpperCase() === code.toUpperCase()
             );
-            // 2. التيارات
             const stResp = await fetch('https://iptv-org.github.io/api/streams.json');
             if (!stResp.ok) throw new Error('Failed to fetch streams.');
             const allStreams = await stResp.json();
@@ -448,7 +429,6 @@
             for (const s of allStreams) {
                 if (!streamMap[s.channel]) streamMap[s.channel] = s.url;
             }
-            // 3. الدمج
             const result = filtered
                 .map(ch => ({
                     id: ch.id,
@@ -460,9 +440,9 @@
             return result;
         }
 
-        // ======================================================
-        //  دوال العرض والتحكم
-        // ======================================================
+        // ============================================================
+        //  دوال العرض
+        // ============================================================
 
         function setEmptyState() {
             title.textContent = 'Select a country';
@@ -538,9 +518,9 @@
             loadStation(currentIndex);
         }
 
-        // ======================================================
-        //  تبديل الوضع (راديو / تلفاز)
-        // ======================================================
+        // ============================================================
+        //  تبديل الوضع (راديو / تلفاز) مع منطق Bots.Business
+        // ============================================================
 
         async function switchMode(mode) {
             currentMode = mode;
@@ -549,40 +529,42 @@
             tabRadio.classList.toggle('active', mode === 'radio');
             tabTv.classList.toggle('active', mode === 'tv');
 
-            // تحديث الملاحظة: تظهر فقط في وضع TV
+            // تحديث الملاحظة السفلية
             if (mode === 'tv') {
-                footerNote.style.display = 'block';
                 footerNote.innerHTML = `
                     <i class="fas fa-info-circle"></i>
                     To change TV channels, please type a new country name in the bot chat.
                 `;
             } else {
-                footerNote.style.display = 'block';
                 footerNote.innerHTML = `
                     <i class="fas fa-radio"></i>
                     To change Radio stations, type a new country in the bot chat.
                 `;
             }
 
-            // إعادة ضبط الواجهة
+            // إعادة ضبط القائمة
             setEmptyState();
             stations = [];
             currentIndex = 0;
 
-            // التحقق من وجود دولة صالحة
+            // --- التحقق من وجود البيانات المطلوبة حسب الوضع ---
             const name = countryName.trim();
             const code = countryCode.trim();
 
+            // إذا كان الوضع راديو ولا يوجد اسم دولة
             if (mode === 'radio' && !name) {
-                setEmptyState();
+                title.textContent = 'No country selected';
+                sub.textContent = 'Use /radio2 [country] or /setcountry [country]';
                 return;
             }
+            // إذا كان الوضع تلفاز ولا يوجد رمز دولة
             if (mode === 'tv' && !code) {
-                setEmptyState();
+                title.textContent = 'No country code provided';
+                sub.textContent = 'Use /setcountry [country] to get TV channels';
                 return;
             }
 
-            // جلب البيانات
+            // --- جلب البيانات ---
             loading.style.display = 'flex';
             try {
                 let data = [];
@@ -618,9 +600,9 @@
             }
         }
 
-        // ======================================================
+        // ============================================================
         //  ربط الأحداث
-        // ======================================================
+        // ============================================================
 
         tabRadio.addEventListener('click', () => {
             if (currentMode !== 'radio') switchMode('radio');
@@ -641,32 +623,29 @@
             isPlaying = true;
             playIcon.className = 'fas fa-pause';
         });
-        // في حال انتهى البث أو حدث خطأ
-        audio.addEventListener('ended', () => {
-            // اختيارياً: تشغيل التالي تلقائياً
-            // nextStation();
-        });
 
-        // ======================================================
-        //  بدء التشغيل - الوضع الافتراضي راديو
-        // ======================================================
+        // ============================================================
+        //  بدء التشغيل حسب البيانات المستلمة من البوت
+        // ============================================================
 
-        // نبدأ بوضع الراديو، ولكن فقط إذا كان هناك اسم دولة.
-        // إذا لم يكن هناك اسم ولا كود، تظهر شاشة "Select a country".
+        // 1. إذا كان هناك اسم دولة → نفتح الراديو (لأن /radio2 يمرر name فقط)
+        // 2. إذا كان هناك رمز دولة فقط → نفتح التلفاز (حالة نادرة)
+        // 3. إذا لم يوجد شيء → نعرض شاشة الترحيب
+
         if (countryName.trim()) {
+            // يوجد اسم → نبدأ بالراديو (يدعمه /radio2 و /setcountry معاً)
             switchMode('radio');
         } else if (countryCode.trim()) {
-            // في حال وجود كود فقط (نادراً) نفتح التلفاز
+            // يوجد كود فقط → نبدأ بالتلفاز
             switchMode('tv');
         } else {
-            // لا توجد دولة: عرض الحالة الفارغة مع إلغاء التحميل
+            // لا توجد دولة → شاشة فارغة مع رسالة توضيحية
             setEmptyState();
-            // نضع التبويب راديو نشط لكن مع رسالة فارغة
             tabRadio.classList.add('active');
             tabTv.classList.remove('active');
             footerNote.innerHTML = `
                 <i class="fas fa-info-circle"></i>
-                Please select a country using the bot command first.
+                Please use the bot commands: /radio2 [country] or /setcountry [country]
             `;
             loading.style.display = 'none';
         }
