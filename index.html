@@ -37,6 +37,7 @@
             overflow: hidden;
         }
 
+        /* زر التبرع - أصبح أزرق بشكل افتراضي */
         .donate-btn {
             position: fixed;
             bottom: 20px;
@@ -54,12 +55,12 @@
             text-decoration: none;
             transition: all 0.3s ease;
             z-index: 100;
-            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4);
+            box-shadow: 0 4px 10px rgba(0, 112, 186, 0.3);
         }
 
         .donate-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6);
+            box-shadow: 0 6px 15px rgba(0, 112, 186, 0.6);
             background: #005ea6;
         }
 
@@ -72,7 +73,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 30px;
-            padding: 40px 25px 25px;
+            padding: 40px 25px 30px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
             text-align: center;
@@ -133,7 +134,7 @@
             align-items: center;
             justify-content: center;
             gap: 25px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .ctrl-btn {
@@ -176,24 +177,22 @@
             cursor: not-allowed;
         }
 
-        audio {
-            display: none;
-        }
-
+        /* الملاحظة السفلية الأنيقة */
         .footer-note {
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 12px;
+            margin-top: 20px;
+            font-size: 11px;
             color: var(--text-sub);
             font-weight: 300;
             letter-spacing: 0.5px;
-            opacity: 0.8;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
-        .footer-note i {
-            margin-right: 6px;
-            color: var(--accent);
+        audio {
+            display: none;
         }
 
         #loading {
@@ -249,47 +248,46 @@
             <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
             <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
         </div>
+        
+        <!-- الملاحظة السفلية -->
+        <div class="footer-note">
+            <i class="fas fa-globe"></i> Change country via bot chat
+        </div>
 
         <audio id="audioPlayer" preload="metadata"></audio>
-
-        <div class="footer-note">
-            <i class="fas fa-exchange-alt"></i> Change country via bot chat
-        </div>
     </div>
 
     <script>
-        var tg = window.Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        var loading = document.getElementById('loading');
-        var logo = document.getElementById('stationLogo');
-        var title = document.getElementById('stationTitle');
-        var sub = document.getElementById('stationSub');
-        var playBtn = document.getElementById('playBtn');
-        var playIcon = document.getElementById('playIcon');
-        var prevBtn = document.getElementById('prevBtn');
-        var nextBtn = document.getElementById('nextBtn');
-        var audio = document.getElementById('audioPlayer');
+        const loading = document.getElementById('loading');
+        const logo = document.getElementById('stationLogo');
+        const title = document.getElementById('stationTitle');
+        const sub = document.getElementById('stationSub');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const audio = document.getElementById('audioPlayer');
 
-        var params = new URLSearchParams(window.location.search);
-        var countryName = params.get('name') || '';
+        const params = new URLSearchParams(window.location.search);
+        const countryName = params.get('name') || '';
 
-        var stations = [];
-        var currentIndex = 0;
-        var isPlaying = false;
-        var hasValid = false;
-        var errorCount = 0;
-        
-        var autoPlayRequested = localStorage.getItem('radio_is_playing') === 'true';
+        let stations = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let hasValid = false;
+        let failedAttempts = 0; // عداد لمنع التكرار اللانهائي إذا كانت كل المحطات معطلة
 
         async function fetchRadio(name) {
             if (!name) throw new Error('No country');
-            var url = "https://de1.api.radio-browser.info/json/stations/bycountry/" + encodeURIComponent(name) + "?order=votes&reverse=true";
-            var resp = await fetch(url);
+            const url = `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`;
+            const resp = await fetch(url);
             if (!resp.ok) throw new Error('Fetch failed');
-            var data = await resp.json();
-            return data.filter(function(s) { return s.url_resolved || s.url; });
+            const data = await resp.json();
+            return data.filter(s => s.url_resolved || s.url);
         }
 
         function setEmpty(msg) {
@@ -305,15 +303,30 @@
             if (isPlaying) { audio.pause(); isPlaying = false; playIcon.className = 'fas fa-play'; }
         }
 
+        // دالة التعامل مع المحطات المعطلة (تخطي صامت)
+        function handleBrokenStation() {
+            failedAttempts++;
+            if (failedAttempts >= stations.length) {
+                title.textContent = "All stations offline";
+                isPlaying = false;
+                localStorage.setItem('radioAutoPlay', 'false');
+                playIcon.className = 'fas fa-play';
+                logo.classList.remove('playing');
+                failedAttempts = 0;
+            } else {
+                nextStation();
+            }
+        }
+
         function loadStation(index) {
             if (!stations.length || !hasValid) { setEmpty(); return; }
-            var item = stations[index];
+            const item = stations[index];
             
             title.textContent = item.name || 'Unknown Station';
-            sub.textContent = "Station " + (index + 1) + " of " + stations.length;
+            sub.textContent = `Station ${index + 1} of ${stations.length}`;
             
             if (item.favicon) {
-                var img = new Image();
+                const img = new Image();
                 img.src = item.favicon;
                 img.alt = "logo";
                 img.onload = function() {
@@ -334,48 +347,39 @@
             prevBtn.disabled = false;
             nextBtn.disabled = false;
             
-            if (isPlaying || autoPlayRequested) {
-                playAudio();
-            }
-        }
-
-        function playAudio() {
-            audio.play().then(function() {
-                isPlaying = true;
-                autoPlayRequested = false;
-                errorCount = 0;
-                playIcon.className = 'fas fa-pause';
-                logo.classList.add('playing');
-                localStorage.setItem('radio_is_playing', 'true');
-            }).catch(function() {
-                handlePlayError();
-            });
-        }
-
-        function handlePlayError() {
-            errorCount++;
-            if (errorCount < stations.length && errorCount < 15) {
-                setTimeout(nextStation, 400);
-            } else {
-                isPlaying = false;
-                playIcon.className = 'fas fa-play';
-                logo.classList.remove('playing');
-                title.textContent = 'Stations Unavailable';
-                sub.textContent = 'Try another country';
-                localStorage.setItem('radio_is_playing', 'false');
+            // التحقق مما إذا كان المستخدم يستمع للراديو قبل تغيير الدولة
+            let shouldPlay = isPlaying || localStorage.getItem('radioAutoPlay') === 'true';
+            
+            if (shouldPlay) {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    failedAttempts = 0; // تصفير العداد عند النجاح
+                    playIcon.className = 'fas fa-pause';
+                    logo.classList.add('playing');
+                }).catch(() => {
+                    handleBrokenStation(); // تخطي صامت إذا فشل التشغيل
+                });
             }
         }
 
         function togglePlay() {
             if (!hasValid || !audio.src) return;
             if (audio.paused) {
-                playAudio();
+                localStorage.setItem('radioAutoPlay', 'true'); // حفظ حالة التشغيل
+                audio.play().then(() => {
+                    isPlaying = true;
+                    failedAttempts = 0;
+                    playIcon.className = 'fas fa-pause';
+                    logo.classList.add('playing');
+                }).catch(() => {
+                    handleBrokenStation(); // تخطي صامت
+                });
             } else {
+                localStorage.setItem('radioAutoPlay', 'false'); // إيقاف حالة التشغيل
                 audio.pause();
                 isPlaying = false;
                 playIcon.className = 'fas fa-play';
                 logo.classList.remove('playing');
-                localStorage.setItem('radio_is_playing', 'false');
             }
         }
 
@@ -395,26 +399,15 @@
         nextBtn.addEventListener('click', nextStation);
         prevBtn.addEventListener('click', prevStation);
         
-        audio.addEventListener('pause', function() { 
-            isPlaying = false; 
-            playIcon.className = 'fas fa-play'; 
-            logo.classList.remove('playing');
-        });
-        
-        audio.addEventListener('play', function() { 
-            isPlaying = true; 
-            playIcon.className = 'fas fa-pause'; 
-            logo.classList.add('playing');
-        });
-
-        audio.addEventListener('error', function() {
-            if(isPlaying || autoPlayRequested) {
-                handlePlayError();
+        // تخطي صامت عند حدوث خطأ في الرابط أثناء الاستماع
+        audio.addEventListener('error', () => {
+            if (isPlaying || localStorage.getItem('radioAutoPlay') === 'true') {
+                handleBrokenStation();
             }
         });
 
         async function init() {
-            var name = countryName.trim();
+            const name = countryName.trim();
             if (!name) {
                 setEmpty('No Country Selected');
                 loading.style.display = 'none';
@@ -422,17 +415,17 @@
             }
             
             try {
-                var data = await fetchRadio(name);
+                const data = await fetchRadio(name);
                 if (data.length) {
                     stations = data;
                     hasValid = true;
                     currentIndex = 0;
                     loadStation(0);
                 } else {
-                    var fallbackUrl = "https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(name) + "?order=votes&reverse=true";
-                    var fallbackResp = await fetch(fallbackUrl);
-                    var fallbackData = await fallbackResp.json();
-                    var validFallback = fallbackData.filter(function(s) { return s.url_resolved || s.url; });
+                    const fallbackUrl = `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`;
+                    const fallbackResp = await fetch(fallbackUrl);
+                    const fallbackData = await fallbackResp.json();
+                    const validFallback = fallbackData.filter(s => s.url_resolved || s.url);
                     
                     if(validFallback.length) {
                         stations = validFallback;
