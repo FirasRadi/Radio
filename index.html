@@ -180,7 +180,6 @@
             display: none;
         }
 
-        /* تعديل لون الملاحظة إلى الأحمر */
         .footer-note {
             margin-top: 25px;
             padding-top: 15px;
@@ -291,17 +290,23 @@
             if (!resp.ok) throw new Error('Fetch failed');
             var data = await resp.json();
             
-            // فلترة المحطات: جلب المحطات الآمنة (HTTPS) فقط لمنع القفز العشوائي
             return data.filter(function(s) { 
                 var u = s.url_resolved || s.url;
                 return u && u.indexOf('https://') === 0; 
             });
         }
 
+        function setMusicIcon() {
+            logo.innerHTML = '';
+            var icon = document.createElement('i');
+            icon.className = 'fas fa-music';
+            logo.appendChild(icon);
+        }
+
         function setEmpty(msg) {
             title.textContent = msg || 'Select Country';
             sub.textContent = 'Use Bot Command';
-            logo.innerHTML = '<i class="fas fa-music"></i>';
+            setMusicIcon();
             audio.src = '';
             playBtn.disabled = true;
             prevBtn.disabled = true;
@@ -327,10 +332,10 @@
                     logo.appendChild(img);
                 };
                 img.onerror = function() {
-                    logo.innerHTML = '<i class="fas fa-music"></i>';
+                    setMusicIcon();
                 };
             } else {
-                logo.innerHTML = '<i class="fas fa-music"></i>';
+                setMusicIcon();
             }
             
             audio.src = item.url_resolved || item.url || '';
@@ -356,19 +361,15 @@
                     logo.classList.add('playing');
                     localStorage.setItem('radio_is_playing', 'true');
                 }).catch(function(error) {
-                    // معالجة الأخطاء بذكاء لمنع القفز العشوائي
                     if (error.name === 'AbortError') {
-                        // المستخدم يضغط بسرعة على زر التالي، لا تفعل شيئاً
                         return;
                     } else if (error.name === 'NotAllowedError') {
-                        // المتصفح يمنع التشغيل التلقائي، توقف بهدوء وانتظر ضغطة المستخدم
                         isPlaying = false;
                         autoPlayRequested = false;
                         playIcon.className = 'fas fa-play';
                         logo.classList.remove('playing');
                         localStorage.setItem('radio_is_playing', 'false');
                     } else {
-                        // المحطة معطلة فعلياً، تخطاها
                         handlePlayError();
                     }
                 });
@@ -377,7 +378,7 @@
 
         function handlePlayError() {
             errorCount++;
-            if (errorCount < stations.length && errorCount < 10) {
+            if (stations.length > errorCount && 10 > errorCount) {
                 setTimeout(nextStation, 400);
             } else {
                 isPlaying = false;
