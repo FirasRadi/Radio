@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RADIO INFERNO</title>
+    <title>Global Radio</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         * {
@@ -17,130 +17,95 @@
         }
 
         :root {
-            --blood: #8a0303;
-            --fire: #ff1a1a;
-            --glow: #ff4d4d;
-            --dark: #0b0505;
-            --card-bg: rgba(20, 4, 4, 0.65);
-            --border-neon: #ff2a2a;
-            --text-light: #ffe6e6;
-            --text-dim: #b38888;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
         }
 
         body {
-            font-family: 'Orbitron', sans-serif;
-            background: radial-gradient(ellipse at 30% 20%, #2a0505, #080101);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            margin: 0;
-            position: relative;
+            color: var(--text-main);
             overflow: hidden;
         }
 
-        /* خلفية نارية متحركة */
-        body::before {
-            content: '';
+        /* زر التبرع الدائري الهادئ */
+        .donate-btn {
             position: fixed;
-            inset: 0;
-            background: repeating-radial-gradient(circle at 20% 30%, #ff1a1a15, #55000015 120px);
-            animation: fireBreath 8s infinite alternate;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        @keyframes fireBreath {
-            0% { opacity: 0.3; transform: scale(1) rotate(0deg); }
-            100% { opacity: 0.8; transform: scale(1.4) rotate(5deg); }
-        }
-
-        /* جزيئات نارية */
-        .particle {
-            position: fixed;
-            width: 6px;
-            height: 6px;
-            background: #ff3333;
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            filter: blur(2px);
-            box-shadow: 0 0 20px #ff0000;
-            animation: rise 9s infinite linear;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .particle:nth-child(1) { left: 10%; animation-duration: 11s; }
-        .particle:nth-child(2) { left: 30%; animation-duration: 8s; animation-delay: 2s; }
-        .particle:nth-child(3) { left: 50%; animation-duration: 13s; animation-delay: 4s; }
-        .particle:nth-child(4) { left: 70%; animation-duration: 9s; animation-delay: 1s; }
-        .particle:nth-child(5) { left: 90%; animation-duration: 12s; animation-delay: 3s; }
-        .particle:nth-child(6) { left: 20%; animation-duration: 10s; animation-delay: 5s; }
-        .particle:nth-child(7) { left: 60%; animation-duration: 14s; animation-delay: 2s; }
-
-        @keyframes rise {
-            0% { bottom: -10%; opacity: 0; transform: scale(0.5); }
-            20% { opacity: 1; transform: scale(1.2); }
-            80% { opacity: 1; }
-            100% { bottom: 110%; opacity: 0; transform: scale(0.2); }
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-sub);
+            font-size: 18px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 100;
+            backdrop-filter: blur(5px);
         }
 
-        /* البطاقة الرئيسية – درع ناري */
+        .donate-btn:hover {
+            background: #0070ba; /* لون باي بال */
+            color: #fff;
+            border-color: #0070ba;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4);
+        }
+
+        /* البطاقة الرئيسية - تصميم زجاجي أنيق */
         .app-card {
             position: relative;
             z-index: 2;
             width: 100%;
-            max-width: 440px;
+            max-width: 400px;
             background: var(--card-bg);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border-radius: 48px 48px 32px 32px;
-            padding: 30px 24px 34px;
-            border: 2px solid rgba(255, 50, 50, 0.5);
-            box-shadow: 0 0 60px rgba(255, 0, 0, 0.25), inset 0 0 80px rgba(180, 0, 0, 0.15);
-            transition: 0.4s;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            text-align: center;
         }
 
-        .app-card::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50px;
-            background: linear-gradient(135deg, #ff1a1a, #aa0000, #ff3333, #550000);
-            background-size: 300% 300%;
-            z-index: -1;
-            animation: borderGlow 4s ease-in-out infinite;
-            filter: blur(6px);
-            opacity: 0.7;
-        }
-
-        @keyframes borderGlow {
-            0% { background-position: 0% 0%; }
-            50% { background-position: 100% 100%; }
-            100% { background-position: 0% 0%; }
-        }
-
-        /* الشعار – نجم ناري */
+        /* الشعار - أسطوانة هادئة */
         .logo-frame {
-            width: 130px;
-            height: 130px;
-            margin: 6px auto 18px;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 25px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #b30000, #1a0000);
+            background: #1e293b;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 54px;
-            color: #ff4d4d;
-            box-shadow: 0 0 70px #ff1a1a80, inset 0 0 40px #ff333380;
+            font-size: 40px;
+            color: var(--accent);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), inset 0 0 0 4px rgba(255, 255, 255, 0.05);
             overflow: hidden;
-            transition: 0.4s;
-            border: 3px solid #ff333388;
-            animation: pulseLogo 3s infinite alternate;
+            transition: transform 0.5s ease;
         }
 
-        @keyframes pulseLogo {
-            0% { box-shadow: 0 0 40px #ff1a1a60, inset 0 0 30px #ff333360; }
-            100% { box-shadow: 0 0 100px #ff0000cc, inset 0 0 70px #ff4d4d; }
+        .logo-frame.playing {
+            animation: spinDisc 8s linear infinite;
+        }
+
+        @keyframes spinDisc {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .logo-frame img {
@@ -150,201 +115,138 @@
         }
 
         .station-name {
-            font-size: 24px;
-            font-weight: 900;
-            text-align: center;
-            color: #fff0f0;
-            text-shadow: 0 0 20px #ff0000, 0 0 40px #aa0000;
-            letter-spacing: 2px;
-            margin-bottom: 2px;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 5px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            padding: 0 10px;
         }
 
         .station-meta {
             font-size: 13px;
-            font-weight: 400;
-            color: #cc9999;
-            text-align: center;
-            margin-bottom: 24px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            direction: ltr;
+            font-weight: 300;
+            color: var(--text-sub);
+            margin-bottom: 30px;
+            letter-spacing: 1px;
         }
 
-        /* أزرار التحكم – نارية */
+        /* أزرار التحكم - بسيطة وعصرية */
         .controls {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 4px;
-            margin-bottom: 22px;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 25px;
         }
 
         .ctrl-btn {
             background: none;
             border: none;
-            color: #cc8888;
-            font-size: 26px;
+            color: var(--text-sub);
+            font-size: 20px;
             cursor: pointer;
-            transition: 0.25s;
-            width: 52px;
-            height: 52px;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(80, 0, 0, 0.3);
-            border: 1px solid rgba(255, 50, 50, 0.15);
-            backdrop-filter: blur(4px);
         }
 
-        .ctrl-btn:hover {
-            color: #ff8888;
-            background: rgba(180, 0, 0, 0.4);
-            border-color: #ff444488;
-            box-shadow: 0 0 30px #ff000055;
-            transform: scale(1.08);
+        .ctrl-btn:hover:not(:disabled) {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .ctrl-btn.play-btn {
-            width: 76px;
-            height: 76px;
-            background: radial-gradient(circle at 30% 30%, #cc1111, #550000);
-            color: #ffdddd;
-            font-size: 34px;
-            border: 2px solid #ff333399;
-            box-shadow: 0 0 60px #ff1a1a80, inset 0 0 30px #ff666655;
+            width: 65px;
+            height: 65px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 24px;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
         }
 
-        .ctrl-btn.play-btn:hover {
-            transform: scale(1.12);
-            background: radial-gradient(circle at 30% 30%, #ff2222, #880000);
-            box-shadow: 0 0 80px #ff3333cc;
+        .ctrl-btn.play-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
         }
 
         .ctrl-btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
-            pointer-events: none;
-            filter: grayscale(0.8);
         }
 
-        /* مشغل الصوت – مخصص */
+        /* مشغل الصوت المخفي (نستخدم الأزرار المخصصة بدلاً منه) */
         audio {
-            width: 100%;
-            height: 48px;
-            border-radius: 60px;
-            background: rgba(40, 0, 0, 0.5);
-            outline: none;
-            margin-top: 4px;
-            border: 1px solid #ff333355;
-            box-shadow: inset 0 0 20px #440000;
-        }
-        audio::-webkit-media-controls-panel {
-            background: rgba(30, 0, 0, 0.7);
-        }
-        audio::-webkit-media-controls-play-button {
-            background-color: #cc2222;
-            border-radius: 50%;
+            display: none;
         }
 
-        /* تذييل ناري */
-        .footer-note {
-            margin-top: 24px;
-            padding-top: 18px;
-            border-top: 2px solid rgba(255, 50, 50, 0.2);
-            font-size: 12px;
-            font-weight: 400;
-            color: #aa7777;
-            text-align: center;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .footer-note i {
-            margin-left: 10px;
-            color: #ff5555;
-            font-size: 14px;
-            animation: flicker 2s infinite;
-        }
-
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* شاشة التحميل – نارية */
+        /* شاشة التحميل - هادئة */
         #loading {
             position: fixed;
             inset: 0;
-            background: rgba(8, 0, 0, 0.95);
-            backdrop-filter: blur(12px);
-            display: none;
+            background: var(--bg-color);
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 22px;
+            gap: 15px;
             z-index: 999;
-            color: #cc8888;
-            font-size: 16px;
-            letter-spacing: 4px;
-        }
-        #loading i {
-            font-size: 48px;
-            color: #ff3333;
-            animation: spinFire 1.2s linear infinite;
-        }
-        @keyframes spinFire {
-            0% { transform: rotate(0deg); filter: drop-shadow(0 0 10px red); }
-            50% { transform: rotate(180deg); filter: drop-shadow(0 0 40px #ff6666); }
-            100% { transform: rotate(360deg); filter: drop-shadow(0 0 10px red); }
+            color: var(--text-sub);
+            font-size: 14px;
+            letter-spacing: 2px;
         }
 
-        @media (max-width: 460px) {
-            .app-card { padding: 22px 16px 26px; }
-            .logo-frame { width: 100px; height: 100px; font-size: 40px; }
-            .station-name { font-size: 18px; }
-            .ctrl-btn.play-btn { width: 64px; height: 64px; font-size: 28px; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
     </style>
 </head>
 <body>
 
-    <!-- جزيئات نارية -->
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
+    <!-- زر التبرع -->
+    <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Us">
+        <i class="fab fa-paypal"></i>
+    </a>
 
+    <!-- شاشة التحميل -->
     <div id="loading">
-        <i class="fas fa-fire"></i>
-        <span>IGNITING STATIONS...</span>
+        <div class="spinner"></div>
+        <span>LOADING STATIONS...</span>
     </div>
 
+    <!-- المشغل -->
     <div class="app-card">
         <div class="logo-frame" id="stationLogo">
-            <i class="fas fa-bolt"></i>
+            <i class="fas fa-music"></i>
         </div>
 
-        <div class="station-name" id="stationTitle">CHOOSE COUNTRY</div>
-        <div class="station-meta" id="stationSub">USE BOT COMMAND</div>
+        <div class="station-name" id="stationTitle">Select Country</div>
+        <div class="station-meta" id="stationSub">Use Bot Command</div>
 
         <div class="controls">
-            <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-step-backward"></i></button>
+            <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
             <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
-            <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-step-forward"></i></button>
+            <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
         </div>
 
         <audio id="audioPlayer" preload="metadata"></audio>
-
-        <div class="footer-note">
-            <i class="fas fa-skull"></i> CHANGE COUNTRY IN BOT CHAT
-        </div>
     </div>
 
     <script>
@@ -370,55 +272,78 @@
         let isPlaying = false;
         let hasValid = false;
 
+        // دالة جلب المحطات (تم التعديل لجلب كل محطات الدولة وترتيبها حسب الأفضلية)
         async function fetchRadio(name) {
             if (!name) throw new Error('No country');
-            const url = `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}`;
+            
+            // استخدام bycountry بدلاً من byname لجلب آلاف المحطات التابعة للدولة
+            const url = `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`;
             const resp = await fetch(url);
             if (!resp.ok) throw new Error('Fetch failed');
+            
             const data = await resp.json();
-            return data.filter(s => s.country && s.country.toLowerCase().includes(name.toLowerCase()));
+            // تصفية المحطات التي لا تحتوي على رابط تشغيل
+            return data.filter(s => s.url_resolved || s.url);
         }
 
         function setEmpty(msg) {
-            title.textContent = msg || 'SELECT COUNTRY';
-            sub.textContent = 'USE BOT';
-            logo.innerHTML = `<i class="fas fa-bolt"></i>`;
+            title.textContent = msg || 'Select Country';
+            sub.textContent = 'Use Bot Command';
+            logo.innerHTML = `<i class="fas fa-music"></i>`;
             audio.src = '';
             playBtn.disabled = true;
             prevBtn.disabled = true;
             nextBtn.disabled = true;
             hasValid = false;
+            logo.classList.remove('playing');
             if (isPlaying) { audio.pause(); isPlaying = false; playIcon.className = 'fas fa-play'; }
         }
 
         function loadStation(index) {
             if (!stations.length || !hasValid) { setEmpty(); return; }
             const item = stations[index];
-            title.textContent = item.name || 'Untitled';
-            sub.textContent = `${index + 1} of ${stations.length}`;
+            
+            title.textContent = item.name || 'Unknown Station';
+            sub.textContent = `Station ${index + 1} of ${stations.length}`;
+            
             if (item.favicon) {
-                logo.innerHTML = `<img src="${item.favicon}" alt="logo" />`;
+                logo.innerHTML = `<img src="${item.favicon}" alt="logo" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\\'fas fa-music\\'></i>';" />`;
             } else {
-                logo.innerHTML = `<i class="fas fa-bolt"></i>`;
+                logo.innerHTML = `<i class="fas fa-music"></i>`;
             }
+            
             audio.src = item.url_resolved || item.url || '';
             audio.load();
+            
             playBtn.disabled = false;
             prevBtn.disabled = false;
             nextBtn.disabled = false;
-            if (isPlaying) { audio.pause(); isPlaying = false; playIcon.className = 'fas fa-play'; }
+            
+            // تشغيل تلقائي عند التنقل إذا كان المستخدم يستمع بالفعل
+            if (isPlaying) {
+                audio.play().catch(() => {
+                    isPlaying = false;
+                    playIcon.className = 'fas fa-play';
+                    logo.classList.remove('playing');
+                });
+            }
         }
 
         function togglePlay() {
             if (!hasValid || !audio.src) return;
             if (audio.paused) {
-                audio.play().catch(() => {});
-                isPlaying = true;
-                playIcon.className = 'fas fa-pause';
+                audio.play().then(() => {
+                    isPlaying = true;
+                    playIcon.className = 'fas fa-pause';
+                    logo.classList.add('playing');
+                }).catch(() => {
+                    alert("Cannot play this station. Try the next one.");
+                });
             } else {
                 audio.pause();
                 isPlaying = false;
                 playIcon.className = 'fas fa-play';
+                logo.classList.remove('playing');
             }
         }
 
@@ -427,6 +352,7 @@
             currentIndex = (currentIndex + 1) % stations.length;
             loadStation(currentIndex);
         }
+        
         function prevStation() {
             if (!stations.length) return;
             currentIndex = (currentIndex - 1 + stations.length) % stations.length;
@@ -436,17 +362,32 @@
         playBtn.addEventListener('click', togglePlay);
         nextBtn.addEventListener('click', nextStation);
         prevBtn.addEventListener('click', prevStation);
-        audio.addEventListener('pause', () => { isPlaying = false; playIcon.className = 'fas fa-play'; });
-        audio.addEventListener('play', () => { isPlaying = true; playIcon.className = 'fas fa-pause'; });
+        
+        audio.addEventListener('pause', () => { 
+            isPlaying = false; 
+            playIcon.className = 'fas fa-play'; 
+            logo.classList.remove('playing');
+        });
+        
+        audio.addEventListener('play', () => { 
+            isPlaying = true; 
+            playIcon.className = 'fas fa-pause'; 
+            logo.classList.add('playing');
+        });
+
+        // تخطي المحطة تلقائياً إذا كان الرابط معطلاً
+        audio.addEventListener('error', () => {
+            if(isPlaying) nextStation();
+        });
 
         async function init() {
             const name = countryName.trim();
             if (!name) {
-                setEmpty('NO COUNTRY');
+                setEmpty('No Country Selected');
                 loading.style.display = 'none';
                 return;
             }
-            loading.style.display = 'flex';
+            
             try {
                 const data = await fetchRadio(name);
                 if (data.length) {
@@ -455,12 +396,25 @@
                     currentIndex = 0;
                     loadStation(0);
                 } else {
-                    setEmpty('NO STATIONS');
-                    sub.textContent = 'TRY ANOTHER';
+                    // محاولة البحث بالاسم إذا لم تنجح الدولة
+                    const fallbackUrl = `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`;
+                    const fallbackResp = await fetch(fallbackUrl);
+                    const fallbackData = await fallbackResp.json();
+                    const validFallback = fallbackData.filter(s => s.url_resolved || s.url);
+                    
+                    if(validFallback.length) {
+                        stations = validFallback;
+                        hasValid = true;
+                        currentIndex = 0;
+                        loadStation(0);
+                    } else {
+                        setEmpty('No Stations Found');
+                        sub.textContent = 'Try another country';
+                    }
                 }
             } catch (e) {
-                setEmpty('ERROR');
-                sub.textContent = 'RETRY LATER';
+                setEmpty('Connection Error');
+                sub.textContent = 'Please try again later';
             }
             loading.style.display = 'none';
         }
