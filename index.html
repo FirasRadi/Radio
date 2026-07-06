@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pure Radio · Electro</title>
+    <title>Red Radio</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,92 +16,76 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --red: #d32f2f;
+            --red-dark: #b71c1c;
+            --red-light: #ef5350;
+            --red-glow: rgba(211, 47, 47, 0.25);
+            --black: #0d0d0d;
+            --black-light: #1a1a1a;
+            --gray: #888;
+            --gray-light: #aaa;
+            --white: #f5f5f5;
+            --paypal-blue: #0070ba;
+            --paypal-hover: #005ea6;
+            --radius: 32px;
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+        }
+
         body {
             font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--black);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             margin: 0;
-            background: #080c1a;
-            position: relative;
-            overflow: hidden;
+            color: var(--white);
         }
 
-        /* خلفية متدرجة عميقة مع كرات ضبابية */
         .bg-glow {
             position: fixed;
             inset: 0;
+            background: radial-gradient(ellipse at 50% 20%, rgba(211, 47, 47, 0.06), transparent 60%);
+            pointer-events: none;
             z-index: 0;
-            background: radial-gradient(circle at 20% 30%, #1a2a6c, #080c1a 70%);
         }
 
-        .bg-glow::after {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(0, 180, 255, 0.08), transparent 70%);
-            top: -100px;
-            right: -100px;
-            border-radius: 50%;
-            animation: floatGlow 20s ease-in-out infinite alternate;
-        }
-
-        .bg-glow::before {
-            content: '';
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(130, 0, 255, 0.06), transparent 70%);
-            bottom: -100px;
-            left: -100px;
-            border-radius: 50%;
-            animation: floatGlow 25s ease-in-out infinite alternate-reverse;
-        }
-
-        @keyframes floatGlow {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-            100% {
-                transform: translate(60px, 40px) scale(1.3);
-            }
-        }
-
-        /* البطاقة الرئيسية – زجاجية نقية */
         .app-card {
             width: 100%;
-            max-width: 400px;
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-radius: 44px;
-            padding: 32px 24px 30px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            max-width: 420px;
+            background: var(--black-light);
+            border-radius: var(--radius);
+            padding: 32px 24px 28px;
+            box-shadow: var(--shadow), 0 0 0 1px rgba(211, 47, 47, 0.15);
             position: relative;
-            z-index: 2;
-            transition: 0.3s;
+            z-index: 1;
+            border: 1px solid rgba(211, 47, 47, 0.15);
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        /* شعار الراديو – دائرة زرقاء أنيقة */
+        .app-card:hover {
+            border-color: rgba(211, 47, 47, 0.3);
+            box-shadow: var(--shadow), 0 0 30px rgba(211, 47, 47, 0.05);
+        }
+
+        /* الشعار */
         .logo-frame {
-            width: 80px;
-            height: 80px;
+            width: 110px;
+            height: 110px;
             margin: 0 auto 18px;
             border-radius: 50%;
-            background: linear-gradient(145deg, #0d1f3c, #162a52);
+            background: linear-gradient(145deg, #1a0a0a, #0a0202);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            color: #6ab0fe;
-            box-shadow: 0 8px 24px rgba(0, 100, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            font-size: 42px;
+            color: var(--red);
+            box-shadow: 0 0 30px rgba(211, 47, 47, 0.1), inset 0 0 20px rgba(211, 47, 47, 0.03);
             overflow: hidden;
+            border: 2px solid rgba(211, 47, 47, 0.2);
             transition: 0.3s;
-            border: 1px solid rgba(100, 180, 255, 0.1);
         }
 
         .logo-frame img {
@@ -111,49 +95,48 @@
         }
 
         .logo-frame i {
-            filter: drop-shadow(0 0 12px rgba(60, 160, 255, 0.2));
+            filter: drop-shadow(0 0 12px rgba(211, 47, 47, 0.2));
         }
 
-        /* النصوص */
+        /* العناوين */
         .station-name {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             text-align: center;
-            color: #f0f6ff;
-            letter-spacing: -0.2px;
+            color: #fff;
             margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            letter-spacing: -0.2px;
         }
 
         .station-meta {
             font-size: 13px;
             font-weight: 400;
-            color: #8892b0;
+            color: var(--gray);
             text-align: center;
-            margin-bottom: 26px;
-            letter-spacing: 0.3px;
+            margin-bottom: 24px;
         }
 
-        /* أزرار التحكم – تصميم عصري هادئ */
+        /* أزرار التحكم الرئيسية (السابقة/تشغيل/التالية) */
         .controls {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 2px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .ctrl-btn {
             background: none;
             border: none;
-            color: #8892b0;
-            font-size: 20px;
+            color: var(--gray);
+            font-size: 22px;
             cursor: pointer;
             transition: 0.25s;
-            width: 44px;
-            height: 44px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -164,170 +147,205 @@
 
         .ctrl-btn:hover {
             color: #fff;
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.06);
-            transform: translateY(-2px);
+            background: rgba(211, 47, 47, 0.08);
+            border-color: rgba(211, 47, 47, 0.15);
         }
 
         .ctrl-btn.play-btn {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(145deg, #1a3a6a, #0f2347);
-            color: #8ac4ff;
-            font-size: 26px;
-            box-shadow: 0 8px 24px rgba(0, 80, 200, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(100, 180, 255, 0.15);
+            width: 70px;
+            height: 70px;
+            background: var(--red);
+            color: #fff;
+            font-size: 28px;
+            box-shadow: 0 8px 24px rgba(211, 47, 47, 0.25);
+            border: none;
         }
 
         .ctrl-btn.play-btn:hover {
+            background: var(--red-light);
             transform: scale(1.04);
-            background: linear-gradient(145deg, #224a82, #132d5a);
-            box-shadow: 0 8px 32px rgba(0, 80, 255, 0.3);
-            color: #b5d8ff;
+            box-shadow: 0 8px 30px rgba(211, 47, 47, 0.4);
         }
 
         .ctrl-btn:disabled {
-            opacity: 0.25;
+            opacity: 0.2;
             cursor: not-allowed;
             pointer-events: none;
-            transform: none !important;
         }
 
-        /* مشغل الصوت – مخصص بلون أزرق هادئ */
+        /* أزرار الصوت (رفع/خفض) */
+        .volume-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .vol-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--gray-light);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .vol-btn:hover {
+            background: rgba(211, 47, 47, 0.1);
+            border-color: rgba(211, 47, 47, 0.2);
+            color: #fff;
+        }
+
+        .vol-btn:active {
+            transform: scale(0.94);
+        }
+
+        .volume-indicator {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+            min-width: 44px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .volume-indicator i {
+            margin-left: 4px;
+            font-size: 13px;
+            color: var(--red);
+        }
+
+        /* مشغل الصوت */
         audio {
             width: 100%;
             height: 42px;
             border-radius: 40px;
-            background: rgba(0, 0, 0, 0.25);
+            background: rgba(0, 0, 0, 0.4);
             outline: none;
             margin-top: 2px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(211, 47, 47, 0.08);
         }
         audio::-webkit-media-controls-panel {
-            background: rgba(8, 12, 26, 0.7);
+            background: rgba(0, 0, 0, 0.5);
         }
         audio::-webkit-media-controls-play-button {
-            background: #1a3a6a;
+            background: var(--red);
             border-radius: 50%;
         }
-        audio::-webkit-media-controls-timeline {
-            background: #2a4a7a;
-            border-radius: 10px;
-        }
 
-        /* صف الدعم – زر PayPal الدائري المتواضع */
-        .support-row {
-            display: flex;
+        /* زر PayPal */
+        .paypal-btn {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            margin-top: 22px;
-            gap: 14px;
-        }
-
-        .paypal-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(145deg, #003087, #003087);
+            gap: 10px;
+            background: var(--paypal-blue);
             color: #fff;
-            font-size: 22px;
             text-decoration: none;
-            box-shadow: 0 4px 16px rgba(0, 48, 135, 0.25);
-            transition: 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.25s;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 112, 186, 0.25);
+            margin-top: 18px;
+            letter-spacing: 0.3px;
         }
 
-        .paypal-circle i {
-            font-size: 24px;
+        .paypal-btn:hover {
+            background: var(--paypal-hover);
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 112, 186, 0.35);
         }
 
-        .paypal-circle:hover {
-            transform: scale(1.06);
-            box-shadow: 0 6px 24px rgba(0, 48, 135, 0.4);
-            background: linear-gradient(145deg, #0037a0, #002a70);
+        .paypal-btn i {
+            font-size: 20px;
         }
 
-        .support-label {
-            font-size: 12px;
-            color: #5a6a8a;
-            font-weight: 400;
-            letter-spacing: 0.5px;
+        .footer-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 4px;
         }
 
         .footer-note {
-            margin-top: 20px;
+            margin-top: 18px;
             padding-top: 14px;
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
-            font-size: 11px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 12px;
             font-weight: 400;
-            color: #3a4a6a;
+            color: #555;
             text-align: center;
             letter-spacing: 0.3px;
         }
 
         .footer-note i {
-            margin: 0 4px;
-            color: #4a6a9a;
-            font-size: 10px;
+            margin-left: 6px;
+            color: var(--red);
+            font-size: 11px;
         }
 
-        /* شاشة التحميل */
+        /* تحميل */
         #loading {
             position: fixed;
             inset: 0;
-            background: rgba(8, 12, 26, 0.94);
-            backdrop-filter: blur(12px);
+            background: var(--black);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 18px;
             z-index: 999;
-            color: #8892b0;
-            font-size: 13px;
-            letter-spacing: 0.5px;
+            color: var(--gray);
+            font-size: 14px;
         }
         #loading i {
-            font-size: 32px;
-            color: #6ab0fe;
-            animation: spinPulse 1.4s ease-in-out infinite;
+            font-size: 34px;
+            color: var(--red);
+            animation: spin 1s linear infinite;
         }
 
-        @keyframes spinPulse {
+        @keyframes spin {
             0% {
-                transform: rotate(0deg) scale(0.9);
-                opacity: 0.4;
-            }
-            50% {
-                transform: rotate(180deg) scale(1.2);
-                opacity: 1;
+                transform: rotate(0deg);
             }
             100% {
-                transform: rotate(360deg) scale(0.9);
-                opacity: 0.4;
+                transform: rotate(360deg);
             }
         }
 
-        @media (max-width: 440px) {
+        @media (max-width: 460px) {
             .app-card {
-                padding: 24px 16px 22px;
-                border-radius: 32px;
+                padding: 22px 16px 24px;
             }
             .logo-frame {
-                width: 68px;
-                height: 68px;
-                font-size: 28px;
+                width: 90px;
+                height: 90px;
+                font-size: 34px;
             }
             .station-name {
-                font-size: 17px;
+                font-size: 18px;
             }
             .ctrl-btn.play-btn {
-                width: 58px;
-                height: 58px;
-                font-size: 22px;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+            .vol-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 15px;
+            }
+            .paypal-btn {
+                padding: 10px 22px;
+                font-size: 13px;
             }
         }
     </style>
@@ -337,8 +355,8 @@
     <div class="bg-glow"></div>
 
     <div id="loading">
-        <i class="fas fa-signal"></i>
-        <span>Connecting to stations...</span>
+        <i class="fas fa-spinner"></i>
+        <span>Loading stations...</span>
     </div>
 
     <div class="app-card">
@@ -350,41 +368,46 @@
         <div class="station-name" id="stationTitle">Select a country</div>
         <div class="station-meta" id="stationSub">Use the bot to set your country</div>
 
+        <!-- أزرار التحكم الرئيسية -->
         <div class="controls">
             <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-step-backward"></i></button>
             <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
             <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-step-forward"></i></button>
         </div>
 
+        <!-- أزرار الصوت (رفع/خفض) مع مؤشر -->
+        <div class="volume-controls">
+            <button class="vol-btn" id="volDown"><i class="fas fa-volume-down"></i></button>
+            <span class="volume-indicator" id="volDisplay"><span id="volValue">50</span><i class="fas fa-percent"></i></span>
+            <button class="vol-btn" id="volUp"><i class="fas fa-volume-up"></i></button>
+        </div>
+
         <audio id="audioPlayer" preload="metadata"></audio>
 
-        <!-- صف الدعم مع دائرة PayPal الزرقاء المتواضعة -->
-        <div class="support-row">
-            <span class="support-label">support</span>
-            <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="paypal-circle" aria-label="PayPal">
-                <i class="fab fa-paypal"></i>
+        <!-- زر PayPal -->
+        <div class="footer-row">
+            <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="paypal-btn">
+                <i class="fab fa-paypal"></i> Support Developer
             </a>
         </div>
 
         <div class="footer-note">
-            <i class="fas fa-circle" style="font-size:5px; vertical-align:middle;"></i>
-            change country via bot
-            <i class="fas fa-circle" style="font-size:5px; vertical-align:middle;"></i>
+            <i class="fas fa-chevron-right"></i> Change country via bot <i class="fas fa-chevron-left"></i>
         </div>
 
     </div>
 
     <script>
-        // ================================================================
-        //  TELEGRAM WEB APP
-        // ================================================================
+        // ============================================================
+        // Telegram WebApp
+        // ============================================================
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // ================================================================
-        //  DOM REFS
-        // ================================================================
+        // ============================================================
+        // DOM refs
+        // ============================================================
         const loading = document.getElementById('loading');
         const logo = document.getElementById('stationLogo');
         const title = document.getElementById('stationTitle');
@@ -393,25 +416,39 @@
         const playIcon = document.getElementById('playIcon');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
+        const volUp = document.getElementById('volUp');
+        const volDown = document.getElementById('volDown');
+        const volValue = document.getElementById('volValue');
         const audio = document.getElementById('audioPlayer');
 
-        // ================================================================
-        //  GET COUNTRY NAME (only "name" param)
-        // ================================================================
+        // ============================================================
+        // Get country name
+        // ============================================================
         const params = new URLSearchParams(window.location.search);
         const countryName = params.get('name') || '';
 
-        // ================================================================
-        //  STATE
-        // ================================================================
+        // ============================================================
+        // State
+        // ============================================================
         let stations = [];
         let currentIndex = 0;
         let isPlaying = false;
         let hasValidCountry = false;
 
-        // ================================================================
-        //  FETCH RADIO STATIONS (radio-browser.info)
-        // ================================================================
+        // ============================================================
+        // Volume control
+        // ============================================================
+        let currentVolume = 50; // 0-100
+
+        function updateVolume(value) {
+            currentVolume = Math.min(100, Math.max(0, value));
+            audio.volume = currentVolume / 100;
+            volValue.textContent = currentVolume;
+        }
+
+        // ============================================================
+        // Fetch stations
+        // ============================================================
         async function fetchRadioStations(name) {
             if (!name) throw new Error('No country name.');
             const url =
@@ -425,9 +462,9 @@
             return filtered.length ? filtered : data;
         }
 
-        // ================================================================
-        //  UI FUNCTIONS
-        // ================================================================
+        // ============================================================
+        // UI Functions
+        // ============================================================
 
         function setEmptyState(msg) {
             title.textContent = msg || 'Select a country';
@@ -445,7 +482,7 @@
             }
         }
 
-        function loadStation(index) {
+        function loadStation(index, autoPlay = false) {
             if (!stations.length || !hasValidCountry) {
                 setEmptyState();
                 return;
@@ -467,10 +504,17 @@
             prevBtn.disabled = false;
             nextBtn.disabled = false;
 
-            if (isPlaying) {
-                audio.pause();
-                isPlaying = false;
-                playIcon.className = 'fas fa-play';
+            // إذا كانت المحطة السابقة مشغلة أو طلبنا التشغيل التلقائي
+            if (autoPlay || isPlaying) {
+                audio.play().catch(() => {});
+                isPlaying = true;
+                playIcon.className = 'fas fa-pause';
+            } else {
+                if (isPlaying) {
+                    audio.pause();
+                    isPlaying = false;
+                    playIcon.className = 'fas fa-play';
+                }
             }
         }
 
@@ -490,18 +534,19 @@
         function nextStation() {
             if (!stations.length) return;
             currentIndex = (currentIndex + 1) % stations.length;
-            loadStation(currentIndex);
+            // نمرر true لتشغيل تلقائي إذا كانت هناك محطة مشغلة
+            loadStation(currentIndex, true);
         }
 
         function prevStation() {
             if (!stations.length) return;
             currentIndex = (currentIndex - 1 + stations.length) % stations.length;
-            loadStation(currentIndex);
+            loadStation(currentIndex, true);
         }
 
-        // ================================================================
-        //  INIT
-        // ================================================================
+        // ============================================================
+        // Init
+        // ============================================================
 
         async function initRadio() {
             const name = countryName.trim();
@@ -518,7 +563,7 @@
                     stations = data;
                     hasValidCountry = true;
                     currentIndex = 0;
-                    loadStation(0);
+                    loadStation(0, false);
                 } else {
                     setEmptyState('No stations found');
                     sub.textContent = 'Try a different country';
@@ -532,14 +577,22 @@
             }
         }
 
-        // ================================================================
-        //  EVENT LISTENERS
-        // ================================================================
+        // ============================================================
+        // Event listeners
+        // ============================================================
 
         playBtn.addEventListener('click', togglePlay);
         nextBtn.addEventListener('click', nextStation);
         prevBtn.addEventListener('click', prevStation);
 
+        // أحداث الصوت
+        volUp.addEventListener('click', () => updateVolume(currentVolume + 10));
+        volDown.addEventListener('click', () => updateVolume(currentVolume - 10));
+
+        // ضبط مستوى الصوت عند تحميل الصفحة
+        updateVolume(currentVolume);
+
+        // تحديث أيقونة التشغيل/الإيقاف عند تغير حالة الصوت
         audio.addEventListener('pause', () => {
             isPlaying = false;
             playIcon.className = 'fas fa-play';
@@ -549,7 +602,14 @@
             playIcon.className = 'fas fa-pause';
         });
 
-        // START
+        // عند انتهاء المحطة، ننتقل للتالية تلقائياً (ميزة إضافية)
+        audio.addEventListener('ended', () => {
+            if (stations.length > 0) {
+                nextStation();
+            }
+        });
+
+        // Start
         initRadio();
     </script>
 </body>
