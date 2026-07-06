@@ -37,7 +37,6 @@
             overflow: hidden;
         }
 
-        /* زر التبرع الدائري الهادئ */
         .donate-btn {
             position: fixed;
             bottom: 20px;
@@ -59,14 +58,13 @@
         }
 
         .donate-btn:hover {
-            background: #0070ba; /* لون باي بال */
+            background: #0070ba;
             color: #fff;
             border-color: #0070ba;
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4);
         }
 
-        /* البطاقة الرئيسية - تصميم زجاجي أنيق */
         .app-card {
             position: relative;
             z-index: 2;
@@ -82,7 +80,6 @@
             text-align: center;
         }
 
-        /* الشعار - أسطوانة هادئة */
         .logo-frame {
             width: 120px;
             height: 120px;
@@ -133,7 +130,6 @@
             letter-spacing: 1px;
         }
 
-        /* أزرار التحكم - بسيطة وعصرية */
         .controls {
             display: flex;
             align-items: center;
@@ -182,12 +178,10 @@
             cursor: not-allowed;
         }
 
-        /* مشغل الصوت المخفي (نستخدم الأزرار المخصصة بدلاً منه) */
         audio {
             display: none;
         }
 
-        /* شاشة التحميل - هادئة */
         #loading {
             position: fixed;
             inset: 0;
@@ -215,23 +209,19 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
     </style>
 </head>
 <body>
 
-    <!-- زر التبرع -->
     <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Us">
         <i class="fab fa-paypal"></i>
     </a>
 
-    <!-- شاشة التحميل -->
     <div id="loading">
         <div class="spinner"></div>
         <span>LOADING STATIONS...</span>
     </div>
 
-    <!-- المشغل -->
     <div class="app-card">
         <div class="logo-frame" id="stationLogo">
             <i class="fas fa-music"></i>
@@ -272,24 +262,19 @@
         let isPlaying = false;
         let hasValid = false;
 
-        // دالة جلب المحطات (تم التعديل لجلب كل محطات الدولة وترتيبها حسب الأفضلية)
         async function fetchRadio(name) {
             if (!name) throw new Error('No country');
-            
-            // استخدام bycountry بدلاً من byname لجلب آلاف المحطات التابعة للدولة
             const url = `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`;
             const resp = await fetch(url);
             if (!resp.ok) throw new Error('Fetch failed');
-            
             const data = await resp.json();
-            // تصفية المحطات التي لا تحتوي على رابط تشغيل
             return data.filter(s => s.url_resolved || s.url);
         }
 
         function setEmpty(msg) {
             title.textContent = msg || 'Select Country';
             sub.textContent = 'Use Bot Command';
-            logo.innerHTML = `<i class="fas fa-music"></i>`;
+            logo.innerHTML = '<i class="fas fa-music"></i>';
             audio.src = '';
             playBtn.disabled = true;
             prevBtn.disabled = true;
@@ -306,10 +291,20 @@
             title.textContent = item.name || 'Unknown Station';
             sub.textContent = `Station ${index + 1} of ${stations.length}`;
             
+            // طريقة آمنة جداً لتحميل الصورة بدون أخطاء في GitHub
             if (item.favicon) {
-                logo.innerHTML = `<img src="${item.favicon}" alt="logo" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\\'fas fa-music\\'></i>';" />`;
+                const img = new Image();
+                img.src = item.favicon;
+                img.alt = "logo";
+                img.onload = function() {
+                    logo.innerHTML = '';
+                    logo.appendChild(img);
+                };
+                img.onerror = function() {
+                    logo.innerHTML = '<i class="fas fa-music"></i>';
+                };
             } else {
-                logo.innerHTML = `<i class="fas fa-music"></i>`;
+                logo.innerHTML = '<i class="fas fa-music"></i>';
             }
             
             audio.src = item.url_resolved || item.url || '';
@@ -319,7 +314,6 @@
             prevBtn.disabled = false;
             nextBtn.disabled = false;
             
-            // تشغيل تلقائي عند التنقل إذا كان المستخدم يستمع بالفعل
             if (isPlaying) {
                 audio.play().catch(() => {
                     isPlaying = false;
@@ -375,7 +369,6 @@
             logo.classList.add('playing');
         });
 
-        // تخطي المحطة تلقائياً إذا كان الرابط معطلاً
         audio.addEventListener('error', () => {
             if(isPlaying) nextStation();
         });
@@ -396,7 +389,6 @@
                     currentIndex = 0;
                     loadStation(0);
                 } else {
-                    // محاولة البحث بالاسم إذا لم تنجح الدولة
                     const fallbackUrl = `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`;
                     const fallbackResp = await fetch(fallbackUrl);
                     const fallbackData = await fallbackResp.json();
