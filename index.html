@@ -6,7 +6,6 @@
     <title>Radio & TV Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- مكتبة Hls.js لتشغيل قنوات التلفزيون مباشرة -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root {
@@ -61,99 +60,24 @@
             justify-content: center;
             gap: 8px;
         }
-        .mode-btn.active {
-            background: var(--primary);
-            color: white;
-        }
+        .mode-btn.active { background: var(--primary); color: white; }
         .media-screen {
-            width: 100%;
-            height: 180px;
-            background: linear-gradient(145deg, #1e1e1e, #111);
-            margin: 0 auto 20px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 100%; height: 180px; background: linear-gradient(145deg, #1e1e1e, #111);
+            margin: 0 auto 20px; border-radius: 20px; display: flex; align-items: center;
+            justify-content: center; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        .logo-fallback {
-            font-size: 60px;
-            color: var(--primary);
-            position: absolute;
-            z-index: 1;
-        }
-        #channel-logo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 20px;
-            position: absolute;
-            z-index: 2;
-            display: none;
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 20px;
-            position: absolute;
-            z-index: 3;
-            background: black;
-            display: none;
-        }
+        .logo-fallback { font-size: 60px; color: var(--primary); position: absolute; z-index: 1; }
+        #channel-logo { width: 100%; height: 100%; object-fit: cover; border-radius: 20px; position: absolute; z-index: 2; display: none; }
+        video { width: 100%; height: 100%; object-fit: contain; border-radius: 20px; position: absolute; z-index: 3; background: black; display: none; }
         h2 { margin: 10px 0 5px; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         p { color: #888; font-size: 13px; margin: 0 0 20px 0; }
-        .controls {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 0 15px;
-        }
-        .btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 22px;
-            cursor: pointer;
-            transition: 0.3s;
-            padding: 10px;
-        }
+        .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 0 15px; }
+        .btn { background: none; border: none; color: white; font-size: 22px; cursor: pointer; transition: 0.3s; padding: 10px; }
         .btn:hover { color: var(--primary); transform: scale(1.1); }
-        .btn-play {
-            width: 55px;
-            height: 55px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-        .support-btn {
-            background: #0070ba;
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.3s;
-        }
+        .btn-play { width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .support-btn { background: #0070ba; color: white; text-decoration: none; padding: 10px 20px; border-radius: 50px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
         .support-btn:hover { background: #005ea6; }
-        #loading {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; }
     </style>
 </head>
 <body>
@@ -161,6 +85,7 @@
     <div id="loading"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
 
     <div class="player-container">
+        
         <div class="mode-toggle">
             <button id="btn-tv" class="mode-btn active" onclick="setMode('tv')">
                 <i class="fas fa-tv"></i> تلفاز
@@ -176,8 +101,8 @@
             <video id="video-player" controls autoplay playsinline></video>
         </div>
 
-        <h2 id="title">جاري التحميل...</h2>
-        <p id="sub-title">الرجاء الانتظار</p>
+        <h2 id="title">الرجاء تحديد الدولة عبر البوت</h2>
+        <p id="sub-title">...</p>
 
         <div class="controls">
             <button class="btn" onclick="prevChannel()"><i class="fas fa-step-backward"></i></button>
@@ -195,107 +120,82 @@
         tg.ready();
         tg.expand();
 
+        let allChannels = [];
         let filteredChannels = [];
+        let allStreams = [];
         let currentIndex = 0;
-        let currentMode = 'tv'; 
+        let currentMode = 'tv';
+
+        // قراءة الرمز الذي جلبه البوت بناءً على فكرتك
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetCountryCode = urlParams.get('code'); 
+        const displayCountryName = urlParams.get('name') || "";
 
         const videoPlayer = document.getElementById('video-player');
         const playIcon = document.getElementById('play-icon');
         const channelLogo = document.getElementById('channel-logo');
         const fallbackIcon = document.getElementById('fallback-icon');
 
-        // جلب اسم الكود الثنائي من الرابط بشكل صارم دون وضع أي قيم افتراضية
-        const urlParams = new URLSearchParams(window.location.search);
-        const countryCode = urlParams.get('country') ? urlParams.get('country').toUpperCase() : null; 
-
         let hls = null;
 
-        // جلب التلفزيون من IPTV-org
-        async function fetchTV() {
+        async function loadData() {
+            if (!targetCountryCode) {
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
             try {
                 const channelsResponse = await fetch('https://iptv-org.github.io/api/channels.json');
-                const channels = await channelsResponse.json();
+                allChannels = await channelsResponse.json();
 
                 const streamsResponse = await fetch('https://iptv-org.github.io/api/streams.json');
-                const streams = await streamsResponse.json();
+                allStreams = await streamsResponse.json();
 
-                const countryChannels = channels.filter(c => c.country === countryCode && (!c.categories || !c.categories.includes('radio')));
-
-                filteredChannels = countryChannels.map(c => {
-                    const stream = streams.find(s => s.channel === c.id);
-                    return {
-                        name: c.name,
-                        logo: c.logo,
-                        url: stream ? stream.url : null
-                    };
-                }).filter(c => c.url !== null);
-
-                if (filteredChannels.length > 0) {
-                    loadChannel(0);
-                } else {
-                    showNoChannels("تلفاز");
-                }
+                filterData();
                 document.getElementById('loading').style.display = 'none';
             } catch (err) {
-                console.error(err);
-                document.getElementById('loading').innerText = "خطأ في تحميل التلفاز";
+                console.error("Error loading data", err);
+                document.getElementById('loading').innerText = "خطأ في الاتصال بالخادم";
             }
         }
 
-        // جلب الراديو من Radio-Browser
-        async function fetchRadio() {
-            try {
-                const response = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/${countryCode.toLowerCase()}?limit=50`);
-                const data = await response.json();
-
-                filteredChannels = data.map(r => ({
-                    name: r.name,
-                    logo: r.favicon,
-                    url: r.url_resolved || r.url
-                }));
-
-                if (filteredChannels.length > 0) {
-                    loadChannel(0);
-                } else {
-                    showNoChannels("راديو");
-                }
-                document.getElementById('loading').style.display = 'none';
-            } catch (err) {
-                console.error(err);
-                document.getElementById('loading').innerText = "خطأ في تحميل الراديو";
-            }
-        }
-
-        function showNoChannels(type) {
-            document.getElementById('title').innerText = "لا توجد قنوات";
-            document.getElementById('sub-title').innerText = `لا يوجد ${type} متاح لهذه الدولة حالياً`;
-            channelLogo.style.display = 'none';
+        function filterData() {
             stopStream();
+
+            // استخدام الرمز (مثال: sy, eg) لجلب القنوات
+            const countryChannels = allChannels.filter(c => 
+                c.country && c.country.toLowerCase() === targetCountryCode
+            );
+
+            if (currentMode === 'radio') {
+                filteredChannels = countryChannels.filter(c => c.categories && c.categories.includes('radio'));
+                fallbackIcon.innerHTML = `<i class="fas fa-radio"></i>`;
+                videoPlayer.style.display = 'none';
+            } else {
+                filteredChannels = countryChannels.filter(c => !c.categories || !c.categories.includes('radio'));
+                fallbackIcon.innerHTML = `<i class="fas fa-tv"></i>`;
+            }
+
+            currentIndex = 0;
+            if (filteredChannels.length > 0) {
+                loadChannel(0);
+            } else {
+                document.getElementById('title').innerText = "لا توجد قنوات";
+                document.getElementById('sub-title').innerText = "لا تتوفر قنوات لـ " + displayCountryName;
+                channelLogo.style.display = 'none';
+            }
         }
 
         function setMode(mode) {
             if (currentMode === mode) return;
             currentMode = mode;
-            
             document.getElementById('btn-tv').classList.toggle('active', mode === 'tv');
             document.getElementById('btn-radio').classList.toggle('active', mode === 'radio');
-
-            document.getElementById('loading').style.display = 'flex';
-            stopStream();
-
-            if (currentMode === 'radio') {
-                fallbackIcon.innerHTML = `<i class="fas fa-radio"></i>`;
-                videoPlayer.style.display = 'none';
-                fetchRadio();
-            } else {
-                fallbackIcon.innerHTML = `<i class="fas fa-tv"></i>`;
-                fetchTV();
-            }
+            filterData();
         }
 
         function playStream(url) {
             stopStream();
-
             if (currentMode === 'tv') {
                 videoPlayer.style.display = 'block';
                 channelLogo.style.display = 'none';
@@ -322,10 +222,7 @@
         }
 
         function stopStream() {
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
+            if (hls) { hls.destroy(); hls = null; }
             videoPlayer.pause();
             videoPlayer.src = "";
         }
@@ -342,10 +239,11 @@
                 channelLogo.style.display = 'none';
             }
 
-            if (channel.url) {
-                playStream(channel.url);
+            const stream = allStreams.find(s => s.channel === channel.id);
+            if (stream && stream.url) {
+                playStream(stream.url);
             } else {
-                document.getElementById('sub-title').innerText = "البث غير متوفر حالياً";
+                document.getElementById('sub-title').innerText = "بث هذه القناة غير متوفر حالياً";
                 stopStream();
             }
         }
@@ -370,25 +268,7 @@
             loadChannel(currentIndex);
         }
 
-        // دالة بدء تشغيل وفحص صارم لوجود الدولة
-        function init() {
-            if (!countryCode) {
-                // إظهار واجهة تخبر المستخدم بضرورة إدخال الدولة أولاً في البوت وعدم تحميل أي شيء
-                document.getElementById('loading').innerHTML = `
-                    <div style="text-align: center; padding: 25px;">
-                        <i class="fas fa-search-location" style="font-size: 55px; color: var(--primary); margin-bottom: 20px;"></i>
-                        <h2>الرجاء اختيار دولة أولاً</h2>
-                        <p style="color: #888; font-size: 14px;">اكتب اسم الدولة في دردشة البوت لتتمكن من تشغيل الراديو والتلفاز الخاص بها.</p>
-                    </div>
-                `;
-                return; // إيقاف التحميل تماماً
-            }
-            
-            // في حال تم العثور على الدولة المكتوبة، يبدأ تحميل التلفزيون الخاص بها كوضع افتراضي
-            fetchTV();
-        }
-
-        init();
+        loadData();
     </script>
 </body>
 </html>
