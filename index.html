@@ -37,32 +37,31 @@
             overflow: hidden;
         }
 
+        /* زر التبرع - أزرق بشكل افتراضي */
         .donate-btn {
             position: fixed;
             bottom: 20px;
             right: 20px;
             width: 45px;
             height: 45px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0070ba;
+            border: 1px solid #0070ba;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-sub);
+            color: #fff;
             font-size: 18px;
             text-decoration: none;
             transition: all 0.3s ease;
             z-index: 100;
-            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4);
         }
 
         .donate-btn:hover {
-            background: #0070ba;
-            color: #fff;
-            border-color: #0070ba;
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6);
+            background: #005ea6;
         }
 
         .app-card {
@@ -74,7 +73,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 30px;
-            padding: 40px 25px;
+            padding: 40px 25px 25px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
             text-align: center;
@@ -135,7 +134,7 @@
             align-items: center;
             justify-content: center;
             gap: 25px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .ctrl-btn {
@@ -180,6 +179,23 @@
 
         audio {
             display: none;
+        }
+
+        /* ملاحظة تغيير الدولة */
+        .footer-note {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+
+        .footer-note i {
+            margin-right: 6px;
+            color: var(--accent);
         }
 
         #loading {
@@ -237,6 +253,11 @@
         </div>
 
         <audio id="audioPlayer" preload="metadata"></audio>
+
+        <!-- الملاحظة السفلية -->
+        <div class="footer-note">
+            <i class="fas fa-exchange-alt"></i> Change country via bot chat
+        </div>
     </div>
 
     <script>
@@ -261,6 +282,10 @@
         let currentIndex = 0;
         let isPlaying = false;
         let hasValid = false;
+        let errorCount = 0; // عداد الأخطاء لمنع التشنج
+        
+        // التحقق مما إذا كان المستخدم يستمع للراديو قبل تغيير الدولة
+        let autoPlayRequested = localStorage.getItem('radio_is_playing') === 'true';
 
         async function fetchRadio(name) {
             if (!name) throw new Error('No country');
@@ -291,7 +316,6 @@
             title.textContent = item.name || 'Unknown Station';
             sub.textContent = `Station ${index + 1} of ${stations.length}`;
             
-            // طريقة آمنة جداً لتحميل الصورة بدون أخطاء في GitHub
             if (item.favicon) {
                 const img = new Image();
                 img.src = item.favicon;
@@ -314,30 +338,52 @@
             prevBtn.disabled = false;
             nextBtn.disabled = false;
             
-            if (isPlaying) {
-                audio.play().catch(() => {
-                    isPlaying = false;
-                    playIcon.className = 'fas fa-play';
-                    logo.classList.remove('playing');
-                });
+            // التشغيل التلقائي إذا كان يستمع مسبقاً أو ضغط على زر التشغيل
+            if (isPlaying || autoPlayRequested) {
+                playAudio();
+            }
+        }
+
+        // دالة التشغيل مع معالجة الأخطاء بصمت
+        function playAudio() {
+            audio.play().then(() => {
+                isPlaying = true;
+                autoPlayRequested = false;
+                errorCount = 0; // تصفير عداد الأخطاء عند نجاح التشغيل
+                playIcon.className = 'fas fa-pause';
+                logo.classList.add('playing');
+                localStorage.setItem('radio_is_playing', 'true'); // حفظ حالة التشغيل
+            }).catch(() => {
+                handlePlayError();
+            });
+        }
+
+        // دالة تخطي المحطات المعطلة تلقائياً
+        function handlePlayError() {
+            errorCount++;
+            // محاولة التخطي لـ 15 محطة كحد أقصى لتجنب تشنج المتصفح إذا كانت كل المحطات معطلة
+            if (errorCount < stations.length && errorCount < 15) {
+                setTimeout(nextStation, 400); // تخطي بعد جزء من الثانية
+            } else {
+                isPlaying = false;
+                playIcon.className = 'fas fa-play';
+                logo.classList.remove('playing');
+                title.textContent = 'Stations Unavailable';
+                sub.textContent = 'Try another country';
+                localStorage.setItem('radio_is_playing', 'false');
             }
         }
 
         function togglePlay() {
             if (!hasValid || !audio.src) return;
             if (audio.paused) {
-                audio.play().then(() => {
-                    isPlaying = true;
-                    playIcon.className = 'fas fa-pause';
-                    logo.classList.add('playing');
-                }).catch(() => {
-                    alert("Cannot play this station. Try the next one.");
-                });
+                playAudio();
             } else {
                 audio.pause();
                 isPlaying = false;
                 playIcon.className = 'fas fa-play';
                 logo.classList.remove('playing');
+                localStorage.setItem('radio_is_playing', 'false'); // حفظ حالة الإيقاف
             }
         }
 
@@ -369,8 +415,11 @@
             logo.classList.add('playing');
         });
 
+        // إذا انقطع البث فجأة أثناء الاستماع، تخطى للمحطة التالية
         audio.addEventListener('error', () => {
-            if(isPlaying) nextStation();
+            if(isPlaying || autoPlayRequested) {
+                handlePlayError();
+            }
         });
 
         async function init() {
