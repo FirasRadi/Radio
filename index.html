@@ -3,21 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Quantum Radio</title>
+    <title>Aura Radio - The Masterpiece</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Syncopate:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         :root {
-            --bg: #030508;
-            --neon-cyan: #00f3ff;
-            --neon-magenta: #ff003c;
-            --glass: rgba(10, 15, 30, 0.6);
-            --glass-border: rgba(0, 243, 255, 0.2);
-            --text-main: #e0f7fa;
-            --text-muted: #648296;
+            --bg: #050505;
+            --text-main: #ffffff;
+            --text-muted: #888888;
         }
 
         * {
@@ -28,538 +24,354 @@
         body {
             background-color: var(--bg);
             color: var(--text-main);
-            font-family: 'Rajdhani', sans-serif;
-            min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
+            font-family: 'Inter', sans-serif;
+            width: 100vw; height: 100vh;
             overflow: hidden;
-            perspective: 1200px;
+            display: flex; flex-direction: column;
         }
 
-        /* --- Canvas Particle Background --- */
-        #particleCanvas {
+        /* --- Massive Background Text --- */
+        .bg-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Syncopate', sans-serif;
+            font-size: 15vw;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.03);
+            white-space: nowrap;
+            z-index: 0;
+            pointer-events: none;
+            letter-spacing: -2px;
+            transition: opacity 1s ease;
+        }
+
+        /* --- The Living Canvas --- */
+        #auraCanvas {
             position: absolute;
             top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            width: 100%; height: 100%;
             z-index: 1;
+            cursor: pointer;
         }
 
-        /* --- Holographic App Card --- */
-        .quantum-card {
+        /* --- UI Overlay --- */
+        .ui-layer {
             position: relative;
             z-index: 10;
-            width: 90%; max-width: 400px;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 40px 20px 30px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.05), inset 0 0 20px rgba(0, 243, 255, 0.1);
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 30px;
+            pointer-events: none; /* Let clicks pass to canvas */
+        }
+
+        /* --- Top Header --- */
+        .header {
             text-align: center;
-            transform-style: preserve-3d;
-            transition: all 0.3s ease-out;
-        }
-
-        .quantum-card::before {
-            content: ''; position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, var(--neon-cyan), transparent, var(--neon-magenta));
-            z-index: -1; border-radius: 22px; opacity: 0.3;
-            animation: borderGlow 4s linear infinite;
-        }
-
-        @keyframes borderGlow {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 0.6; filter: blur(5px); }
-        }
-
-        /* --- Circular Audio Spectrum & Logo --- */
-        .spectrum-container {
-            position: relative;
-            width: 180px; height: 180px;
-            margin: 0 auto 30px;
-            display: flex; align-items: center; justify-content: center;
-            transform: translateZ(40px);
-        }
-
-        .spectrum-ring {
-            position: absolute;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            border: 1px dashed rgba(0, 243, 255, 0.3);
-            animation: spinRing 20s linear infinite;
-        }
-
-        .spectrum-bars {
-            position: absolute;
-            width: 100%; height: 100%;
-        }
-
-        .bar {
-            position: absolute;
-            bottom: 50%; left: 50%;
-            width: 3px; height: 10px;
-            background: var(--neon-cyan);
-            transform-origin: bottom center;
-            border-radius: 3px;
-            box-shadow: 0 0 10px var(--neon-cyan);
-            transition: height 0.1s ease;
-        }
-
-        .logo-core {
-            width: 110px; height: 110px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0,243,255,0.2) 0%, #030508 80%);
-            border: 2px solid var(--neon-cyan);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 35px; color: var(--neon-cyan);
-            overflow: hidden; z-index: 2;
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .logo-core img {
-            width: 100%; height: 100%;
-            object-fit: cover; opacity: 0.9;
-        }
-
-        .logo-core.playing {
-            transform: scale(1.05);
-            box-shadow: 0 0 50px var(--neon-cyan), inset 0 0 20px var(--neon-cyan);
-            animation: pulseCore 2s infinite alternate;
-        }
-
-        @keyframes pulseCore {
-            0% { border-color: var(--neon-cyan); }
-            100% { border-color: var(--neon-magenta); box-shadow: 0 0 50px var(--neon-magenta); }
-        }
-
-        @keyframes spinRing { 100% { transform: rotate(360deg); } }
-
-        /* --- Typography (Glitch effect) --- */
-        .station-header {
-            position: relative;
-            transform: translateZ(30px);
-            margin-bottom: 25px;
+            animation: fadeInDown 1s ease;
         }
 
         .station-name {
-            font-family: 'Space Mono', monospace;
-            font-size: 20px; font-weight: 700;
-            color: #fff; text-transform: uppercase;
+            font-family: 'Syncopate', sans-serif;
+            font-size: 24px; font-weight: 700;
             letter-spacing: 2px;
-            margin-bottom: 5px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            text-shadow: 0 0 10px var(--neon-cyan);
-        }
-
-        .glitch { animation: textGlitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; color: var(--neon-magenta); }
-
-        @keyframes textGlitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); }
-            100% { transform: translate(0); }
+            margin-bottom: 8px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         .station-meta {
-            font-size: 13px; color: var(--text-muted);
-            letter-spacing: 3px; text-transform: uppercase;
+            font-size: 12px; font-weight: 300;
+            color: var(--text-muted);
+            letter-spacing: 4px; text-transform: uppercase;
         }
 
-        /* --- Cyber Controls --- */
+        /* --- Bottom Controls --- */
         .controls {
-            display: flex; align-items: center; justify-content: center;
-            gap: 20px; margin-bottom: 25px; transform: translateZ(35px);
+            display: flex; justify-content: space-between; align-items: center;
+            pointer-events: auto; /* Enable clicks for controls */
+            padding: 0 20px;
         }
 
-        .btn-cyber {
-            background: transparent; border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-main); font-size: 16px; cursor: pointer;
-            width: 45px; height: 45px; border-radius: 12px;
+        .magnetic-btn {
+            background: transparent; border: none;
+            color: var(--text-main); font-size: 24px;
+            width: 60px; height: 60px;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s;
-            position: relative; overflow: hidden;
+            cursor: pointer; position: relative;
+            transition: color 0.3s ease;
         }
-
-        .btn-cyber::before {
+        
+        .magnetic-btn::after {
             content: ''; position: absolute;
-            top: 50%; left: 50%; width: 0; height: 0;
-            background: var(--neon-cyan); border-radius: 50%;
-            transform: translate(-50%, -50%); opacity: 0;
-            transition: width 0.4s, height 0.4s, opacity 0.4s;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            transform: scale(0); transition: transform 0.3s ease;
             z-index: -1;
         }
 
-        .btn-cyber:hover:not(:disabled) {
-            color: #000; border-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan);
-        }
-        .btn-cyber:hover:not(:disabled)::before {
-            width: 100px; height: 100px; opacity: 1;
-        }
+        .magnetic-btn:hover::after { transform: scale(1); }
+        .magnetic-btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-        .btn-play {
-            width: 65px; height: 65px; border-radius: 50%;
-            background: rgba(0, 243, 255, 0.1);
-            border: 2px solid var(--neon-cyan); color: var(--neon-cyan);
-            font-size: 22px; box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+        .hint {
+            font-size: 11px; color: var(--text-muted);
+            letter-spacing: 2px; text-align: center;
+            opacity: 0.6; pointer-events: none;
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+            animation: pulseHint 2s infinite alternate;
         }
 
-        .btn-play:hover:not(:disabled) {
-            background: var(--neon-cyan); color: #000;
-            box-shadow: 0 0 30px var(--neon-cyan); transform: scale(1.1);
-        }
-        
-        .btn-play.is-playing {
-            border-color: var(--neon-magenta); color: var(--neon-magenta); box-shadow: 0 0 20px rgba(255, 0, 60, 0.4);
-        }
-        .btn-play.is-playing:hover {
-            background: var(--neon-magenta); color: #fff; box-shadow: 0 0 30px var(--neon-magenta);
-        }
-
-        .btn-cyber:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* --- Fav & Volume --- */
-        .bottom-bar {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 10px; transform: translateZ(20px);
-        }
-
-        .fav-btn {
-            background: none; border: none; font-size: 20px;
-            color: var(--text-muted); cursor: pointer; transition: 0.3s;
-        }
-        .fav-btn.active { color: var(--neon-magenta); text-shadow: 0 0 15px var(--neon-magenta); animation: heartBeat 0.5s; }
-
-        @keyframes heartBeat {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
-
-        .volume-wrapper {
-            display: flex; align-items: center; gap: 10px; width: 70%;
-        }
-
-        input[type="range"] {
-            -webkit-appearance: none; width: 100%; height: 3px;
-            background: rgba(255, 255, 255, 0.2); border-radius: 2px; outline: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 12px; height: 12px;
-            border-radius: 0; transform: rotate(45deg); /* Diamond shape */
-            background: var(--neon-cyan); cursor: pointer;
-            box-shadow: 0 0 10px var(--neon-cyan); transition: 0.2s;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover { transform: rotate(45deg) scale(1.5); }
-
-        /* --- Fullscreen HUD Loading --- */
-        #loadingHud {
-            position: fixed; inset: 0; background: var(--bg); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: 'Space Mono', monospace; color: var(--neon-cyan);
-            transition: opacity 0.8s, visibility 0.8s;
-        }
-
-        .hud-circle {
-            width: 100px; height: 100px; border: 2px solid transparent;
-            border-top-color: var(--neon-cyan); border-bottom-color: var(--neon-magenta);
-            border-radius: 50%; animation: spinHud 1s linear infinite; margin-bottom: 20px;
-        }
-
-        @keyframes spinHud { 100% { transform: rotate(360deg); } }
-        
-        .hud-text { font-size: 14px; letter-spacing: 5px; opacity: 0.8; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
-
-        /* --- Donate Button --- */
-        .donate-cyber {
-            position: fixed; bottom: 20px; right: 20px;
-            width: 50px; height: 50px; border-radius: 12px;
-            background: rgba(0, 112, 186, 0.2); border: 1px solid #0070ba;
+        /* --- Loading Screen --- */
+        #loader {
+            position: fixed; inset: 0; background: var(--bg); z-index: 999;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 20px; text-decoration: none;
-            z-index: 100; box-shadow: 0 0 15px rgba(0, 112, 186, 0.4);
-            transition: 0.3s;
+            transition: opacity 1s ease;
         }
-        .donate-cyber:hover {
-            background: #0070ba; transform: translateY(-5px); box-shadow: 0 0 25px rgba(0, 112, 186, 0.8);
+
+        .loader-dot {
+            width: 15px; height: 15px; background: #fff; border-radius: 50%;
+            animation: breathe 1.5s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
         }
+
+        @keyframes breathe { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(3); opacity: 1; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseHint { from { opacity: 0.2; } to { opacity: 0.8; } }
     </style>
 </head>
 <body>
 
-    <!-- Particle Matrix Background -->
-    <canvas id="particleCanvas"></canvas>
+    <div class="bg-text" id="bgText">AURA</div>
 
-    <!-- Support Button -->
-    <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-cyber" title="Support via PayPal">
-        <i class="fab fa-paypal"></i>
-    </a>
+    <!-- The Living Blob Canvas -->
+    <canvas id="auraCanvas" title="Tap to Play/Pause"></canvas>
 
-    <!-- Cyber HUD Loading -->
-    <div id="loadingHud">
-        <div class="hud-circle"></div>
-        <div class="hud-text" id="hudText">ESTABLISHING CONNECTION...</div>
-    </div>
-
-    <!-- Quantum Player Card -->
-    <div class="quantum-card" id="card3d">
-        
-        <div class="spectrum-container">
-            <div class="spectrum-ring"></div>
-            <div class="spectrum-bars" id="spectrumBars"></div>
-            <div class="logo-core" id="stationLogo">
-                <i class="fas fa-satellite-dish"></i>
-            </div>
+    <div class="ui-layer">
+        <div class="header">
+            <div class="station-name" id="stationTitle">SEARCHING...</div>
+            <div class="station-meta" id="stationSub">CONNECTING TO FREQUENCIES</div>
         </div>
 
-        <div class="station-header">
-            <div class="station-name" id="stationTitle">AWAITING SIGNAL</div>
-            <div class="station-meta" id="stationSub">SYS.IDLE</div>
-        </div>
+        <div class="hint" id="hintText">SWIPE TO CHANGE • TAP CENTER TO PLAY</div>
 
         <div class="controls">
-            <button class="btn-cyber" id="prevBtn" disabled><i class="fas fa-backward-step"></i></button>
-            <button class="btn-cyber btn-play" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
-            <button class="btn-cyber" id="nextBtn" disabled><i class="fas fa-forward-step"></i></button>
-        </div>
-
-        <div class="bottom-bar">
-            <button class="fav-btn" id="favBtn" title="Save Station"><i class="far fa-heart"></i></button>
-            <div class="volume-wrapper">
-                <i class="fas fa-volume-off" style="font-size: 12px; color: var(--text-muted);"></i>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.6">
-                <i class="fas fa-volume-up" style="font-size: 14px; color: var(--neon-cyan);"></i>
+            <button class="magnetic-btn" id="prevBtn" disabled><i class="fas fa-chevron-left"></i></button>
+            
+            <!-- Minimal Volume Control -->
+            <div style="display: flex; align-items: center; gap: 15px; width: 40%; max-width: 150px;">
+                <i class="fas fa-volume-down" style="font-size: 12px; color: var(--text-muted);"></i>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7" 
+                       style="width: 100%; height: 2px; -webkit-appearance: none; background: rgba(255,255,255,0.2); outline: none;">
             </div>
-        </div>
 
-        <audio id="audioPlayer" preload="none"></audio>
+            <button class="magnetic-btn" id="nextBtn" disabled><i class="fas fa-chevron-right"></i></button>
+        </div>
     </div>
 
-    <script>
-        // --- 1. Telegram App Init ---
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+    <!-- Loader -->
+    <div id="loader"><div class="loader-dot"></div></div>
+    
+    <audio id="audioPlayer" preload="none"></audio>
 
-        // --- 2. DOM Elements & State ---
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready(); tg.expand();
+
+        // --- Core Elements ---
         const ui = {
-            hud: document.getElementById('loadingHud'),
-            hudText: document.getElementById('hudText'),
-            card: document.getElementById('card3d'),
-            logo: document.getElementById('stationLogo'),
+            loader: document.getElementById('loader'),
+            bgText: document.getElementById('bgText'),
             title: document.getElementById('stationTitle'),
             sub: document.getElementById('stationSub'),
-            playBtn: document.getElementById('playBtn'),
-            playIcon: document.getElementById('playIcon'),
             prevBtn: document.getElementById('prevBtn'),
             nextBtn: document.getElementById('nextBtn'),
-            favBtn: document.getElementById('favBtn'),
-            volSlider: document.getElementById('volumeSlider'),
             audio: document.getElementById('audioPlayer'),
-            barsContainer: document.getElementById('spectrumBars')
+            canvas: document.getElementById('auraCanvas'),
+            hint: document.getElementById('hintText'),
+            vol: document.getElementById('volumeSlider')
         };
 
         let stations = [];
         let currentIndex = 0;
         let isPlaying = false;
         let hasValid = false;
-        let favorites = JSON.parse(localStorage.getItem('quantum_favorites')) || [];
-        
-        // --- 3. URL/Telegram Params ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlName = urlParams.get('name') || '';
+
+        // URL / Telegram parameters
+        const urlName = new URLSearchParams(window.location.search).get('name') || '';
         const tgName = (tg.initDataUnsafe.start_param || '').replace(/_/g, ' '); 
         const countryName = tgName || urlName;
 
-        // --- 4. Canvas Particle Matrix (Interactive) ---
-        const canvas = document.getElementById('particleCanvas');
-        const ctx = canvas.getContext('2d');
+        // --- Generative Canvas Blob (The Masterpiece) ---
+        const ctx = ui.canvas.getContext('2d');
         let width, height;
-        let particles = [];
+        let mouseX = 0, mouseY = 0;
+        let targetColor1 = '#4ade80', targetColor2 = '#3b82f6';
+        let currentColor1 = targetColor1, currentColor2 = targetColor2;
 
         function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+            width = ui.canvas.width = window.innerWidth;
+            height = ui.canvas.height = window.innerHeight;
+            mouseX = width / 2; mouseY = height / 2;
         }
         window.addEventListener('resize', resize);
         resize();
 
-        class Particle {
-            constructor() {
-                this.reset();
-            }
-            reset() {
-                this.angle = Math.random() * Math.PI * 2;
-                this.radius = Math.random() * Math.max(width, height) / 2;
-                this.speed = (Math.random() * 0.002) + 0.0005;
-                this.size = Math.random() * 2;
-                this.color = Math.random() > 0.5 ? '#00f3ff' : '#ff003c';
-                this.opacity = Math.random() * 0.5 + 0.1;
-            }
-            update() {
-                // When playing, particles move faster and pull towards center slightly
-                let currentSpeed = isPlaying ? this.speed * 8 : this.speed;
-                this.angle += currentSpeed;
+        // Mouse interaction for Blob
+        ui.canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+        ui.canvas.addEventListener('mouseleave', () => { mouseX = width / 2; mouseY = height / 2; });
+
+        // Generate unique color palette based on station name hashing
+        function generateColors(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            const hue = Math.abs(hash % 360);
+            return {
+                c1: `hsl(${hue}, 80%, 55%)`,
+                c2: `hsl(${(hue + 50) % 360}, 90%, 45%)`
+            };
+        }
+
+        // Interpolate colors smoothly (Simple HEX/RGB simulation by using CSS transition on Canvas would be hard, so we just set them directly for now, Canvas glow handles blending)
+        function updateBlobColor(stationName) {
+            const colors = generateColors(stationName);
+            targetColor1 = colors.c1;
+            targetColor2 = colors.c2;
+            ui.bgText.textContent = countryName.toUpperCase();
+        }
+
+        function drawBlob() {
+            ctx.clearRect(0, 0, width, height);
+            
+            const time = Date.now() * 0.0015;
+            const cx = width / 2;
+            const cy = height / 2;
+            const baseRadius = Math.min(width, height) * 0.3;
+            const points = [];
+            const numPoints = 80;
+
+            // Audio reactivity intensity
+            const intensity = isPlaying ? (0.3 + (ui.vol.value * 0.5)) : 0.05;
+            const speedMultiplier = isPlaying ? 2 : 0.5;
+
+            for (let i = 0; i < numPoints; i++) {
+                const angle = (i / numPoints) * Math.PI * 2;
                 
-                this.x = width/2 + Math.cos(this.angle) * this.radius;
-                this.y = height/2 + Math.sin(this.angle) * this.radius;
+                // Magic math for organic shape
+                const noise = 
+                    Math.sin(angle * 3 + time * speedMultiplier) * (30 * intensity) + 
+                    Math.cos(angle * 4 - time * speedMultiplier) * (40 * intensity) +
+                    Math.sin(angle * 2 + time * 1.5) * (15 * intensity);
 
-                if(isPlaying) {
-                    this.radius += Math.sin(Date.now() * 0.001 + this.angle) * 2;
-                    this.opacity = Math.random() * 0.8 + 0.2;
-                } else {
-                    this.opacity = 0.3;
+                // Mouse gravity logic
+                let px = cx + Math.cos(angle) * baseRadius;
+                let py = cy + Math.sin(angle) * baseRadius;
+                let distToMouse = Math.hypot(mouseX - px, mouseY - py);
+                let gravity = 0;
+                if(distToMouse < 200) {
+                    gravity = (200 - distToMouse) * 0.15; // Pull towards mouse
                 }
+
+                const r = baseRadius + noise + gravity;
+                points.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
             }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = this.opacity;
-                ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            
+            // Draw smooth bezier curves
+            for (let i = 0; i < points.length; i++) {
+                const current = points[i];
+                const next = points[(i + 1) % points.length];
+                const midX = (current.x + next.x) / 2;
+                const midY = (current.y + next.y) / 2;
+                ctx.quadraticCurveTo(current.x, current.y, midX, midY);
             }
+            ctx.closePath();
+
+            // Gradient and Glow
+            const grad = ctx.createLinearGradient(cx - baseRadius, cy - baseRadius, cx + baseRadius, cy + baseRadius);
+            grad.addColorStop(0, targetColor1);
+            grad.addColorStop(1, targetColor2);
+            
+            ctx.fillStyle = grad;
+            ctx.shadowColor = targetColor1;
+            ctx.shadowBlur = isPlaying ? 50 + (Math.sin(time*5)*10) : 20; // Breathing glow
+            ctx.fill();
+
+            requestAnimationFrame(drawBlob);
         }
+        drawBlob(); // Start rendering loop
 
-        for(let i=0; i<150; i++) particles.push(new Particle());
-
-        function animateCanvas() {
-            ctx.fillStyle = 'rgba(3, 5, 8, 0.2)'; // Trail effect
-            ctx.fillRect(0, 0, width, height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animateCanvas);
-        }
-        animateCanvas();
-
-        // --- 5. Holographic Circular Spectrum (Faux Audio Reactivity) ---
-        const NUM_BARS = 40;
-        const bars = [];
-        for (let i = 0; i < NUM_BARS; i++) {
-            let bar = document.createElement('div');
-            bar.className = 'bar';
-            // Rotate each bar to form a circle, push them outward by 75px
-            bar.style.transform = `rotate(${i * (360 / NUM_BARS)}deg) translateY(-75px)`;
-            ui.barsContainer.appendChild(bar);
-            bars.push({ el: bar, phase: Math.random() * Math.PI * 2 });
-        }
-
-        function animateSpectrum() {
-            const time = Date.now() * 0.005;
-            bars.forEach((barObj, index) => {
-                if (isPlaying) {
-                    // Complex math to simulate real audio frequencies looking organic
-                    let rawNoise = Math.sin(time + barObj.phase) + Math.cos(time * 0.5 + index);
-                    let volumeMultiplier = ui.volSlider.value * 2;
-                    let newHeight = 10 + (Math.abs(rawNoise) * 35 * volumeMultiplier) + (Math.random() * 10 * volumeMultiplier);
-                    barObj.el.style.height = `${newHeight}px`;
-                    barObj.el.style.boxShadow = `0 0 ${newHeight/2}px ${index % 2 === 0 ? 'var(--neon-cyan)' : 'var(--neon-magenta)'}`;
-                    barObj.el.style.background = index % 2 === 0 ? 'var(--neon-cyan)' : 'var(--neon-magenta)';
-                } else {
-                    barObj.el.style.height = '10px';
-                    barObj.el.style.boxShadow = '0 0 5px var(--neon-cyan)';
-                    barObj.el.style.background = 'var(--neon-cyan)';
-                }
+        // --- Magnetic Buttons (Awwwards Style) ---
+        document.querySelectorAll('.magnetic-btn').forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                if(btn.disabled) return;
+                const rect = btn.getBoundingClientRect();
+                const x = (e.clientX - rect.left - rect.width/2) * 0.5;
+                const y = (e.clientY - rect.top - rect.height/2) * 0.5;
+                btn.style.transform = `translate(${x}px, ${y}px)`;
             });
-            requestAnimationFrame(animateSpectrum);
-        }
-        animateSpectrum();
-
-        // --- 6. 3D Hover Parallax Effect ---
-        document.body.addEventListener('mousemove', (e) => {
-            const xAxis = (window.innerWidth / 2 - e.pageX) / 30;
-            const yAxis = (window.innerHeight / 2 - e.pageY) / 30;
-            ui.card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-        });
-        document.body.addEventListener('mouseleave', () => {
-            ui.card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = `translate(0px, 0px)`;
+            });
         });
 
-        // --- 7. Core Radio Logic ---
-        async function fetchAPI(url) {
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error();
-            const data = await resp.json();
-            return data.filter(s => (s.url_resolved || s.url)?.startsWith('https://'));
+        // --- Swipe Gestures ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        ui.canvas.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        ui.canvas.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            if(!hasValid) return;
+            const threshold = 50;
+            if (touchEndX < touchStartX - threshold) nextStation(); // Swipe Left
+            if (touchEndX > touchStartX + threshold) prevStation(); // Swipe Right
         }
 
+        // --- Radio Logic ---
         async function fetchRadio(name) {
-            let data = await fetchAPI(`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`);
+            let resp = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`);
+            let data = await resp.json();
             if(!data.length) {
-                data = await fetchAPI(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`);
+                resp = await fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`);
+                data = await resp.json();
             }
-            return data;
-        }
-
-        function triggerGlitch() {
-            ui.title.classList.remove('glitch');
-            void ui.title.offsetWidth; // trigger reflow
-            ui.title.classList.add('glitch');
-            setTimeout(() => ui.title.classList.remove('glitch'), 400);
-        }
-
-        function updateFavIcon() {
-            if(!stations.length) return;
-            const currentId = stations[currentIndex].stationuuid;
-            const isFav = favorites.some(f => f.stationuuid === currentId);
-            ui.favBtn.className = isFav ? 'fav-btn active' : 'fav-btn';
-            ui.favBtn.innerHTML = isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+            return data.filter(s => (s.url_resolved || s.url)?.startsWith('https://'));
         }
 
         function loadStation(index) {
             if (!stations.length || !hasValid) return;
-            triggerGlitch();
             const item = stations[index];
             
-            ui.title.textContent = item.name || 'UNKNOWN FREQUENCY';
-            ui.sub.textContent = `CH ${index + 1} / ${stations.length} | ${(item.bitrate || 128)}KBPS`;
+            ui.title.textContent = (item.name || 'UNKNOWN').toUpperCase();
+            ui.sub.textContent = `FREQ ${index + 1}/${stations.length} • ${(item.tags ? item.tags.split(',')[0].toUpperCase() : 'AURA')}`;
             
-            if (item.favicon) {
-                ui.logo.innerHTML = `<img src="${item.favicon}" onerror="this.outerHTML='<i class=\\'fas fa-satellite-dish\\'></i>'">`;
-            } else {
-                ui.logo.innerHTML = '<i class="fas fa-satellite-dish"></i>';
-            }
+            updateBlobColor(item.name || 'Random');
             
             ui.audio.src = item.url_resolved || item.url || '';
-            ui.audio.volume = ui.volSlider.value;
+            ui.audio.volume = ui.vol.value;
             
-            ui.playBtn.disabled = false;
             ui.prevBtn.disabled = false;
             ui.nextBtn.disabled = false;
-            
-            updateFavIcon();
             
             if (isPlaying) playAudio();
         }
 
-        function updateState(playing) {
-            isPlaying = playing;
-            if (playing) {
-                ui.playIcon.className = 'fas fa-pause';
-                ui.playBtn.classList.add('is-playing');
-                ui.logo.classList.add('playing');
-            } else {
-                ui.playIcon.className = 'fas fa-play';
-                ui.playBtn.classList.remove('is-playing');
-                ui.logo.classList.remove('playing');
-            }
-        }
-
         async function playAudio() {
             try {
-                ui.sub.textContent = "DECRYPTING AUDIO...";
+                ui.hint.textContent = "DECRYPTING AURA...";
                 await ui.audio.play();
-                ui.sub.textContent = `CH ${currentIndex + 1} / ${stations.length} | ONLINE`;
-                updateState(true);
+                isPlaying = true;
+                ui.hint.textContent = "SWIPE L/R TO EXPLORE • TAP TO PAUSE";
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                    ui.title.textContent = 'SIGNAL LOST';
-                    ui.sub.textContent = 'AUTO-SKIPPING...';
-                    updateState(false);
+                    isPlaying = false;
+                    ui.hint.textContent = "SIGNAL LOST - AUTO SKIPPING...";
                     setTimeout(nextStation, 1500);
                 }
             }
@@ -567,8 +379,17 @@
 
         function togglePlay() {
             if (!hasValid || !ui.audio.src) return;
-            ui.audio.paused ? playAudio() : (ui.audio.pause(), updateState(false), ui.sub.textContent = "SYS.PAUSED");
+            if (ui.audio.paused) {
+                playAudio();
+            } else {
+                ui.audio.pause();
+                isPlaying = false;
+                ui.hint.textContent = "PAUSED • TAP TO RESUME";
+            }
         }
+
+        // Canvas acts as play/pause button
+        ui.canvas.addEventListener('click', togglePlay);
 
         function nextStation() {
             if (!stations.length) return;
@@ -582,58 +403,40 @@
             loadStation(currentIndex);
         }
 
-        // --- 8. Events ---
-        ui.playBtn.addEventListener('click', togglePlay);
         ui.nextBtn.addEventListener('click', nextStation);
         ui.prevBtn.addEventListener('click', prevStation);
-        ui.volSlider.addEventListener('input', (e) => ui.audio.volume = e.target.value);
-        
-        ui.favBtn.addEventListener('click', () => {
-            if(!stations.length) return;
-            const current = stations[currentIndex];
-            const idx = favorites.findIndex(f => f.stationuuid === current.stationuuid);
-            if(idx > -1) {
-                favorites.splice(idx, 1);
-            } else {
-                favorites.push({ stationuuid: current.stationuuid, name: current.name, url: current.url_resolved });
-            }
-            localStorage.setItem('quantum_favorites', JSON.stringify(favorites));
-            updateFavIcon();
-        });
+        ui.vol.addEventListener('input', e => ui.audio.volume = e.target.value);
 
-        // --- 9. Boot Sequence ---
+        // --- Boot Sequence ---
         async function boot() {
             if (!countryName.trim()) {
-                ui.hudText.textContent = "ERR: NO REGION SPECIFIED";
-                setTimeout(() => { ui.hud.style.opacity = '0'; ui.hud.style.visibility = 'hidden'; }, 1000);
+                ui.title.textContent = "NO ENTITY FOUND";
+                ui.sub.textContent = "PLEASE SPECIFY A REGION";
+                ui.loader.style.opacity = '0';
+                setTimeout(() => ui.loader.style.display = 'none', 1000);
                 return;
             }
             
             try {
-                ui.hudText.textContent = `SCANNING SATELLITES FOR [${countryName.toUpperCase()}]...`;
                 const data = await fetchRadio(countryName.trim());
-                
                 if(data.length) {
                     stations = data;
                     hasValid = true;
-                    ui.hudText.textContent = "SIGNAL ACQUIRED. INITIALIZING...";
-                    setTimeout(() => {
-                        ui.hud.style.opacity = '0';
-                        ui.hud.style.visibility = 'hidden';
-                        loadStation(0);
-                    }, 1000);
+                    loadStation(0);
                 } else {
-                    ui.hudText.textContent = "ERR: 404 - DEAD ZONE";
-                    setTimeout(() => { ui.hud.style.opacity = '0'; ui.hud.style.visibility = 'hidden'; }, 1500);
+                    ui.title.textContent = "SILENCE";
+                    ui.sub.textContent = "NO FREQUENCIES IN THIS REGION";
                 }
             } catch (e) {
-                ui.hudText.textContent = "FATAL: CONNECTION OFFLINE";
-                setTimeout(() => { ui.hud.style.opacity = '0'; ui.hud.style.visibility = 'hidden'; }, 1500);
+                ui.title.textContent = "CONNECTION SEVERED";
+                ui.sub.textContent = "AURA CORE OFFLINE";
             }
+            
+            ui.loader.style.opacity = '0';
+            setTimeout(() => ui.loader.style.display = 'none', 1000);
         }
 
-        // Delay boot slightly for cinematic effect
-        setTimeout(boot, 1500);
+        setTimeout(boot, 800);
     </script>
 </body>
 </html>
