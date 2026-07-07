@@ -3,440 +3,376 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Aura Radio - The Masterpiece</title>
+    <title>Global Radio - Pro Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Syncopate:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        :root {
-            --bg: #050505;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            user-select: none; -webkit-tap-highlight-color: transparent;
+        :root {
+            --bg-color: #0f172a; --card-bg: rgba(30, 41, 59, 0.85);
+            --text-main: #f8fafc; --text-sub: #94a3b8;
+            --accent: #3b82f6; --accent-hover: #60a5fa; --danger: #ef4444;
         }
 
         body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            width: 100vw; height: 100vh;
-            overflow: hidden;
-            display: flex; flex-direction: column;
+            background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 20px; color: var(--text-main);
         }
 
-        /* --- Massive Background Text --- */
-        .bg-text {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Syncopate', sans-serif;
-            font-size: 15vw;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.03);
-            white-space: nowrap;
-            z-index: 0;
-            pointer-events: none;
-            letter-spacing: -2px;
-            transition: opacity 1s ease;
+        .app-card {
+            position: relative; width: 100%; max-width: 420px;
+            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px; padding: 35px 25px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); text-align: center;
         }
 
-        /* --- The Living Canvas --- */
-        #auraCanvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 1;
-            cursor: pointer;
-        }
-
-        /* --- UI Overlay --- */
-        .ui-layer {
-            position: relative;
-            z-index: 10;
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            justify-content: space-between;
-            padding: 40px 30px;
-            pointer-events: none; /* Let clicks pass to canvas */
-        }
-
-        /* --- Top Header --- */
-        .header {
-            text-align: center;
-            animation: fadeInDown 1s ease;
-        }
-
-        .station-name {
-            font-family: 'Syncopate', sans-serif;
-            font-size: 24px; font-weight: 700;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-
-        .station-meta {
-            font-size: 12px; font-weight: 300;
-            color: var(--text-muted);
-            letter-spacing: 4px; text-transform: uppercase;
-        }
-
-        /* --- Bottom Controls --- */
-        .controls {
-            display: flex; justify-content: space-between; align-items: center;
-            pointer-events: auto; /* Enable clicks for controls */
-            padding: 0 20px;
-        }
-
-        .magnetic-btn {
-            background: transparent; border: none;
-            color: var(--text-main); font-size: 24px;
-            width: 60px; height: 60px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; position: relative;
-            transition: color 0.3s ease;
-        }
+        /* Functional Top Bar */
+        .top-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         
-        .magnetic-btn::after {
-            content: ''; position: absolute;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.05);
-            transform: scale(0); transition: transform 0.3s ease;
-            z-index: -1;
-        }
-
-        .magnetic-btn:hover::after { transform: scale(1); }
-        .magnetic-btn:disabled { opacity: 0.2; cursor: not-allowed; }
-
-        .hint {
-            font-size: 11px; color: var(--text-muted);
-            letter-spacing: 2px; text-align: center;
-            opacity: 0.6; pointer-events: none;
-            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
-            animation: pulseHint 2s infinite alternate;
-        }
-
-        /* --- Loading Screen --- */
-        #loader {
-            position: fixed; inset: 0; background: var(--bg); z-index: 999;
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-sub); width: 40px; height: 40px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            transition: opacity 1s ease;
+            cursor: pointer; transition: 0.3s;
+        }
+        .tool-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+        .tool-btn.active { color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+
+        .timer-badge {
+            font-size: 11px; font-weight: 600; background: var(--accent);
+            padding: 4px 10px; border-radius: 20px; color: #fff; display: none;
         }
 
-        .loader-dot {
-            width: 15px; height: 15px; background: #fff; border-radius: 50%;
-            animation: breathe 1.5s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+        /* Search Bar */
+        .search-box {
+            width: 100%; position: relative; margin-bottom: 25px; display: none;
         }
+        .search-box input {
+            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 15px 10px 40px; border-radius: 12px; color: #fff; outline: none; font-size: 14px;
+        }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
 
-        @keyframes breathe { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(3); opacity: 1; } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulseHint { from { opacity: 0.2; } to { opacity: 0.8; } }
+        .logo-frame {
+            width: 140px; height: 140px; margin: 0 auto 20px; border-radius: 50%;
+            background: #111; border: 4px solid #1e293b;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; color: var(--accent); overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); transition: 0.3s;
+        }
+        .logo-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .logo-frame.playing { animation: spinDisc 8s linear infinite; border-color: var(--accent); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        @keyframes spinDisc { 100% { transform: rotate(360deg); } }
+
+        .station-name { font-size: 22px; font-weight: 600; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tags-container { font-size: 12px; color: var(--accent-hover); margin-bottom: 25px; min-height: 18px; }
+
+        .controls { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 20px; }
+        .ctrl-btn { background: none; border: none; color: var(--text-sub); font-size: 22px; cursor: pointer; transition: 0.3s; width: 50px; height: 50px; border-radius: 50%; }
+        .ctrl-btn:hover:not(:disabled) { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
+        .ctrl-btn.play-btn { width: 70px; height: 70px; background: var(--accent); color: #fff; font-size: 26px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
+        .ctrl-btn.play-btn:hover:not(:disabled) { transform: scale(1.05); }
+        .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Loader */
+        #loading { position: fixed; inset: 0; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+        .spinner { width: 45px; height: 45px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .footer-note { font-size: 12px; color: var(--text-sub); margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+        .donate-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; text-decoration: none; z-index: 100; box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; }
+        .donate-btn:hover { transform: translateY(-3px); }
     </style>
 </head>
 <body>
 
-    <div class="bg-text" id="bgText">AURA</div>
+    <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Us"><i class="fab fa-paypal"></i></a>
 
-    <!-- The Living Blob Canvas -->
-    <canvas id="auraCanvas" title="Tap to Play/Pause"></canvas>
-
-    <div class="ui-layer">
-        <div class="header">
-            <div class="station-name" id="stationTitle">SEARCHING...</div>
-            <div class="station-meta" id="stationSub">CONNECTING TO FREQUENCIES</div>
-        </div>
-
-        <div class="hint" id="hintText">SWIPE TO CHANGE • TAP CENTER TO PLAY</div>
-
-        <div class="controls">
-            <button class="magnetic-btn" id="prevBtn" disabled><i class="fas fa-chevron-left"></i></button>
-            
-            <!-- Minimal Volume Control -->
-            <div style="display: flex; align-items: center; gap: 15px; width: 40%; max-width: 150px;">
-                <i class="fas fa-volume-down" style="font-size: 12px; color: var(--text-muted);"></i>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7" 
-                       style="width: 100%; height: 2px; -webkit-appearance: none; background: rgba(255,255,255,0.2); outline: none;">
-            </div>
-
-            <button class="magnetic-btn" id="nextBtn" disabled><i class="fas fa-chevron-right"></i></button>
-        </div>
+    <div id="loading">
+        <div class="spinner"></div>
+        <span style="margin-top: 15px; letter-spacing: 2px; color: #94a3b8; font-size: 14px;">CONNECTING...</span>
     </div>
 
-    <!-- Loader -->
-    <div id="loader"><div class="loader-dot"></div></div>
-    
-    <audio id="audioPlayer" preload="none"></audio>
+    <div class="app-card">
+        
+        <!-- Functional Top Tools -->
+        <div class="top-tools">
+            <button class="tool-btn" id="searchToggleBtn" title="Search Stations"><i class="fas fa-search"></i></button>
+            <div class="timer-badge" id="timerBadge">00:00</div>
+            <button class="tool-btn" id="timerBtn" title="Sleep Timer"><i class="fas fa-moon"></i></button>
+            <button class="tool-btn" id="favBtn" title="Add to Favorites"><i class="fas fa-heart"></i></button>
+        </div>
+
+        <div class="search-box" id="searchBox">
+            <i class="fas fa-filter"></i>
+            <input type="text" id="searchInput" placeholder="Search by name or genre (e.g. pop, news)...">
+        </div>
+
+        <div class="logo-frame" id="stationLogo">
+            <i class="fas fa-music"></i>
+        </div>
+
+        <div class="station-name" id="stationTitle">Select Country</div>
+        <div class="tags-container" id="stationTags">Awaiting Command</div>
+
+        <div class="controls">
+            <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
+            <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
+            <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
+        </div>
+
+        <audio id="audioPlayer" preload="none"></audio>
+
+        <div class="footer-note" id="statusText">
+            <i class="fas fa-globe"></i> Connected to Global Network
+        </div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready(); tg.expand();
 
-        // --- Core Elements ---
+        // DOM Elements
         const ui = {
-            loader: document.getElementById('loader'),
-            bgText: document.getElementById('bgText'),
+            load: document.getElementById('loading'),
+            logo: document.getElementById('stationLogo'),
             title: document.getElementById('stationTitle'),
-            sub: document.getElementById('stationSub'),
-            prevBtn: document.getElementById('prevBtn'),
-            nextBtn: document.getElementById('nextBtn'),
+            tags: document.getElementById('stationTags'),
+            play: document.getElementById('playBtn'),
+            playIcon: document.getElementById('playIcon'),
+            prev: document.getElementById('prevBtn'),
+            next: document.getElementById('nextBtn'),
             audio: document.getElementById('audioPlayer'),
-            canvas: document.getElementById('auraCanvas'),
-            hint: document.getElementById('hintText'),
-            vol: document.getElementById('volumeSlider')
+            favBtn: document.getElementById('favBtn'),
+            timerBtn: document.getElementById('timerBtn'),
+            timerBadge: document.getElementById('timerBadge'),
+            searchToggle: document.getElementById('searchToggleBtn'),
+            searchBox: document.getElementById('searchBox'),
+            searchInput: document.getElementById('searchInput'),
+            status: document.getElementById('statusText')
         };
 
-        let stations = [];
+        // State Variables
+        let masterStations = []; // Original fetched array
+        let stations = []; // Actively playing array (filtered)
         let currentIndex = 0;
         let isPlaying = false;
         let hasValid = false;
+        let autoPlay = localStorage.getItem('radio_is_playing') === 'true';
+        let reconnectAttempts = 0;
+        let sleepTimer = null;
+        let timerMinutes = 0;
+        let favorites = JSON.parse(localStorage.getItem('radio_favs')) || [];
 
-        // URL / Telegram parameters
-        const urlName = new URLSearchParams(window.location.search).get('name') || '';
-        const tgName = (tg.initDataUnsafe.start_param || '').replace(/_/g, ' '); 
-        const countryName = tgName || urlName;
+        // Initialization Logic
+        const params = new URLSearchParams(window.location.search);
+        const countryName = (tg.initDataUnsafe.start_param || params.get('name') || '').replace(/_/g, ' ');
 
-        // --- Generative Canvas Blob (The Masterpiece) ---
-        const ctx = ui.canvas.getContext('2d');
-        let width, height;
-        let mouseX = 0, mouseY = 0;
-        let targetColor1 = '#4ade80', targetColor2 = '#3b82f6';
-        let currentColor1 = targetColor1, currentColor2 = targetColor2;
-
-        function resize() {
-            width = ui.canvas.width = window.innerWidth;
-            height = ui.canvas.height = window.innerHeight;
-            mouseX = width / 2; mouseY = height / 2;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // Mouse interaction for Blob
-        ui.canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
-        ui.canvas.addEventListener('mouseleave', () => { mouseX = width / 2; mouseY = height / 2; });
-
-        // Generate unique color palette based on station name hashing
-        function generateColors(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            const hue = Math.abs(hash % 360);
-            return {
-                c1: `hsl(${hue}, 80%, 55%)`,
-                c2: `hsl(${(hue + 50) % 360}, 90%, 45%)`
-            };
-        }
-
-        // Interpolate colors smoothly (Simple HEX/RGB simulation by using CSS transition on Canvas would be hard, so we just set them directly for now, Canvas glow handles blending)
-        function updateBlobColor(stationName) {
-            const colors = generateColors(stationName);
-            targetColor1 = colors.c1;
-            targetColor2 = colors.c2;
-            ui.bgText.textContent = countryName.toUpperCase();
-        }
-
-        function drawBlob() {
-            ctx.clearRect(0, 0, width, height);
-            
-            const time = Date.now() * 0.0015;
-            const cx = width / 2;
-            const cy = height / 2;
-            const baseRadius = Math.min(width, height) * 0.3;
-            const points = [];
-            const numPoints = 80;
-
-            // Audio reactivity intensity
-            const intensity = isPlaying ? (0.3 + (ui.vol.value * 0.5)) : 0.05;
-            const speedMultiplier = isPlaying ? 2 : 0.5;
-
-            for (let i = 0; i < numPoints; i++) {
-                const angle = (i / numPoints) * Math.PI * 2;
-                
-                // Magic math for organic shape
-                const noise = 
-                    Math.sin(angle * 3 + time * speedMultiplier) * (30 * intensity) + 
-                    Math.cos(angle * 4 - time * speedMultiplier) * (40 * intensity) +
-                    Math.sin(angle * 2 + time * 1.5) * (15 * intensity);
-
-                // Mouse gravity logic
-                let px = cx + Math.cos(angle) * baseRadius;
-                let py = cy + Math.sin(angle) * baseRadius;
-                let distToMouse = Math.hypot(mouseX - px, mouseY - py);
-                let gravity = 0;
-                if(distToMouse < 200) {
-                    gravity = (200 - distToMouse) * 0.15; // Pull towards mouse
-                }
-
-                const r = baseRadius + noise + gravity;
-                points.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(points[0].x, points[0].y);
-            
-            // Draw smooth bezier curves
-            for (let i = 0; i < points.length; i++) {
-                const current = points[i];
-                const next = points[(i + 1) % points.length];
-                const midX = (current.x + next.x) / 2;
-                const midY = (current.y + next.y) / 2;
-                ctx.quadraticCurveTo(current.x, current.y, midX, midY);
-            }
-            ctx.closePath();
-
-            // Gradient and Glow
-            const grad = ctx.createLinearGradient(cx - baseRadius, cy - baseRadius, cx + baseRadius, cy + baseRadius);
-            grad.addColorStop(0, targetColor1);
-            grad.addColorStop(1, targetColor2);
-            
-            ctx.fillStyle = grad;
-            ctx.shadowColor = targetColor1;
-            ctx.shadowBlur = isPlaying ? 50 + (Math.sin(time*5)*10) : 20; // Breathing glow
-            ctx.fill();
-
-            requestAnimationFrame(drawBlob);
-        }
-        drawBlob(); // Start rendering loop
-
-        // --- Magnetic Buttons (Awwwards Style) ---
-        document.querySelectorAll('.magnetic-btn').forEach(btn => {
-            btn.addEventListener('mousemove', (e) => {
-                if(btn.disabled) return;
-                const rect = btn.getBoundingClientRect();
-                const x = (e.clientX - rect.left - rect.width/2) * 0.5;
-                const y = (e.clientY - rect.top - rect.height/2) * 0.5;
-                btn.style.transform = `translate(${x}px, ${y}px)`;
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = `translate(0px, 0px)`;
-            });
-        });
-
-        // --- Swipe Gestures ---
-        let touchStartX = 0;
-        let touchEndX = 0;
-        ui.canvas.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
-        ui.canvas.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, {passive: true});
-
-        function handleSwipe() {
-            if(!hasValid) return;
-            const threshold = 50;
-            if (touchEndX < touchStartX - threshold) nextStation(); // Swipe Left
-            if (touchEndX > touchStartX + threshold) prevStation(); // Swipe Right
-        }
-
-        // --- Radio Logic ---
+        // --- Core Function 1: Fetch API ---
         async function fetchRadio(name) {
-            let resp = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`);
-            let data = await resp.json();
-            if(!data.length) {
-                resp = await fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`);
-                data = await resp.json();
+            try {
+                let resp = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`);
+                let data = await resp.json();
+                if (!data.length) {
+                    resp = await fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`);
+                    data = await resp.json();
+                }
+                return data.filter(s => (s.url_resolved || s.url)?.startsWith('https://'));
+            } catch { return []; }
+        }
+
+        // --- Core Function 2: OS Media Integration ---
+        function updateMediaSession(station) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: station.name || 'Unknown Station',
+                    artist: countryName.toUpperCase(),
+                    album: 'Global Radio Pro',
+                    artwork: [ { src: station.favicon || 'https://i.imgur.com/kP5hVn3.png', sizes: '512x512', type: 'image/png' } ]
+                });
+                
+                navigator.mediaSession.setActionHandler('play', playAudio);
+                navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+                navigator.mediaSession.setActionHandler('previoustrack', prevStation);
+                navigator.mediaSession.setActionHandler('nexttrack', nextStation);
             }
-            return data.filter(s => (s.url_resolved || s.url)?.startsWith('https://'));
         }
 
+        // --- Core Function 3: Load & Render ---
         function loadStation(index) {
-            if (!stations.length || !hasValid) return;
+            if (!stations.length) return;
             const item = stations[index];
+            reconnectAttempts = 0; // Reset heals
             
-            ui.title.textContent = (item.name || 'UNKNOWN').toUpperCase();
-            ui.sub.textContent = `FREQ ${index + 1}/${stations.length} • ${(item.tags ? item.tags.split(',')[0].toUpperCase() : 'AURA')}`;
+            ui.title.textContent = item.name || 'Unknown';
+            // Parse tags creatively
+            let tags = item.tags ? item.tags.split(',').slice(0, 3).join(' • ').toUpperCase() : 'RADIO STATION';
+            ui.tags.textContent = `CH ${index + 1}/${stations.length} | ${tags}`;
             
-            updateBlobColor(item.name || 'Random');
+            if (item.favicon) {
+                ui.logo.innerHTML = `<img src="${item.favicon}" onerror="this.outerHTML='<i class=\\'fas fa-music\\'></i>'">`;
+            } else {
+                ui.logo.innerHTML = '<i class="fas fa-music"></i>';
+            }
             
-            ui.audio.src = item.url_resolved || item.url || '';
-            ui.audio.volume = ui.vol.value;
+            ui.audio.src = item.url_resolved || item.url;
+            ui.play.disabled = ui.prev.disabled = ui.next.disabled = false;
             
-            ui.prevBtn.disabled = false;
-            ui.nextBtn.disabled = false;
+            checkFavorite(item.stationuuid);
+            updateMediaSession(item);
             
-            if (isPlaying) playAudio();
+            if (isPlaying || autoPlay) playAudio();
         }
 
+        // --- Core Function 4: Audio Engine with Auto-Heal ---
         async function playAudio() {
             try {
-                ui.hint.textContent = "DECRYPTING AURA...";
+                ui.status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buffering stream...';
                 await ui.audio.play();
-                isPlaying = true;
-                ui.hint.textContent = "SWIPE L/R TO EXPLORE • TAP TO PAUSE";
+                isPlaying = true; autoPlay = false;
+                ui.playIcon.className = 'fas fa-pause';
+                ui.logo.classList.add('playing');
+                ui.status.innerHTML = '<i class="fas fa-broadcast-tower"></i> Live & Streaming';
+                localStorage.setItem('radio_is_playing', 'true');
             } catch (err) {
-                if (err.name !== 'AbortError') {
-                    isPlaying = false;
-                    ui.hint.textContent = "SIGNAL LOST - AUTO SKIPPING...";
-                    setTimeout(nextStation, 1500);
-                }
+                if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') handleStreamError();
+            }
+        }
+
+        function handleStreamError() {
+            reconnectAttempts++;
+            if (reconnectAttempts <= 3) {
+                ui.status.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Reconnecting (${reconnectAttempts}/3)...`;
+                setTimeout(() => { ui.audio.load(); playAudio(); }, 2000);
+            } else {
+                ui.status.innerHTML = '<i class="fas fa-times-circle"></i> Station Offline. Skipping...';
+                setTimeout(nextStation, 1500);
             }
         }
 
         function togglePlay() {
-            if (!hasValid || !ui.audio.src) return;
-            if (ui.audio.paused) {
-                playAudio();
-            } else {
-                ui.audio.pause();
-                isPlaying = false;
-                ui.hint.textContent = "PAUSED • TAP TO RESUME";
+            if (ui.audio.paused) { playAudio(); } 
+            else {
+                ui.audio.pause(); isPlaying = false;
+                ui.playIcon.className = 'fas fa-play'; ui.logo.classList.remove('playing');
+                ui.status.innerHTML = '<i class="fas fa-pause-circle"></i> Paused';
+                localStorage.setItem('radio_is_playing', 'false');
             }
         }
 
-        // Canvas acts as play/pause button
-        ui.canvas.addEventListener('click', togglePlay);
+        function nextStation() { if(stations.length) { currentIndex = (currentIndex + 1) % stations.length; loadStation(currentIndex); }}
+        function prevStation() { if(stations.length) { currentIndex = (currentIndex - 1 + stations.length) % stations.length; loadStation(currentIndex); }}
 
-        function nextStation() {
-            if (!stations.length) return;
-            currentIndex = (currentIndex + 1) % stations.length;
-            loadStation(currentIndex);
+        // --- Feature 1: Search & Filter ---
+        ui.searchToggle.addEventListener('click', () => {
+            ui.searchBox.style.display = ui.searchBox.style.display === 'block' ? 'none' : 'block';
+            if(ui.searchBox.style.display === 'block') ui.searchInput.focus();
+        });
+
+        ui.searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            stations = masterStations.filter(s => 
+                (s.name && s.name.toLowerCase().includes(query)) || 
+                (s.tags && s.tags.toLowerCase().includes(query))
+            );
+            
+            if(stations.length > 0) {
+                currentIndex = 0; loadStation(0);
+            } else {
+                ui.title.textContent = 'No Matches';
+                ui.tags.textContent = 'Try another keyword';
+                ui.audio.src = '';
+                ui.logo.classList.remove('playing');
+            }
+        });
+
+        // --- Feature 2: Sleep Timer ---
+        ui.timerBtn.addEventListener('click', () => {
+            const cycles = [0, 15, 30, 60];
+            let currentIdx = cycles.indexOf(timerMinutes);
+            timerMinutes = cycles[(currentIdx + 1) % cycles.length];
+
+            if(sleepTimer) clearInterval(sleepTimer);
+
+            if (timerMinutes === 0) {
+                ui.timerBtn.classList.remove('active');
+                ui.timerBadge.style.display = 'none';
+            } else {
+                ui.timerBtn.classList.add('active');
+                ui.timerBadge.style.display = 'block';
+                let seconds = timerMinutes * 60;
+                
+                sleepTimer = setInterval(() => {
+                    seconds--;
+                    let m = Math.floor(seconds / 60);
+                    let s = seconds % 60;
+                    ui.timerBadge.textContent = `${m}:${s < 10 ? '0':''}${s}`;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(sleepTimer);
+                        timerMinutes = 0;
+                        ui.timerBtn.classList.remove('active');
+                        ui.timerBadge.style.display = 'none';
+                        if(isPlaying) togglePlay(); // Pause audio
+                        tg.close(); // Optional: Close WebApp
+                    }
+                }, 1000);
+            }
+        });
+
+        // --- Feature 3: Favorites System ---
+        function checkFavorite(id) {
+            const isFav = favorites.includes(id);
+            ui.favBtn.classList.toggle('active', isFav);
+            ui.favBtn.innerHTML = isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
         }
-        
-        function prevStation() {
-            if (!stations.length) return;
-            currentIndex = (currentIndex - 1 + stations.length) % stations.length;
-            loadStation(currentIndex);
-        }
 
-        ui.nextBtn.addEventListener('click', nextStation);
-        ui.prevBtn.addEventListener('click', prevStation);
-        ui.vol.addEventListener('input', e => ui.audio.volume = e.target.value);
+        ui.favBtn.addEventListener('click', () => {
+            if(!stations.length) return;
+            const id = stations[currentIndex].stationuuid;
+            const idx = favorites.indexOf(id);
+            
+            if (idx > -1) favorites.splice(idx, 1);
+            else favorites.push(id);
+            
+            localStorage.setItem('radio_favs', JSON.stringify(favorites));
+            checkFavorite(id);
+        });
 
-        // --- Boot Sequence ---
-        async function boot() {
+        // --- Event Bindings ---
+        ui.play.addEventListener('click', togglePlay);
+        ui.next.addEventListener('click', nextStation);
+        ui.prev.addEventListener('click', prevStation);
+        ui.audio.addEventListener('error', handleStreamError);
+
+        // --- Boot Application ---
+        async function init() {
             if (!countryName.trim()) {
-                ui.title.textContent = "NO ENTITY FOUND";
-                ui.sub.textContent = "PLEASE SPECIFY A REGION";
-                ui.loader.style.opacity = '0';
-                setTimeout(() => ui.loader.style.display = 'none', 1000);
+                ui.title.textContent = 'No Country';
+                ui.load.style.display = 'none';
                 return;
             }
             
-            try {
-                const data = await fetchRadio(countryName.trim());
-                if(data.length) {
-                    stations = data;
-                    hasValid = true;
-                    loadStation(0);
-                } else {
-                    ui.title.textContent = "SILENCE";
-                    ui.sub.textContent = "NO FREQUENCIES IN THIS REGION";
-                }
-            } catch (e) {
-                ui.title.textContent = "CONNECTION SEVERED";
-                ui.sub.textContent = "AURA CORE OFFLINE";
+            const data = await fetchRadio(countryName.trim());
+            if (data.length) {
+                masterStations = data;
+                stations = [...data];
+                hasValid = true;
+                loadStation(0);
+            } else {
+                ui.title.textContent = 'No Stations Found';
+                ui.tags.textContent = 'Try another country';
             }
-            
-            ui.loader.style.opacity = '0';
-            setTimeout(() => ui.loader.style.display = 'none', 1000);
+            ui.load.style.display = 'none';
         }
 
-        setTimeout(boot, 800);
+        init();
     </script>
 </body>
 </html>
