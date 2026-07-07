@@ -3,376 +3,357 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Global Radio - Pro Edition</title>
+    <title>Global Radio - Enterprise Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.9); --text: #f8fafc; --sub: #94a3b8; --accent: #3b82f6; --accent-hover: #60a5fa; --fav: #ef4444; }
 
-        :root {
-            --bg-color: #0f172a; --card-bg: rgba(30, 41, 59, 0.85);
-            --text-main: #f8fafc; --text-sub: #94a3b8;
-            --accent: #3b82f6; --accent-hover: #60a5fa; --danger: #ef4444;
-        }
+        body { background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text); padding: 10px; overflow: hidden; }
 
-        body {
-            background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            padding: 20px; color: var(--text-main);
-        }
+        /* Dynamic Category Tabs */
+        .category-scroll { width: 100%; max-width: 420px; overflow-x: auto; white-space: nowrap; margin-bottom: 15px; padding-bottom: 5px; scrollbar-width: none; display: flex; gap: 10px; opacity: 0; transition: 0.5s; }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .cat-chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 6px 16px; border-radius: 20px; font-size: 12px; color: var(--sub); cursor: pointer; transition: 0.3s; }
+        .cat-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 500; }
 
-        .app-card {
-            position: relative; width: 100%; max-width: 420px;
-            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-radius: 30px; padding: 35px 25px 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); text-align: center;
-        }
+        .app-card { width: 100%; max-width: 420px; background: var(--card); backdrop-filter: blur(20px); border-radius: 30px; padding: 30px 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; }
 
-        /* Functional Top Bar */
-        .top-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .top-bar { display: flex; justify-content: space-between; margin-bottom: 25px; }
+        .icon-btn { background: rgba(255,255,255,0.05); border: none; color: var(--sub); width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer; transition: 0.3s; position: relative; }
+        .icon-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        .icon-btn.active-fav { color: var(--fav); background: rgba(239, 68, 68, 0.1); }
         
-        .tool-btn {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-sub); width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s;
-        }
-        .tool-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
-        .tool-btn.active { color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        /* Bitrate / Network Quality Indicator */
+        .quality-badge { font-size: 10px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; position: absolute; top: -10px; right: -10px; color: #4ade80; }
 
-        .timer-badge {
-            font-size: 11px; font-weight: 600; background: var(--accent);
-            padding: 4px 10px; border-radius: 20px; color: #fff; display: none;
-        }
-
-        /* Search Bar */
-        .search-box {
-            width: 100%; position: relative; margin-bottom: 25px; display: none;
-        }
-        .search-box input {
-            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 15px 10px 40px; border-radius: 12px; color: #fff; outline: none; font-size: 14px;
-        }
-        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
-
-        .logo-frame {
-            width: 140px; height: 140px; margin: 0 auto 20px; border-radius: 50%;
-            background: #111; border: 4px solid #1e293b;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 40px; color: var(--accent); overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); transition: 0.3s;
-        }
+        .logo-wrapper { position: relative; width: 130px; height: 130px; margin: 0 auto 20px; }
+        .logo-frame { width: 100%; height: 100%; border-radius: 50%; background: #111; border: 3px solid #1e293b; display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--accent); overflow: hidden; transition: 0.3s; }
         .logo-frame img { width: 100%; height: 100%; object-fit: cover; }
-        .logo-frame.playing { animation: spinDisc 8s linear infinite; border-color: var(--accent); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .logo-frame.playing { animation: spinDisc 10s linear infinite; border-color: var(--accent); box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
         @keyframes spinDisc { 100% { transform: rotate(360deg); } }
 
-        .station-name { font-size: 22px; font-weight: 600; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .tags-container { font-size: 12px; color: var(--accent-hover); margin-bottom: 25px; min-height: 18px; }
+        .station-name { font-size: 20px; font-weight: 600; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
+        .station-meta { font-size: 12px; color: var(--sub); margin-bottom: 25px; height: 18px; }
 
-        .controls { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 20px; }
-        .ctrl-btn { background: none; border: none; color: var(--text-sub); font-size: 22px; cursor: pointer; transition: 0.3s; width: 50px; height: 50px; border-radius: 50%; }
-        .ctrl-btn:hover:not(:disabled) { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
-        .ctrl-btn.play-btn { width: 70px; height: 70px; background: var(--accent); color: #fff; font-size: 26px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
-        .ctrl-btn.play-btn:hover:not(:disabled) { transform: scale(1.05); }
+        .controls { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .ctrl-btn { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; transition: 0.2s; width: 50px; height: 50px; }
+        .ctrl-btn.play-btn { width: 65px; height: 65px; background: var(--accent); color: #fff; font-size: 24px; border-radius: 50%; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
+        .ctrl-btn.play-btn:active { transform: scale(0.95); }
         .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Loader */
-        #loading { position: fixed; inset: 0; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
-        .spinner { width: 45px; height: 45px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .footer-note { font-size: 12px; color: var(--text-sub); margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
-        .donate-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; text-decoration: none; z-index: 100; box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; }
-        .donate-btn:hover { transform: translateY(-3px); }
+        #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+        .loader-bar { width: 150px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+        .loader-progress { width: 0%; height: 100%; background: var(--accent); transition: 0.3s; }
+        .status-text { font-size: 12px; color: var(--sub); letter-spacing: 1px; }
+
+        .donate-btn { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; text-decoration: none; z-index: 100; box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); }
     </style>
 </head>
 <body>
+    <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn"><i class="fab fa-paypal"></i></a>
 
-    <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Us"><i class="fab fa-paypal"></i></a>
-
+    <!-- Smart Loading Screen -->
     <div id="loading">
-        <div class="spinner"></div>
-        <span style="margin-top: 15px; letter-spacing: 2px; color: #94a3b8; font-size: 14px;">CONNECTING...</span>
+        <div class="loader-bar"><div class="loader-progress" id="loadProgress"></div></div>
+        <div class="status-text" id="loadText">INITIALIZING ENGINE...</div>
     </div>
 
+    <!-- Dynamic Category Bar -->
+    <div class="category-scroll" id="categoryTabs"></div>
+
     <div class="app-card">
-        
-        <!-- Functional Top Tools -->
-        <div class="top-tools">
-            <button class="tool-btn" id="searchToggleBtn" title="Search Stations"><i class="fas fa-search"></i></button>
-            <div class="timer-badge" id="timerBadge">00:00</div>
-            <button class="tool-btn" id="timerBtn" title="Sleep Timer"><i class="fas fa-moon"></i></button>
-            <button class="tool-btn" id="favBtn" title="Add to Favorites"><i class="fas fa-heart"></i></button>
+        <div class="top-bar">
+            <button class="icon-btn" id="historyBtn" title="Recent Stations"><i class="fas fa-history"></i></button>
+            <button class="icon-btn" id="favBtn" title="Telegram Cloud Favorite"><i class="far fa-heart"></i></button>
         </div>
 
-        <div class="search-box" id="searchBox">
-            <i class="fas fa-filter"></i>
-            <input type="text" id="searchInput" placeholder="Search by name or genre (e.g. pop, news)...">
+        <div class="logo-wrapper">
+            <div class="quality-badge" id="bitrateBadge" style="display:none;">HD</div>
+            <div class="logo-frame" id="stationLogo"><i class="fas fa-satellite-dish"></i></div>
         </div>
 
-        <div class="logo-frame" id="stationLogo">
-            <i class="fas fa-music"></i>
-        </div>
-
-        <div class="station-name" id="stationTitle">Select Country</div>
-        <div class="tags-container" id="stationTags">Awaiting Command</div>
+        <div class="station-name" id="stationTitle">AWAITING DATA</div>
+        <div class="station-meta" id="stationSub">Connecting to global nodes</div>
 
         <div class="controls">
-            <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
+            <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-step-backward"></i></button>
             <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
-            <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
+            <button class="ctrl-btn" id="nextBtn" disabled><i class="fas fa-step-forward"></i></button>
         </div>
 
-        <audio id="audioPlayer" preload="none"></audio>
-
-        <div class="footer-note" id="statusText">
-            <i class="fas fa-globe"></i> Connected to Global Network
-        </div>
+        <!-- Dual Audio Elements for Seamless Crossfading -->
+        <audio id="audioA" preload="none"></audio>
+        <audio id="audioB" preload="none"></audio>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready(); tg.expand();
 
-        // DOM Elements
-        const ui = {
-            load: document.getElementById('loading'),
-            logo: document.getElementById('stationLogo'),
-            title: document.getElementById('stationTitle'),
-            tags: document.getElementById('stationTags'),
-            play: document.getElementById('playBtn'),
-            playIcon: document.getElementById('playIcon'),
-            prev: document.getElementById('prevBtn'),
-            next: document.getElementById('nextBtn'),
-            audio: document.getElementById('audioPlayer'),
-            favBtn: document.getElementById('favBtn'),
-            timerBtn: document.getElementById('timerBtn'),
-            timerBadge: document.getElementById('timerBadge'),
-            searchToggle: document.getElementById('searchToggleBtn'),
-            searchBox: document.getElementById('searchBox'),
-            searchInput: document.getElementById('searchInput'),
-            status: document.getElementById('statusText')
+        // 1. Core Architecture State
+        const AppState = {
+            masterList: [],
+            activeList: [],
+            currentIndex: 0,
+            isPlaying: false,
+            favorites: [],
+            history: [],
+            activeAudioId: 'A', // For Crossfade Engine
+            fadeInterval: null,
+            targetCountry: (tg.initDataUnsafe.start_param || new URLSearchParams(window.location.search).get('name') || '').replace(/_/g, ' ')
         };
 
-        // State Variables
-        let masterStations = []; // Original fetched array
-        let stations = []; // Actively playing array (filtered)
-        let currentIndex = 0;
-        let isPlaying = false;
-        let hasValid = false;
-        let autoPlay = localStorage.getItem('radio_is_playing') === 'true';
-        let reconnectAttempts = 0;
-        let sleepTimer = null;
-        let timerMinutes = 0;
-        let favorites = JSON.parse(localStorage.getItem('radio_favs')) || [];
+        // 2. DOM Elements
+        const UI = {
+            progress: document.getElementById('loadProgress'),
+            loadText: document.getElementById('loadText'),
+            loadingScreen: document.getElementById('loading'),
+            tabs: document.getElementById('categoryTabs'),
+            logo: document.getElementById('stationLogo'),
+            title: document.getElementById('stationTitle'),
+            sub: document.getElementById('stationSub'),
+            playBtn: document.getElementById('playBtn'),
+            playIcon: document.getElementById('playIcon'),
+            prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn'),
+            favBtn: document.getElementById('favBtn'),
+            bitrateBadge: document.getElementById('bitrateBadge'),
+            audioA: document.getElementById('audioA'),
+            audioB: document.getElementById('audioB')
+        };
 
-        // Initialization Logic
-        const params = new URLSearchParams(window.location.search);
-        const countryName = (tg.initDataUnsafe.start_param || params.get('name') || '').replace(/_/g, ' ');
-
-        // --- Core Function 1: Fetch API ---
-        async function fetchRadio(name) {
-            try {
-                let resp = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(name)}?order=votes&reverse=true`);
-                let data = await resp.json();
-                if (!data.length) {
-                    resp = await fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(name)}?order=votes&reverse=true`);
-                    data = await resp.json();
-                }
-                return data.filter(s => (s.url_resolved || s.url)?.startsWith('https://'));
-            } catch { return []; }
+        // 3. TELEGRAM NATIVE INTEGRATIONS
+        function haptic(type = 'light') {
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred(type);
         }
 
-        // --- Core Function 2: OS Media Integration ---
-        function updateMediaSession(station) {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: station.name || 'Unknown Station',
-                    artist: countryName.toUpperCase(),
-                    album: 'Global Radio Pro',
-                    artwork: [ { src: station.favicon || 'https://i.imgur.com/kP5hVn3.png', sizes: '512x512', type: 'image/png' } ]
+        function loadCloudFavorites() {
+            return new Promise(resolve => {
+                tg.CloudStorage.getItem('radio_favs', (err, val) => {
+                    if (!err && val) AppState.favorites = JSON.parse(val);
+                    resolve();
                 });
+            });
+        }
+
+        function saveCloudFavorites() {
+            tg.CloudStorage.setItem('radio_favs', JSON.stringify(AppState.favorites));
+        }
+
+        // 4. CROSSFADE AUDIO ENGINE (The Masterpiece Feature)
+        function playWithCrossfade(url) {
+            return new Promise((resolve, reject) => {
+                const currentAudio = AppState.activeAudioId === 'A' ? UI.audioA : UI.audioB;
+                const nextAudio = AppState.activeAudioId === 'A' ? UI.audioB : UI.audioA;
                 
-                navigator.mediaSession.setActionHandler('play', playAudio);
-                navigator.mediaSession.setActionHandler('pause', () => togglePlay());
-                navigator.mediaSession.setActionHandler('previoustrack', prevStation);
-                navigator.mediaSession.setActionHandler('nexttrack', nextStation);
-            }
-        }
-
-        // --- Core Function 3: Load & Render ---
-        function loadStation(index) {
-            if (!stations.length) return;
-            const item = stations[index];
-            reconnectAttempts = 0; // Reset heals
-            
-            ui.title.textContent = item.name || 'Unknown';
-            // Parse tags creatively
-            let tags = item.tags ? item.tags.split(',').slice(0, 3).join(' • ').toUpperCase() : 'RADIO STATION';
-            ui.tags.textContent = `CH ${index + 1}/${stations.length} | ${tags}`;
-            
-            if (item.favicon) {
-                ui.logo.innerHTML = `<img src="${item.favicon}" onerror="this.outerHTML='<i class=\\'fas fa-music\\'></i>'">`;
-            } else {
-                ui.logo.innerHTML = '<i class="fas fa-music"></i>';
-            }
-            
-            ui.audio.src = item.url_resolved || item.url;
-            ui.play.disabled = ui.prev.disabled = ui.next.disabled = false;
-            
-            checkFavorite(item.stationuuid);
-            updateMediaSession(item);
-            
-            if (isPlaying || autoPlay) playAudio();
-        }
-
-        // --- Core Function 4: Audio Engine with Auto-Heal ---
-        async function playAudio() {
-            try {
-                ui.status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buffering stream...';
-                await ui.audio.play();
-                isPlaying = true; autoPlay = false;
-                ui.playIcon.className = 'fas fa-pause';
-                ui.logo.classList.add('playing');
-                ui.status.innerHTML = '<i class="fas fa-broadcast-tower"></i> Live & Streaming';
-                localStorage.setItem('radio_is_playing', 'true');
-            } catch (err) {
-                if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') handleStreamError();
-            }
-        }
-
-        function handleStreamError() {
-            reconnectAttempts++;
-            if (reconnectAttempts <= 3) {
-                ui.status.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Reconnecting (${reconnectAttempts}/3)...`;
-                setTimeout(() => { ui.audio.load(); playAudio(); }, 2000);
-            } else {
-                ui.status.innerHTML = '<i class="fas fa-times-circle"></i> Station Offline. Skipping...';
-                setTimeout(nextStation, 1500);
-            }
-        }
-
-        function togglePlay() {
-            if (ui.audio.paused) { playAudio(); } 
-            else {
-                ui.audio.pause(); isPlaying = false;
-                ui.playIcon.className = 'fas fa-play'; ui.logo.classList.remove('playing');
-                ui.status.innerHTML = '<i class="fas fa-pause-circle"></i> Paused';
-                localStorage.setItem('radio_is_playing', 'false');
-            }
-        }
-
-        function nextStation() { if(stations.length) { currentIndex = (currentIndex + 1) % stations.length; loadStation(currentIndex); }}
-        function prevStation() { if(stations.length) { currentIndex = (currentIndex - 1 + stations.length) % stations.length; loadStation(currentIndex); }}
-
-        // --- Feature 1: Search & Filter ---
-        ui.searchToggle.addEventListener('click', () => {
-            ui.searchBox.style.display = ui.searchBox.style.display === 'block' ? 'none' : 'block';
-            if(ui.searchBox.style.display === 'block') ui.searchInput.focus();
-        });
-
-        ui.searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            stations = masterStations.filter(s => 
-                (s.name && s.name.toLowerCase().includes(query)) || 
-                (s.tags && s.tags.toLowerCase().includes(query))
-            );
-            
-            if(stations.length > 0) {
-                currentIndex = 0; loadStation(0);
-            } else {
-                ui.title.textContent = 'No Matches';
-                ui.tags.textContent = 'Try another keyword';
-                ui.audio.src = '';
-                ui.logo.classList.remove('playing');
-            }
-        });
-
-        // --- Feature 2: Sleep Timer ---
-        ui.timerBtn.addEventListener('click', () => {
-            const cycles = [0, 15, 30, 60];
-            let currentIdx = cycles.indexOf(timerMinutes);
-            timerMinutes = cycles[(currentIdx + 1) % cycles.length];
-
-            if(sleepTimer) clearInterval(sleepTimer);
-
-            if (timerMinutes === 0) {
-                ui.timerBtn.classList.remove('active');
-                ui.timerBadge.style.display = 'none';
-            } else {
-                ui.timerBtn.classList.add('active');
-                ui.timerBadge.style.display = 'block';
-                let seconds = timerMinutes * 60;
+                nextAudio.src = url;
+                nextAudio.volume = 0;
                 
-                sleepTimer = setInterval(() => {
-                    seconds--;
-                    let m = Math.floor(seconds / 60);
-                    let s = seconds % 60;
-                    ui.timerBadge.textContent = `${m}:${s < 10 ? '0':''}${s}`;
+                nextAudio.play().then(() => {
+                    AppState.isPlaying = true;
+                    if(AppState.fadeInterval) clearInterval(AppState.fadeInterval);
                     
-                    if (seconds <= 0) {
-                        clearInterval(sleepTimer);
-                        timerMinutes = 0;
-                        ui.timerBtn.classList.remove('active');
-                        ui.timerBadge.style.display = 'none';
-                        if(isPlaying) togglePlay(); // Pause audio
-                        tg.close(); // Optional: Close WebApp
-                    }
-                }, 1000);
-            }
-        });
-
-        // --- Feature 3: Favorites System ---
-        function checkFavorite(id) {
-            const isFav = favorites.includes(id);
-            ui.favBtn.classList.toggle('active', isFav);
-            ui.favBtn.innerHTML = isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+                    // Smooth Transition Math
+                    let vol = 0;
+                    AppState.fadeInterval = setInterval(() => {
+                        vol += 0.1;
+                        if(vol >= 1) {
+                            nextAudio.volume = 1;
+                            currentAudio.pause();
+                            currentAudio.src = ''; // Free memory
+                            AppState.activeAudioId = AppState.activeAudioId === 'A' ? 'B' : 'A';
+                            clearInterval(AppState.fadeInterval);
+                            resolve();
+                        } else {
+                            nextAudio.volume = vol;
+                            currentAudio.volume = 1 - vol;
+                        }
+                    }, 100);
+                }).catch(err => {
+                    if(err.name !== 'AbortError') reject(err);
+                });
+            });
         }
 
-        ui.favBtn.addEventListener('click', () => {
-            if(!stations.length) return;
-            const id = stations[currentIndex].stationuuid;
-            const idx = favorites.indexOf(id);
-            
-            if (idx > -1) favorites.splice(idx, 1);
-            else favorites.push(id);
-            
-            localStorage.setItem('radio_favs', JSON.stringify(favorites));
-            checkFavorite(id);
-        });
+        function stopAudio() {
+            const active = AppState.activeAudioId === 'A' ? UI.audioA : UI.audioB;
+            active.pause();
+            AppState.isPlaying = false;
+        }
 
-        // --- Event Bindings ---
-        ui.play.addEventListener('click', togglePlay);
-        ui.next.addEventListener('click', nextStation);
-        ui.prev.addEventListener('click', prevStation);
-        ui.audio.addEventListener('error', handleStreamError);
+        // 5. SMART DATA MINING (Auto-Categorization)
+        function buildSmartCategories() {
+            // Extract top genres automatically from thousands of tags
+            const tagCounts = {};
+            AppState.masterList.forEach(s => {
+                if(s.tags) {
+                    s.tags.split(',').forEach(tag => {
+                        let t = tag.trim().toLowerCase();
+                        if(t.length > 2) tagCounts[t] = (tagCounts[t] || 0) + 1;
+                    });
+                }
+            });
 
-        // --- Boot Application ---
-        async function init() {
-            if (!countryName.trim()) {
-                ui.title.textContent = 'No Country';
-                ui.load.style.display = 'none';
+            // Filter meaningful categories (ignoring generic location tags)
+            const ignoreWords = [AppState.targetCountry.toLowerCase(), 'radio', 'fm', 'am', 'webradio'];
+            const sortedTags = Object.entries(tagCounts)
+                .filter(([tag]) => !ignoreWords.includes(tag))
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 7) // Get top 7 genres dynamically
+                .map(t => t[0]);
+
+            const categories = ['All', ...sortedTags];
+            UI.tabs.innerHTML = '';
+            
+            categories.forEach((cat, index) => {
+                let chip = document.createElement('div');
+                chip.className = `cat-chip ${index === 0 ? 'active' : ''}`;
+                chip.textContent = cat.toUpperCase();
+                chip.onclick = () => filterByCategory(cat, chip);
+                UI.tabs.appendChild(chip);
+            });
+            UI.tabs.style.opacity = '1';
+        }
+
+        function filterByCategory(category, chipElement) {
+            haptic('light');
+            document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+            chipElement.classList.add('active');
+
+            if(category === 'All') {
+                AppState.activeList = [...AppState.masterList];
+            } else {
+                AppState.activeList = AppState.masterList.filter(s => s.tags && s.tags.toLowerCase().includes(category));
+            }
+            AppState.currentIndex = 0;
+            loadStationUI();
+        }
+
+        // 6. UI Rendering & Interaction
+        function loadStationUI() {
+            if(!AppState.activeList.length) return;
+            const station = AppState.activeList[AppState.currentIndex];
+            
+            UI.title.textContent = station.name || 'UNKNOWN FREQUENCY';
+            UI.sub.textContent = `CH ${AppState.currentIndex + 1}/${AppState.activeList.length} | ${station.tags ? station.tags.split(',')[0].toUpperCase() : 'LIVE'}`;
+            
+            // Bitrate logic
+            if(station.bitrate) {
+                UI.bitrateBadge.style.display = 'block';
+                UI.bitrateBadge.textContent = `${station.bitrate}K`;
+                UI.bitrateBadge.style.color = station.bitrate >= 128 ? '#4ade80' : '#facc15';
+            } else {
+                UI.bitrateBadge.style.display = 'none';
+            }
+
+            if (station.favicon) {
+                UI.logo.innerHTML = `<img src="${station.favicon}" onerror="this.outerHTML='<i class=\\'fas fa-satellite-dish\\'></i>'">`;
+            } else {
+                UI.logo.innerHTML = '<i class="fas fa-satellite-dish"></i>';
+            }
+
+            UI.playBtn.disabled = UI.prevBtn.disabled = UI.nextBtn.disabled = false;
+            
+            // Update Favorite UI
+            const isFav = AppState.favorites.some(f => f.uuid === station.stationuuid);
+            UI.favBtn.className = isFav ? 'icon-btn active-fav' : 'icon-btn';
+            UI.favBtn.innerHTML = isFav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+
+            // Add to history
+            if(!AppState.history.includes(station.stationuuid)) {
+                AppState.history.unshift(station.stationuuid);
+                if(AppState.history.length > 10) AppState.history.pop();
+            }
+
+            if(AppState.isPlaying) executePlay(station.url_resolved || station.url);
+        }
+
+        function executePlay(url) {
+            UI.sub.textContent = "Negotiating stream...";
+            playWithCrossfade(url).then(() => {
+                UI.playIcon.className = 'fas fa-pause';
+                UI.logo.classList.add('playing');
+                UI.sub.textContent = `CH ${AppState.currentIndex + 1}/${AppState.activeList.length} | ONLINE`;
+                haptic('medium');
+            }).catch(e => {
+                UI.sub.textContent = "CONNECTION ERROR - SKIPPING";
+                setTimeout(() => nextStation(), 1000);
+            });
+        }
+
+        UI.playBtn.onclick = () => {
+            haptic('rigid');
+            if(AppState.isPlaying) {
+                stopAudio();
+                UI.playIcon.className = 'fas fa-play';
+                UI.logo.classList.remove('playing');
+                UI.sub.textContent = 'PAUSED';
+            } else {
+                const station = AppState.activeList[AppState.currentIndex];
+                executePlay(station.url_resolved || station.url);
+            }
+        };
+
+        function nextStation() { haptic('light'); AppState.currentIndex = (AppState.currentIndex + 1) % AppState.activeList.length; loadStationUI(); }
+        function prevStation() { haptic('light'); AppState.currentIndex = (AppState.currentIndex - 1 + AppState.activeList.length) % AppState.activeList.length; loadStationUI(); }
+        
+        UI.nextBtn.onclick = nextStation;
+        UI.prevBtn.onclick = prevStation;
+
+        UI.favBtn.onclick = () => {
+            haptic('heavy');
+            const station = AppState.activeList[AppState.currentIndex];
+            const idx = AppState.favorites.findIndex(f => f.uuid === station.stationuuid);
+            if(idx > -1) AppState.favorites.splice(idx, 1);
+            else AppState.favorites.push({uuid: station.stationuuid, name: station.name});
+            
+            saveCloudFavorites();
+            loadStationUI();
+        };
+
+        // 7. Boot Sequence
+        async function boot() {
+            UI.progress.style.width = '30%';
+            if (!AppState.targetCountry) {
+                UI.loadText.textContent = "FATAL: NO REGION DETECTED";
                 return;
             }
-            
-            const data = await fetchRadio(countryName.trim());
-            if (data.length) {
-                masterStations = data;
-                stations = [...data];
-                hasValid = true;
-                loadStation(0);
-            } else {
-                ui.title.textContent = 'No Stations Found';
-                ui.tags.textContent = 'Try another country';
+
+            try {
+                // Sync with Telegram Cloud first
+                await loadCloudFavorites();
+                UI.progress.style.width = '60%';
+                UI.loadText.textContent = `FETCHING DATA FOR [${AppState.targetCountry.toUpperCase()}]...`;
+
+                let res = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(AppState.targetCountry)}?order=votes&reverse=true`);
+                let data = await res.json();
+                
+                if(!data.length) {
+                    res = await fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(AppState.targetCountry)}?order=votes&reverse=true`);
+                    data = await res.json();
+                }
+
+                AppState.masterList = data.filter(s => (s.url_resolved || s.url)?.startsWith('https://'));
+                AppState.activeList = [...AppState.masterList];
+
+                UI.progress.style.width = '100%';
+                
+                if(AppState.masterList.length) {
+                    buildSmartCategories();
+                    loadStationUI();
+                    setTimeout(() => UI.loadingScreen.style.display = 'none', 500);
+                } else {
+                    UI.loadText.textContent = "NO STATIONS AVAILABLE HERE";
+                }
+            } catch (err) {
+                UI.loadText.textContent = "NETWORK FAILURE - PLEASE RESTART";
             }
-            ui.load.style.display = 'none';
         }
 
-        init();
+        setTimeout(boot, 400); // Small delay for rendering
     </script>
 </body>
 </html>
