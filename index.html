@@ -40,73 +40,85 @@
         }
         .icon-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
-        /* --- Station Info --- */
+        /* --- Station Info & Rotating Logo --- */
         .logo {
             width: 110px; height: 110px; margin: 0 auto 15px; border-radius: 50%;
             background: #0f172a; display: flex; align-items: center; justify-content: center;
             font-size: 40px; color: #3b82f6; overflow: hidden;
-            border: 3px solid #3b82f6;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+            border: 3px solid #1e293b;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .logo img { width: 100%; height: 100%; object-fit: cover; }
+        .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        
+        /* Animation for Rotating Logo */
+        .logo.playing {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+            animation: spinDisc 8s linear infinite;
+        }
+        @keyframes spinDisc { 100% { transform: rotate(360deg); } }
+
         .station-name { font-size: 20px; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: ltr; }
-        .station-country { font-size: 14px; color: #94a3b8; margin-bottom: 25px; }
+        .station-counter { font-size: 14px; color: #94a3b8; margin-bottom: 25px; font-weight: 600; }
 
         /* --- Main Controls --- */
         .controls { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 25px; direction: ltr; }
         .ctrl-btn { background: none; border: none; color: #f8fafc; font-size: 22px; cursor: pointer; transition: 0.2s; }
         .ctrl-btn:hover:not(:disabled) { color: #3b82f6; }
         .play-btn { width: 65px; height: 65px; background: #3b82f6; border-radius: 50%; font-size: 24px; color: #fff; box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4); }
-        .play-btn:hover:not(:disabled) { background: #2563eb; color: #fff; transform: scale(1.05); }
+        .play-btn:hover:not(:disabled) { background: #2563eb; transform: scale(1.05); }
         .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* --- Actions (Volume, Record, Save) --- */
+        /* --- Actions (Volume, Save) --- */
         .actions-bar {
             display: flex; align-items: center; justify-content: space-between;
             background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 15px; margin-bottom: 20px;
         }
         
-        .volume-container { display: flex; align-items: center; gap: 12px; width: 55%; direction: ltr; }
+        .volume-container { display: flex; align-items: center; gap: 12px; width: 70%; direction: ltr; }
         .volume-container input { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; }
         .volume-container input::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
 
-        .action-btns { display: flex; gap: 15px; }
-        .action-btn { background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; transition: 0.2s; }
+        .action-btns { display: flex; align-items: center; justify-content: center; width: 30%; }
+        .action-btn { background: none; border: none; font-size: 22px; color: #94a3b8; cursor: pointer; transition: 0.2s; }
         .action-btn:hover { color: #fff; }
         .action-btn.active-fav { color: #ef4444; } 
-        .action-btn.recording { color: #ef4444; animation: pulse 1s infinite alternate; } 
-
-        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0.5; transform: scale(1.1); } }
 
         /* --- Footer Note --- */
         .footer-note { font-size: 13px; color: #64748b; margin-top: 10px; }
 
-        /* --- Favorites Modal --- */
+        /* --- Favorites Modal (Elegant Design) --- */
         .modal {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 200;
-            display: none; flex-direction: column; padding: 20px; backdrop-filter: blur(5px);
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 200;
+            display: none; flex-direction: column; padding: 20px; backdrop-filter: blur(8px);
         }
         .modal.open { display: flex; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-weight: 700; font-size: 20px; color: #fff; }
-        .close-modal { background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
-        .fav-list { flex: 1; overflow-y: auto; list-style: none; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-weight: 700; font-size: 20px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .close-modal { background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; transition: 0.3s; }
+        .close-modal:hover { color: #ef4444; }
+        .fav-list { flex: 1; overflow-y: auto; list-style: none; padding-bottom: 20px; }
         .fav-item {
             display: flex; justify-content: space-between; align-items: center;
-            background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(30, 41, 59, 0.9); padding: 12px 15px; border-radius: 12px; margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.05); transition: 0.3s;
         }
-        .fav-info { flex: 1; text-align: left; direction: ltr; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-right: 15px; font-weight: 600; }
-        .fav-remove { color: #ef4444; background: rgba(239, 68, 68, 0.1); border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        .fav-item:hover { border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .fav-item-content { display: flex; align-items: center; flex: 1; cursor: pointer; overflow: hidden; }
+        .fav-play-icon { color: #3b82f6; font-size: 22px; margin-left: 15px; }
+        .fav-info { flex: 1; text-align: right; direction: ltr; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 600; color: #f8fafc; font-family: sans-serif; }
+        .fav-remove { color: #ef4444; background: rgba(239, 68, 68, 0.1); border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; margin-right: 15px; }
+        .fav-remove:hover { background: #ef4444; color: #fff; }
 
         /* --- PayPal Button & Circular Text --- */
         .paypal-wrapper {
             position: fixed; bottom: 20px; right: 20px;
-            width: 120px; height: 120px;
+            width: 100px; height: 100px;
             display: flex; align-items: center; justify-content: center;
             z-index: 100;
         }
         .paypal-svg { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-        .paypal-svg text { font-size: 12.5px; fill: #94a3b8; font-family: monospace; letter-spacing: 1px; font-weight: bold; }
+        /* Adjusted radius and position to bring text closer and make it neat */
+        .paypal-svg text { font-size: 10.5px; fill: #94a3b8; font-family: monospace; letter-spacing: 1px; font-weight: bold; }
         .donate-btn {
             width: 50px; height: 50px; background: #0070ba; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -116,9 +128,8 @@
         }
         .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
 
-        #loading { position: fixed; inset: 0; background: #0f172a; z-index: 999; display: flex; flex-direction: column; gap: 15px; align-items: center; justify-content: center; color: #3b82f6; font-size: 18px; font-weight: bold; }
+        #loading { position: fixed; inset: 0; background: #0f172a; z-index: 999; display: flex; flex-direction: column; gap: 15px; align-items: center; justify-content: center; color: #3b82f6; font-size: 16px; font-weight: bold; }
         .spinner { width: 40px; height: 40px; border: 3px solid rgba(59, 130, 246, 0.3); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -132,7 +143,8 @@
     <!-- PayPal Button with Circular Text -->
     <div class="paypal-wrapper">
         <svg class="paypal-svg" viewBox="0 0 100 100">
-            <path id="curve" d="M 10 55 A 40 40 0 0 1 90 55" fill="transparent" />
+            <!-- Radius adjusted to 32 to bring text closer to the 50px button -->
+            <path id="curve" d="M 18 50 A 32 32 0 0 1 82 50" fill="transparent" />
             <text>
                 <textPath href="#curve" startOffset="50%" text-anchor="middle">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</textPath>
             </text>
@@ -150,7 +162,9 @@
 
         <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
         <div class="station-name" id="stationTitle">...</div>
-        <div class="station-country" id="stationSub">...</div>
+        
+        <!-- Station Counter -->
+        <div class="station-counter" id="stationSub">...</div>
 
         <div class="controls">
             <button class="ctrl-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
@@ -167,8 +181,6 @@
             </div>
             
             <div class="action-btns">
-                <!-- Record Button -->
-                <button class="action-btn" id="recordBtn" title="تسجيل المقطع"><i class="fas fa-microphone"></i></button>
                 <!-- Save Fav Button -->
                 <button class="action-btn" id="saveFavBtn" title="حفظ المحطة"><i class="fas fa-heart"></i></button>
             </div>
@@ -176,7 +188,7 @@
 
         <div class="footer-note">تغيير الدولة يتم في دردشة البوت.</div>
 
-        <!-- Audio Element (Returned exactly to your original code to guarantee playback) -->
+        <!-- Audio Element -->
         <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
@@ -190,12 +202,10 @@
     </div>
 
     <script>
-        // Telegram Init
         var tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // DOM Elements
         var ui = {
             loading: document.getElementById('loading'),
             logo: document.getElementById('stationLogo'),
@@ -208,30 +218,22 @@
             audio: document.getElementById('audioPlayer'),
             vol: document.getElementById('volumeSlider'),
             saveBtn: document.getElementById('saveFavBtn'),
-            recordBtn: document.getElementById('recordBtn'),
             openFavs: document.getElementById('openFavsBtn'),
             closeFavs: document.getElementById('closeFavsBtn'),
             favModal: document.getElementById('favModal'),
             favList: document.getElementById('favList')
         };
 
-        // Extraction of Country Name (Just like your original code)
         var params = new URLSearchParams(window.location.search);
         var urlName = params.get('name') || '';
         var startParam = tg.initDataUnsafe.start_param || '';
         var tgName = startParam.replace(/_/g, ' ');
         var countryName = tgName || urlName;
 
-        // State Variables
         var stations = [];
         var currentIndex = 0;
         var isPlaying = false;
         var savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || [];
-        
-        // Recording State
-        var mediaRecorder;
-        var recordedChunks = [];
-        var isRecording = false;
 
         // --- Core Fetching Logic (Identical to your original code) ---
         async function fetchRadio(name) {
@@ -260,7 +262,6 @@
                     currentIndex = 0;
                     loadStation(0);
                 } else {
-                    // Fallback to byname exactly like your original code
                     var fallbackUrl = "https://de1.api.radio-browser.info/json/stations/byname/" + encodeURIComponent(name) + "?order=votes&reverse=true";
                     var fallbackResp = await fetch(fallbackUrl);
                     var fallbackData = await fallbackResp.json();
@@ -296,7 +297,8 @@
             var item = stations[index];
             
             ui.title.textContent = item.name || 'محطة غير معروفة';
-            ui.sub.textContent = countryName.toUpperCase() || 'RADIO';
+            // Station Counter restored exactly as requested
+            ui.sub.textContent = "المحطة " + (index + 1) + " / " + stations.length;
             
             if (item.favicon) {
                 var img = new Image();
@@ -320,8 +322,6 @@
             if (isPlaying) {
                 playAudio();
             }
-            
-            if (isRecording) stopRecording();
         }
 
         function playAudio() {
@@ -330,9 +330,13 @@
                 playPromise.then(function() {
                     isPlaying = true;
                     ui.playIcon.className = 'fas fa-pause';
-                }).catch(function() {
-                    isPlaying = false;
-                    ui.playIcon.className = 'fas fa-play';
+                    ui.logo.classList.add('playing'); // Rotating animation ON
+                }).catch(function(err) {
+                    if (err.name !== 'AbortError') {
+                        isPlaying = false;
+                        ui.playIcon.className = 'fas fa-play';
+                        ui.logo.classList.remove('playing'); // Rotating animation OFF
+                    }
                 });
             }
         }
@@ -345,20 +349,38 @@
                 ui.audio.pause();
                 isPlaying = false;
                 ui.playIcon.className = 'fas fa-play';
+                ui.logo.classList.remove('playing'); // Rotating animation OFF
             }
         }
 
+        // Audio Events Binding for perfect sync
+        ui.audio.addEventListener('pause', function() {
+            isPlaying = false;
+            ui.playIcon.className = 'fas fa-play';
+            ui.logo.classList.remove('playing');
+        });
+
+        ui.audio.addEventListener('play', function() {
+            isPlaying = true;
+            ui.playIcon.className = 'fas fa-pause';
+            ui.logo.classList.add('playing');
+        });
+
         ui.playBtn.addEventListener('click', togglePlay);
+        
+        // Navigation Buttons fixed to work reliably
         ui.nextBtn.addEventListener('click', function() {
-            if (!stations.length) return;
+            if (stations.length <= 1) return;
             currentIndex = (currentIndex + 1) % stations.length;
             loadStation(currentIndex);
         });
+        
         ui.prevBtn.addEventListener('click', function() {
-            if (!stations.length) return;
+            if (stations.length <= 1) return;
             currentIndex = (currentIndex - 1 + stations.length) % stations.length;
             loadStation(currentIndex);
         });
+        
         ui.vol.addEventListener('input', function(e) {
             ui.audio.volume = e.target.value;
         });
@@ -395,16 +417,24 @@
             savedStations.forEach(function(fav, i) {
                 var li = document.createElement('li');
                 li.className = 'fav-item';
-                li.innerHTML = '<div class="fav-info">' + (fav.name || 'محطة') + '</div><button class="fav-remove" title="إزالة"><i class="fas fa-trash"></i></button>';
+                li.innerHTML = `
+                    <div class="fav-item-content">
+                        <i class="fas fa-play-circle fav-play-icon"></i>
+                        <div class="fav-info">${fav.name || 'محطة غير معروفة'}</div>
+                    </div>
+                    <button class="fav-remove" title="إزالة"><i class="fas fa-trash"></i></button>
+                `;
                 
-                li.querySelector('.fav-info').addEventListener('click', function() {
-                    stations = [fav]; // Load single station to play
+                // Play from favorites
+                li.querySelector('.fav-item-content').addEventListener('click', function() {
+                    stations = [fav]; 
                     currentIndex = 0;
                     loadStation(0);
                     playAudio();
                     ui.favModal.classList.remove('open');
                 });
                 
+                // Remove from favorites
                 li.querySelector('.fav-remove').addEventListener('click', function() {
                     savedStations.splice(i, 1);
                     localStorage.setItem('radio_saved_list', JSON.stringify(savedStations));
@@ -418,52 +448,6 @@
 
         ui.openFavs.addEventListener('click', function() { renderFavorites(); ui.favModal.classList.add('open'); });
         ui.closeFavs.addEventListener('click', function() { ui.favModal.classList.remove('open'); });
-
-        // --- Recording System ---
-        function stopRecording() {
-            if(mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-            isRecording = false;
-            ui.recordBtn.classList.remove('recording');
-        }
-
-        ui.recordBtn.addEventListener('click', function() {
-            if (isRecording) {
-                stopRecording();
-            } else {
-                if(ui.audio.paused) return alert("الرجاء تشغيل المحطة أولاً قبل التسجيل.");
-                
-                try {
-                    // Attempt to capture stream
-                    var stream = ui.audio.captureStream ? ui.audio.captureStream() : (ui.audio.mozCaptureStream ? ui.audio.mozCaptureStream() : null);
-                    if (!stream) throw new Error("Capture not supported");
-                    
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); };
-                    mediaRecorder.onstop = function() {
-                        if(recordedChunks.length === 0) return;
-                        var blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                        var url = URL.createObjectURL(blob);
-                        var a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'Radio_Record_' + Date.now() + '.webm';
-                        document.body.appendChild(a);
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        recordedChunks = [];
-                    };
-                    
-                    mediaRecorder.start();
-                    isRecording = true;
-                    ui.recordBtn.classList.add('recording');
-                } catch (e) {
-                    alert("نعتذر، المتصفح يمنع تسجيل هذه المحطة بسبب حقوق النشر (CORS) المطبقة من سيرفر الإذاعة.");
-                    isRecording = false;
-                    ui.recordBtn.classList.remove('recording');
-                }
-            }
-        });
 
         // Start
         init();
