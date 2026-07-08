@@ -2,518 +2,578 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Radio Player Premium</title>
-    <meta name="theme-color" content="#09090b" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Global Radio Player</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
     <style>
         :root {
-            --bg-color: #09090b;       /* لون أسود فاخر مثل واجهة أبل الموسيقية */
-            --surface-color: #18181b; 
-            --primary: #3b82f6;        /* أزرق حيوي للمقاطع الحالية والأزرار النشطة */
-            --primary-hover: #2563eb;
+            --bg-base: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
-            --warning: #fbbf24;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #22c55e;
             --danger: #ef4444;
-            --font-family: 'Inter', 'Tajawal', sans-serif;
+            --warning: #fbbf24;
+            --font-family: 'Poppins', sans-serif;
         }
 
         * {
-            margin: 0; padding: 0; box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: var(--font-family);
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-base);
+            background-image: radial-gradient(circle at top left, #1e293b, #0f172a);
             color: var(--text-main);
-            height: 100vh;
-            width: 100vw;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* لمنع التمرير العشوائي */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        /* ── Header Top Navigation ── */
-        .app-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 24px; width: 100%;
-        }
-
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.08); border: none;
-            width: 40px; height: 40px; border-radius: 50%;
-            color: var(--text-main); font-size: 16px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s ease;
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.15); transform: scale(1.05); }
-        .nav-btn.active { color: var(--warning); box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
-
-        .location-info {
+        /* ── Player Card ── */
+        .player-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            width: 100%;
+            max-width: 420px;
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
             text-align: center;
-        }
-        .location-label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 2px; }
-        .country-name { font-size: 15px; font-weight: 700; margin-top: 3px; display: flex; align-items: center; gap: 5px; justify-content: center; }
-
-        /* ── Main Display / Cover ── */
-        .main-display {
-            flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; width: 100%; padding: 0 30px; gap: 30px;
+            position: relative;
+            border: 1px solid var(--border-glass);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .cover-art {
-            width: 100%; max-width: 260px; aspect-ratio: 1;
-            background-color: var(--surface-color); border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); display: flex;
-            align-items: center; justify-content: center; overflow: hidden;
-            transition: all 0.5s ease; font-size: 80px; color: var(--text-sub);
-        }
-        .cover-art img { width: 100%; height: 100%; object-fit: contain; padding: 20px; background: #fff;}
-        .cover-art.playing { box-shadow: 0 0 50px rgba(59, 130, 246, 0.25); border: 2px solid rgba(59,130,246, 0.3); transform: scale(1.02); }
-
-        .track-info { width: 100%; text-align: center; }
-        .track-title { font-size: 24px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; margin-bottom: 5px;}
-        .track-subtitle { font-size: 14px; color: var(--text-sub); font-weight: 500; }
-
-        /* ── Audio Control Elements ── */
-        .player-controls {
-            width: 100%; padding: 0 24px 40px; display: flex; flex-direction: column; gap: 25px;
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* شريط مستوى الصوت */
-        .volume-row { display: flex; align-items: center; gap: 15px; padding: 0 10px;}
-        .volume-row i { color: var(--text-sub); font-size: 14px; }
-        input[type="range"] {
-            -webkit-appearance: none; flex: 1; height: 6px;
-            background: rgba(255, 255, 255, 0.15); border-radius: 4px; outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 16px; height: 16px;
-            border-radius: 50%; background: #fff; cursor: pointer; transition: 0.2s;
-        }
-
-        /* الأزرار الأساسية (بلاي / نيكست) */
-        .controls-row {
-            display: flex; align-items: center; justify-content: space-between; width: 100%;
+        .icon-btn {
+            background: var(--border-glass);
+            border: none;
+            color: var(--text-sub);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .side-btn { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; transition: 0.2s; padding: 10px; }
-        .side-btn:hover { color: var(--text-main); transform: scale(1.1); }
-        .side-btn.active-fav { color: var(--danger); }
-        .side-btn:disabled { opacity: 0.3; }
+        .icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: scale(1.05); }
 
-        .main-controls { display: flex; align-items: center; gap: 30px; }
+        /* المؤشر التنبيهي */
+        .icon-btn.active-timer {
+            color: var(--warning);
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            animation: pulseWarning 2s infinite;
+        }
+        @keyframes pulseWarning {
+            0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+        }
+
+        /* ── Logo ── */
+        .logo-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .logo {
+            width: 120px; height: 120px; border-radius: 50%; background: rgba(15, 23, 42, 0.6);
+            display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--primary);
+            overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        .logo img { width: 100%; height: 100%; object-fit: contain; background-color: #fff; border-radius: 50%; padding: 4px; }
+        .logo.playing {
+            border-color: var(--primary); box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+            animation: spinDisc 10s linear infinite;
+        }
+        @keyframes spinDisc { 100% { transform: rotate(360deg); } }
+
+        .station-name { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .station-counter { font-size: 13px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* ── Toggleable Timer Section ── */
+        .timer-section { display: none; flex-direction: column; gap: 12px; margin-top: 5px; }
+        .timer-section.show { display: flex; animation: expandSection 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes expandSection { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+
+        .timer-row {
+            background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-glass); transition: all 0.3s ease;
+        }
+        .timer-row.sleep-row { border-left: 4px solid var(--primary); }
+        .timer-row.start-row { border-left: 4px solid var(--success); }
+        .timer-row.active-timer-row {
+            border-color: rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.4); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .timer-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .timer-label { font-weight: 600; font-size: 13px; letter-spacing: 0.8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+        .sleep-row .timer-label { color: #60a5fa; }
+        .start-row .timer-label { color: #4ade80; }
+
+        /* ── NEW Advanced Custom Countdown Visualizer ── */
+        .advanced-readout {
+            font-family: monospace, monospace; font-size: 16px; font-weight: 700; color: var(--warning);
+            background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 10px;
+            letter-spacing: 1px; display: none; border: 1px solid rgba(251, 191, 36, 0.3); text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+        .advanced-readout.visible { display: block; }
+
+        /* ── Unified Input Grid Form For Any User Need ── */
+        .timer-presets-wrap { display: flex; flex-direction: column; gap: 8px; }
+        .timer-presets-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+
+        /* الأقراص المألوفة اختصارات */
+        .timer-preset-pill {
+            background: var(--border-glass); border: 1px solid transparent; color: #cbd5e1;
+            padding: 5px 10px; border-radius: 20px; cursor: pointer; font-weight: 500; font-size: 11px; transition: all 0.2s ease;
+        }
+        .timer-preset-pill:hover { background: var(--primary); color: #fff; transform: translateY(-2px); }
+        .start-row .timer-preset-pill:hover { background: var(--success); }
+
+        .custom-input-grid {
+            display: flex; gap: 5px; justify-content: center; align-items: center;
+        }
+        .custom-input-grid input {
+            width: 48px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass);
+            color: var(--text-main); text-align: center; border-radius: 8px; padding: 6px 4px; outline: none; font-size:12px;
+        }
+        .custom-input-grid input::placeholder { color: rgba(255,255,255,0.25); }
+        .custom-input-grid input:focus { border-color: var(--primary); }
+        .btn-set-custom {
+            background: var(--primary); color: #fff; border: none; padding: 7px 14px; border-radius: 8px;
+            cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; box-shadow: 0 2px 10px rgba(59,130,246,0.3);
+        }
+        .btn-set-custom:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .start-row .btn-set-custom { background: var(--success); box-shadow: 0 2px 10px rgba(34, 197, 94,0.3); }
+
+        /* إخفاء واجهة الإدخال عند البدء */
+        .timer-inputs-area { display: flex; flex-direction: column; gap: 8px; }
         
-        .play-btn {
-            background: var(--text-main); width: 68px; height: 68px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            border: none; font-size: 22px; color: #000; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease;
-        }
-        .play-btn:hover:not(:disabled) { transform: scale(1.08); background: var(--primary); color: #fff;}
-        .play-btn:disabled { opacity: 0.4; }
+        .timer-cancel-pill { display: none; color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 11px; cursor: pointer;}
+        .timer-cancel-pill.visible { display: inline-flex; align-items: center; gap: 4px; }
+        .timer-cancel-pill:hover { background: var(--danger); color: #fff; }
 
-        /* ── Smart Slide-Up Timers Section ── */
-        .timer-drawer {
-            position: absolute; bottom: -100%; left: 0; width: 100%; height: auto; max-height: 70%;
-            background: var(--surface-color); border-radius: 28px 28px 0 0; z-index: 50;
-            padding: 30px 24px 40px; box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-            display: flex; flex-direction: column; gap: 20px; transition: bottom 0.4s cubic-bezier(0.2, 1, 0.3, 1);
-        }
-        .timer-drawer.open { bottom: 0; }
-        .drawer-handle { width: 40px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 4px; margin: -10px auto 10px;}
+        /* ── Player Controls ── */
+        .controls { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 10px; }
+        .ctrl-btn { border: none; cursor: pointer; transition: 0.3s; }
+        .ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* تنسيق المنبه داخل الدرج بطريقة معاصرة بدون زوايا قبيحة */
-        .timer-mode { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 16px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-        .timer-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; color: #fff; }
-        
-        /* مؤقت رقمي عصري سلس بدلا من السلوت ماشين المعقد */
-        .digital-countdown { font-family: monospace; font-size: 20px; color: var(--warning); font-weight: 700; display: none; }
-        .digital-countdown.visible { display: block; }
-        .preset-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-        
-        .chip {
-            background: rgba(255,255,255,0.1); color: var(--text-main); font-size: 12px; font-weight: 600;
-            border-radius: 20px; padding: 6px 12px; border: none; cursor: pointer; transition: 0.2s;
-        }
-        .chip:hover, .chip.selected { background: var(--primary); color: #fff; }
-        .chip-cancel { display: none; background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-        .chip-cancel.visible { display: inline-block; }
+        .nav-btn { width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: var(--text-main); font-size: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.15); transform: scale(1.1); }
+        .play-btn { width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 50%; font-size: 24px; color: #fff; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5); display: flex; align-items: center; justify-content: center; padding-left: 3px; }
+        .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
+        .play-btn .fa-pause { padding-left: 0; }
 
-        /* ── Full Screen Favorites Overlay ── */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: var(--bg-color); z-index: 100;
-            transform: translateX(100%); transition: transform 0.4s ease;
-            display: flex; flex-direction: column; padding: 24px;
-        }
-        .modal.open { transform: translateX(0); }
-        .modal-header {
-            display: flex; align-items: center; gap: 15px; font-size: 22px; font-weight: 700; margin-bottom: 20px; padding-top: 15px;
-        }
-        .back-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding-right:15px; }
-        
-        .fav-list { list-style: none; overflow-y: auto; flex: 1; margin: 0 -24px; padding: 0 24px; }
-        .fav-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .fav-item:last-child { border: none; }
-        
-        .fav-text { flex: 1; font-weight: 600; cursor: pointer; margin-right: 15px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: flex; align-items: center; gap: 15px; }
-        .fav-text i { color: var(--primary); font-size: 14px;}
-        .remove-btn { background: none; color: var(--text-sub); border: none; font-size: 18px; padding: 10px; }
-        .remove-btn:hover { color: var(--danger); }
+        /* ── Action Bar ── */
+        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 16px 20px; border-radius: 20px; }
+        .volume-container { display: flex; align-items: center; gap: 12px; flex-grow: 1; margin-right: 15px; }
 
-        /* Overlay blur */
-        .blur-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 45; opacity: 0; pointer-events: none; transition: 0.3s; }
-        .blur-overlay.open { opacity: 1; pointer-events: all;}
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+        .action-btn { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; transition: 0.3s; }
+        .action-btn:hover { color: #fff; transform: scale(1.1); }
+        .action-btn.active-fav { color: var(--danger); animation: heartBeat 0.4s ease; }
+        @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
 
-        /* Loading */
-        #loader {
-            position: fixed; inset: 0; background: var(--bg-color); z-index: 999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; font-weight: 600; color: #fff;
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary);
-            border-radius: 50%; animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .footer-note { font-size: 11px; color: var(--text-sub); margin-top: -5px; }
 
+        /* PayPal UI Box Preserved Correctly */
+        .paypal-wrapper {
+            position: fixed; bottom: 20px; right: 20px; width: 100px; height: 100px;
+            display: flex; align-items: center; justify-content: center; z-index: 100;
+        }
+        .paypal-svg { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+        .paypal-svg text { font-size: 9.5px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
+        .donate-btn { width: 50px; height: 50px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; text-decoration: none; box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); position: relative; z-index: 2; transition: 0.3s; }
+        .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
+
+        /* ── Favorites ── */
+        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 200; display: flex; flex-direction: column; padding: 30px 20px; backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: 0.3s ease; }
+        .modal.open { opacity: 1; visibility: visible; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 700; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-glass); }
+        .close-modal { background: none; border: none; color: var(--text-sub); font-size: 24px; cursor: pointer; transition: 0.2s; }
+        .close-modal:hover { color: var(--danger); transform: rotate(90deg); }
+        .fav-list { flex: 1; overflow-y: auto; list-style: none; padding-right: 5px; }
+        .fav-list::-webkit-scrollbar { width: 5px; }
+        .fav-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .fav-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 14px 18px; border-radius: 14px; margin-bottom: 10px; border: 1px solid var(--border-glass); transition: 0.3s ease; }
+        .fav-item:hover { border-color: var(--primary); background: rgba(59,130,246,0.1); transform: translateX(5px); }
+        .fav-item-content { display: flex; align-items: center; flex: 1; cursor: pointer; gap: 15px; overflow: hidden; }
+        .fav-play-icon { color: var(--primary); font-size: 22px; }
+        .fav-info { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size:14px; }
+        .fav-remove { color: var(--danger); background: rgba(239, 68, 68, 0.15); border: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .fav-remove:hover { background: var(--danger); color: #fff; }
+
+        /* Loader */
+        #loading { position: fixed; inset: 0; background: var(--bg-base); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: var(--primary); font-weight: 600; letter-spacing: 2px; }
+        .spinner { width: 45px; height: 45px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
+    <!-- PayPal -->
+    <div class="paypal-wrapper">
+        <svg class="paypal-svg" viewBox="0 0 100 100">
+            <path id="curve" d="M 20 50 A 30 30 0 0 1 80 50" fill="transparent" />
+            <text><textPath href="#curve" startOffset="50%" text-anchor="middle">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</textPath></text>
+        </svg>
+        <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn"><i class="fab fa-paypal"></i></a>
+    </div>
+
+    <!-- Loader -->
+    <div id="loading">
         <div class="spinner"></div>
-        <div style="font-size: 14px; opacity:0.8; letter-spacing: 1px;" id="loadingText">Searching for stations...</div>
+        <span>FETCHING STATIONS...</span>
     </div>
 
-    <div class="blur-overlay" id="blurOverlay"></div>
-
-    <!-- 1. Header (Country Name always visible based on TG Chat params) -->
-    <header class="app-header">
-        <button class="nav-btn" id="favListBtn"><i class="fa-solid fa-bars-staggered"></i></button>
-        <div class="location-info">
-            <div class="location-label">Radios in</div>
-            <div class="country-name"><i class="fa-solid fa-location-dot" style="color:var(--primary); font-size: 12px;"></i> <span id="dispCountry">...</span></div>
-        </div>
-        <button class="nav-btn" id="openTimerDrawer"><i class="fa-solid fa-clock"></i></button>
-    </header>
-
-    <!-- 2. Art Work and Info -->
-    <main class="main-display">
-        <div class="cover-art" id="artCover">
-            <i class="fa-solid fa-radio"></i>
-        </div>
-        <div class="track-info">
-            <div class="track-title" id="rTitle" dir="auto">Waiting for connect...</div>
-            <div class="track-subtitle" id="rSub">Preparing System</div>
-        </div>
-    </main>
-
-    <!-- 3. Player controls -->
-    <footer class="player-controls">
-        <div class="volume-row">
-            <i class="fa-solid fa-volume-off"></i>
-            <input type="range" id="volRange" min="0" max="1" step="0.05" value="0.75" />
-            <i class="fa-solid fa-volume-high"></i>
+    <!-- Card -->
+    <div class="player-card">
+        <!-- Header -->
+        <div class="header">
+            <button class="icon-btn" id="toggleTimerBtn" title="Show/Hide Timers"><i class="fas fa-stopwatch"></i></button>
+            <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
         </div>
 
-        <div class="controls-row">
-            <button class="side-btn" id="btnFavIcon"><i class="fa-regular fa-heart"></i></button>
-            <div class="main-controls">
-                <button class="side-btn" id="btnPrev"><i class="fa-solid fa-backward-step"></i></button>
-                <button class="play-btn" id="btnPlay"><i class="fa-solid fa-play" id="icPlay"></i></button>
-                <button class="side-btn" id="btnNext"><i class="fa-solid fa-forward-step"></i></button>
+        <div class="logo-container">
+            <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
+            <div class="station-name" id="stationTitle">Loading...</div>
+            <div class="station-counter" id="stationSub">Initializing</div>
+        </div>
+
+        <!-- ── ALL NEW Timer Mechanics for Any Limits! ── -->
+        <div class="timer-section" id="timerSection">
+            
+            <!-- Sleep Timer Row -->
+            <div class="timer-row sleep-row" id="sleepTimerRow">
+                <div class="timer-header">
+                    <span class="timer-label"><i class="fas fa-moon"></i> Sleep System</span>
+                    <!-- Text readout which replaces limits of slot machines visually without glitches -->
+                    <div class="advanced-readout" id="slReadout">00:00</div>
+                    <button class="timer-cancel-pill" id="slCancelBtn"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div class="timer-inputs-area" id="slInputsArea">
+                    <div class="timer-presets-row" id="sleepPresetsGroup">
+                        <!-- Default smart suggestions back exactly how requested but up scaled for quick taps! -->
+                        <button class="timer-preset-pill" data-mins="1">1m</button>
+                        <button class="timer-preset-pill" data-mins="5">5m</button>
+                        <button class="timer-preset-pill" data-mins="15">15m</button>
+                        <button class="timer-preset-pill" data-mins="30">30m</button>
+                        <button class="timer-preset-pill" data-mins="60">1h</button>
+                    </div>
+                    <!-- Arbitrary full detailed manual selection Inputs -->
+                    <div class="custom-input-grid">
+                        <input type="number" id="slInpD" placeholder="D" min="0"> :
+                        <input type="number" id="slInpH" placeholder="H" min="0" max="999"> :
+                        <input type="number" id="slInpM" placeholder="M" min="0"> :
+                        <input type="number" id="slInpS" placeholder="S" min="0">
+                        <button class="btn-set-custom" id="slRunCustom"><i class="fas fa-check"></i> SET</button>
+                    </div>
+                </div>
             </div>
-            <!-- Sync visual alignment placeholder -->
-            <button class="side-btn" style="visibility:hidden;"><i class="fa-solid fa-ellipsis"></i></button>
-        </div>
-    </footer>
 
-    <!-- Smart Sliding Drawer for Timers -->
-    <div class="timer-drawer" id="timerPanel">
-        <div class="drawer-handle"></div>
-        <h3 style="text-align: center; font-size: 16px; margin-bottom: 5px;">Auto Modes</h3>
-        
-        <!-- Sleep Mode -->
-        <div class="timer-mode">
-            <div class="timer-title" style="color: #60a5fa;"><i class="fa-solid fa-moon"></i> Sleep 
-                <span class="digital-countdown" id="sleepDigits">00:00</span>
+            <!-- Start Timer Row -->
+            <div class="timer-row start-row" id="startTimerRow">
+                <div class="timer-header">
+                    <span class="timer-label"><i class="fas fa-clock"></i> Start System</span>
+                    <div class="advanced-readout" id="stReadout">00:00</div>
+                    <button class="timer-cancel-pill" id="stCancelBtn"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="timer-inputs-area" id="stInputsArea">
+                    <div class="timer-presets-row" id="startPresetsGroup">
+                        <button class="timer-preset-pill" data-mins="1">1m</button>
+                        <button class="timer-preset-pill" data-mins="5">5m</button>
+                        <button class="timer-preset-pill" data-mins="15">15m</button>
+                        <button class="timer-preset-pill" data-mins="30">30m</button>
+                        <button class="timer-preset-pill" data-mins="60">1h</button>
+                    </div>
+                    <div class="custom-input-grid">
+                        <input type="number" id="stInpD" placeholder="D" min="0"> :
+                        <input type="number" id="stInpH" placeholder="H" min="0" max="999"> :
+                        <input type="number" id="stInpM" placeholder="M" min="0"> :
+                        <input type="number" id="stInpS" placeholder="S" min="0">
+                        <button class="btn-set-custom" id="stRunCustom"><i class="fas fa-check"></i> SET</button>
+                    </div>
+                </div>
             </div>
-            <div class="preset-btns" id="sleepOptions">
-                <button class="chip" data-time="5">5m</button>
-                <button class="chip" data-time="15">15m</button>
-                <button class="chip" data-time="30">30m</button>
-                <button class="chip chip-cancel" id="btnCanSleep">Cancel</button>
-            </div>
+
+        </div>
+        <!-- End Advanced Customizing Interface -->
+
+        <!-- Controls Area -->
+        <div class="controls">
+            <button class="ctrl-btn nav-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
+            <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
+            <button class="ctrl-btn nav-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
         </div>
 
-        <!-- Start Mode -->
-        <div class="timer-mode">
-            <div class="timer-title" style="color: #4ade80;"><i class="fa-solid fa-clock-rotate-left"></i> Start
-                <span class="digital-countdown" id="startDigits">00:00</span>
+        <div class="actions-bar">
+            <div class="volume-container">
+                <i class="fas fa-volume-down" style="color:var(--text-sub); font-size:14px;"></i>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+                <i class="fas fa-volume-up" style="color:var(--text-sub); font-size:16px;"></i>
             </div>
-            <div class="preset-btns" id="startOptions">
-                <button class="chip" data-time="5">5m</button>
-                <button class="chip" data-time="15">15m</button>
-                <button class="chip" data-time="30">30m</button>
-                <button class="chip chip-cancel" id="btnCanStart">Cancel</button>
-            </div>
+            <button class="action-btn" id="saveFavBtn" title="Save Station"><i class="far fa-heart"></i></button>
         </div>
+        <div class="footer-note">Change country inside the bot chat.</div>
+        <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
-    <!-- Favorite Stations Full Screen -->
-    <div class="modal" id="favModalWindow">
+    <!-- Modals Overlay-->
+    <div class="modal" id="favModal">
         <div class="modal-header">
-            <button class="back-btn" id="closeFavsBtn"><i class="fa-solid fa-chevron-left"></i></button>
-            Favorite Stations
+            <span>Your Favorites</span>
+            <button class="close-modal" id="closeFavsBtn"><i class="fas fa-times"></i></button>
         </div>
-        <ul class="fav-list" id="fListItems"></ul>
+        <ul class="fav-list" id="favList"></ul>
     </div>
-
-    <audio id="corePlayer" preload="none"></audio>
 
     <script>
-        const tg = window.Telegram?.WebApp;
-        if(tg) { tg.ready(); tg.expand(); }
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) { tg.ready(); tg.expand(); }
 
-        // ============ State Initialization ============
-        let Stations = [], curIdx = 0, playingState = false, customModePlaying = false, failsCounter = 0;
-        let storedList = JSON.parse(localStorage.getItem('premium_fav_radios')) || [];
-
-        // Dynamic Parameter Setup: This accurately receives country logic from Bot Link
-        const GET_PARAMS = new URLSearchParams(window.location.search);
-        let fromUrlParam = GET_PARAMS.get('country') || GET_PARAMS.get('name') || '';
-        let fromStartParam = (tg?.initDataUnsafe?.start_param || '').replace(/_/g, ' '); // decoding if tg parameter format
-        
-        let requestedTarget = fromUrlParam || fromStartParam || 'Egypt'; 
-        // fallback safe decode to ensure Arabic works well
-        requestedTarget = decodeURIComponent(requestedTarget).trim();
-        document.getElementById('dispCountry').textContent = requestedTarget;
-
-
-        // ============ Elements Maps ============
-        const D = {
-            ldr: document.getElementById('loader'), txtLoad: document.getElementById('loadingText'),
-            bgFade: document.getElementById('blurOverlay'), panTimers: document.getElementById('timerPanel'),
-            togTimers: document.getElementById('openTimerDrawer'), artC: document.getElementById('artCover'),
-            iP: document.getElementById('icPlay'), tP: document.getElementById('rTitle'),
-            tS: document.getElementById('rSub'), aud: document.getElementById('corePlayer'),
-            bP: document.getElementById('btnPlay'), bN: document.getElementById('btnNext'), 
-            bPr: document.getElementById('btnPrev'), btnF: document.getElementById('btnFavIcon'),
-            sOptions: document.getElementById('sleepOptions'), stOptions: document.getElementById('startOptions'),
-            canS: document.getElementById('btnCanSleep'), canSt: document.getElementById('btnCanStart'),
-            dgSleep: document.getElementById('sleepDigits'), dgStart: document.getElementById('startDigits'),
-            wFav: document.getElementById('favModalWindow'), bList: document.getElementById('favListBtn'),
-            clList: document.getElementById('closeFavsBtn'), lstD: document.getElementById('fListItems')
+        const DOM = {
+            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'),
+            playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'),
+            audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'),
+            openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'),
+            toggleBtn: document.getElementById('toggleTimerBtn'), tContainer: document.getElementById('timerSection'),
+            tRows: { 
+                slR: document.getElementById('sleepTimerRow'), stR: document.getElementById('startTimerRow') 
+            },
+            tmReads: { slRead: document.getElementById('slReadout'), stRead: document.getElementById('stReadout') },
+            inBoxes: { slInA: document.getElementById('slInputsArea'), stInA: document.getElementById('stInputsArea') },
+            inCans: { slC: document.getElementById('slCancelBtn'), stC: document.getElementById('stCancelBtn') },
+            customBtns: { runSl: document.getElementById('slRunCustom'), runSt: document.getElementById('stRunCustom') }
         };
 
+        // Extraction strictly matching target parameters of bot, No defaulting! (Safety and accuracy standard).
+        const PARAMS = new URLSearchParams(window.location.search);
+        const targetRaw = (tg?.initDataUnsafe?.start_param || '').replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
+        const TARGET_COUNTRY = targetRaw.trim();
 
-        // ============ Clean Data Fetching Layer ============
-        async function smartStationFetch(locationStr) {
+        let stations = [], curId = 0, playingState = false, errorC = 0, autoSkipping = false, sToOut = null, isFavModePlaying = false;
+        let storedRadios = JSON.parse(localStorage.getItem('radio_saved_list')) || [];
+        
+        let CoreTmr = { tInt: null, endSlp: null, endStr: null, outSlp: null, outStr: null };
+
+        // ============ Unlimited Custom Dynamic Counters System Engine ============ //
+        DOM.toggleBtn.addEventListener('click', () => DOM.tContainer.classList.toggle('show'));
+
+        const tgUpdateLedIndicator = () => { 
+            (CoreTmr.endSlp || CoreTmr.endStr) ? DOM.toggleBtn.classList.add('active-timer') : DOM.toggleBtn.classList.remove('active-timer'); 
+        };
+
+        const FormattedRemainsString = (futureTs) => {
+            if(!futureTs) return { remain: 0, read: "00:00" };
+            const T = Math.max(0, Math.floor((futureTs - Date.now()) / 1000));
+            const cDays = Math.floor(T / 86400);
+            const cHrs = Math.floor((T % 86400) / 3600);
+            const cMins = Math.floor((T % 3600) / 60);
+            const cSecs = T % 60;
+
+            let st = [];
+            // Dynamically pushes needed groups scaling flawlessly visually mapping DD HH MM SS neatly avoiding screen clip bugs.
+            if(cDays > 0) st.push(`${String(cDays).padStart(2,'0')}d`);
+            if(cHrs > 0 || cDays > 0) st.push(`${String(cHrs).padStart(2,'0')}h`);
+            st.push(`${String(cMins).padStart(2,'0')}m`);
+            st.push(`${String(cSecs).padStart(2,'0')}s`);
+            return { remain: T, read: st.join(':') };
+        }
+
+        const GlobalIntervalFire = () => { if (!CoreTmr.tInt) CoreTmr.tInt = setInterval(ExecGlobalRoutine, 1000); ExecGlobalRoutine(); }
+        const KillGlobalInterval = () => { if(CoreTmr.tInt) { clearInterval(CoreTmr.tInt); CoreTmr.tInt=null; } }
+
+        const ApplySleepUIClean = () => {
+            clearTimeout(CoreTmr.outSlp); CoreTmr.outSlp = null; CoreTmr.endSlp = null;
+            DOM.tRows.slR.classList.remove('active-timer-row');
+            DOM.tmReads.slRead.classList.remove('visible');
+            DOM.inCans.slC.classList.remove('visible');
+            DOM.inBoxes.slInA.style.display = 'flex'; tgUpdateLedIndicator();
+        }
+
+        const ApplyStartUIClean = () => {
+            clearTimeout(CoreTmr.outStr); CoreTmr.outStr = null; CoreTmr.endStr = null;
+            DOM.tRows.stR.classList.remove('active-timer-row');
+            DOM.tmReads.stRead.classList.remove('visible');
+            DOM.inCans.stC.classList.remove('visible');
+            DOM.inBoxes.stInA.style.display = 'flex'; tgUpdateLedIndicator();
+        }
+
+        const ExecGlobalRoutine = () => {
+            let actSlp = CoreTmr.endSlp && Date.now() < CoreTmr.endSlp;
+            let actStr = CoreTmr.endStr && Date.now() < CoreTmr.endStr;
+            if(!actSlp && !actStr) return KillGlobalInterval();
+
+            if(actSlp) {
+                let DataMap = FormattedRemainsString(CoreTmr.endSlp);
+                DOM.tmReads.slRead.textContent = DataMap.read;
+                if(DataMap.remain <= 0) { PlayController.outFade(); ApplySleepUIClean(); }
+            } else if (CoreTmr.endSlp) ApplySleepUIClean();
+
+            if(actStr) {
+                let DataMap = FormattedRemainsString(CoreTmr.endStr);
+                DOM.tmReads.stRead.textContent = DataMap.read;
+                if(DataMap.remain <= 0) { PlayController.sysActReq(); ApplyStartUIClean(); }
+            } else if (CoreTmr.endStr) ApplyStartUIClean();
+        }
+
+        const ExtractForm = (grpP) => {
+            // Highly robust extractor! Sums all inputs regardless of logical limits per units mapping 65seconds correctly upwards!.
+            let pD = parseInt(document.getElementById(`${grpP}InpD`).value) || 0;
+            let pH = parseInt(document.getElementById(`${grpP}InpH`).value) || 0;
+            let pM = parseInt(document.getElementById(`${grpP}InpM`).value) || 0;
+            let pS = parseInt(document.getElementById(`${grpP}InpS`).value) || 0;
+            let finalMS = ((pD * 86400) + (pH * 3600) + (pM * 60) + pS) * 1000;
+            // Clear manually set limits for beauty inside loop fields if reutilized
+            [`${grpP}InpD`,`${grpP}InpH`,`${grpP}InpM`,`${grpP}InpS`].forEach(iId => document.getElementById(iId).value = '');
+            return finalMS;
+        }
+
+        // Connect Pill Events 
+        document.getElementById('sleepPresetsGroup').addEventListener('click', e => { let trP = e.target.closest('.timer-preset-pill'); if(trP) EngBootSl(parseInt(trP.dataset.mins)*60000); });
+        document.getElementById('startPresetsGroup').addEventListener('click', e => { let trP = e.target.closest('.timer-preset-pill'); if(trP) EngBootSt(parseInt(trP.dataset.mins)*60000); });
+        
+        // Connect Any Numbers Events Limits System Extracted mathematically safe Form Arrays
+        DOM.customBtns.runSl.onclick = () => { let genMs = ExtractForm('sl'); if(genMs>0) EngBootSl(genMs); };
+        DOM.customBtns.runSt.onclick = () => { let genMs = ExtractForm('st'); if(genMs>0) EngBootSt(genMs); };
+
+        const EngBootSl = (totalMSReq) => {
+            if(CoreTmr.endStr) ApplyStartUIClean(); // prevent crossing contradictions.
+            PlayController.sysActReq(); ApplySleepUIClean();
+            CoreTmr.endSlp = Date.now() + totalMSReq;
+            
+            DOM.tRows.slR.classList.add('active-timer-row');
+            DOM.inBoxes.slInA.style.display = 'none'; 
+            DOM.tmReads.slRead.classList.add('visible'); 
+            DOM.inCans.slC.classList.add('visible'); 
+            
+            DOM.tmReads.slRead.textContent = FormattedRemainsString(CoreTmr.endSlp).read; tgUpdateLedIndicator();
+            CoreTmr.outSlp = setTimeout(() => { PlayController.outFade(); ApplySleepUIClean(); }, totalMSReq);
+            GlobalIntervalFire();
+        }
+
+        const EngBootSt = (totalMSReq) => {
+            if(CoreTmr.endSlp) ApplySleepUIClean();
+            ApplyStartUIClean(); CoreTmr.endStr = Date.now() + totalMSReq;
+
+            DOM.tRows.stR.classList.add('active-timer-row');
+            DOM.inBoxes.stInA.style.display = 'none'; 
+            DOM.tmReads.stRead.classList.add('visible'); 
+            DOM.inCans.stC.classList.add('visible');
+
+            DOM.tmReads.stRead.textContent = FormattedRemainsString(CoreTmr.endStr).read; tgUpdateLedIndicator();
+            CoreTmr.outStr = setTimeout(() => { PlayController.sysActReq(); ApplyStartUIClean(); }, totalMSReq);
+            GlobalIntervalFire();
+        }
+        
+        DOM.inCans.slC.addEventListener('click', ApplySleepUIClean); DOM.inCans.stC.addEventListener('click', ApplyStartUIClean);
+
+
+        // ============ Native Application System API Handlers ============ //
+        const ConnectRadioService = async(targetLocNameStr) => {
             try {
-                // Method 1: Using Tags exact parameter which API categorizes Countries with 
-                let pLoc = encodeURIComponent(locationStr.toLowerCase());
-                
-                let results = [];
-                // API servers tend to fall, de1 is usually robust
-                let r1 = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${pLoc}?order=votes&reverse=true`);
-                if(r1.ok) results = await r1.json();
+                for (let urReqX of [`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(targetLocNameStr)}?order=votes&reverse=true`, 
+                                   `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(targetLocNameStr)}?order=votes&reverse=true`]) {
+                    const reqObj = await fetch(urReqX);
+                    if(reqObj.ok) { let finalJsonArr = (await reqObj.json()).filter(fP=>(fP.url_resolved || fP.url).startsWith('https://')); if(finalJsonArr.length>0) return finalJsonArr; }
+                } return [];
+            } catch (xEvnE) { return []; }
+        }
 
-                // fallback to general string search if by-country fails returning data (sometimes required for sub-locations or specific formatting)
-                if(results.length === 0) {
-                    D.txtLoad.textContent = "Switching search mechanism...";
-                    let r2 = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${pLoc}&order=votes&reverse=true`);
-                    if(r2.ok) results = await r2.json();
-                }
-
-                return results.filter(k => (k.url_resolved || k.url).startsWith('https')); 
-            } catch (err) {
-                console.error(err);
-                return [];
+        const PlayController = {
+            tPl() { const actT = DOM.audio.play(); if (actT) actT.then(() => { playingState = true; errorC=0; DOM.playIcon.className='fas fa-pause'; DOM.playBtn.querySelector('i').style.paddingLeft='0'; DOM.logo.classList.add('playing');}).catch(xE=>{if(xE.name!=='AbortError') this.throwWarnHk();})},
+            tPz() { DOM.audio.pause(); playingState = false; DOM.playIcon.className='fas fa-play'; DOM.playBtn.querySelector('i').style.paddingLeft='3px'; DOM.logo.classList.remove('playing');},
+            shSwitch() { playingState ? this.tPz() : this.tPl(); },
+            sysActReq() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIUpdateHds.ixApplyFireReq(0); this.tPl(); } },
+            outFade() { let _b = DOM.audio.volume; if(_b<=0 || !playingState) return this.tPz(); let __hStep=_b/20,cIn_s=0; let mX=setInterval(()=>{cIn_s++;DOM.audio.volume=Math.max(0,_b-(__hStep*cIn_s));if(cIn_s>=20){clearInterval(mX);this.tPz();DOM.audio.volume=_b; DOM.vol.value=_b;}},100);},
+            throwWarnHk() {
+                if(playingState && stations.length > 1 && errorC < 10 && !isFavModePlaying){
+                    errorC++; DOM.sub.textContent = "Re-Tuning Connection.."; DOM.logo.classList.remove('playing'); DOM.playIcon.className='fas fa-spinner fa-spin'; clearTimeout(sToOut); autoSkipping=true;
+                    sToOut = setTimeout(() => { UIUpdateHds.ixApplyFireReq((curId+1)%stations.length); autoSkipping=false;},1600);
+                } else { this.tPz(); DOM.sub.textContent="Loss Connect Detected.";}
             }
+        };
+
+        const UIUpdateHds = {
+            ixApplyFireReq(nIxVal) { if(!stations.length) return; curId = nIxVal; const oR=stations[curId]; isFavModePlaying = false;
+                this.cModSysVlsUpdt(oR.name, `SOURCE TRK ${curId+1} // ${stations.length}`, oR.favicon);
+                DOM.audio.src = oR.url_resolved || oR.url || '';
+                this.sysEngnOkyStateReqVnshUnusedUI(); SyncDbStateBksIconHks(oR.stationuuid); if(playingState) PlayController.tPl(); 
+            },
+            jumperDirectFavRReq(vDataModFavIdReqParamsObj) {
+                isFavModePlaying=true; this.cModSysVlsUpdt(vDataModFavIdReqParamsObj.name,"LOC STORE MEMORY",vDataModFavIdReqParamsObj.img); DOM.audio.src = vDataModFavIdReqParamsObj.url;
+                this.sysEngnOkyStateReqVnshUnusedUI(); SyncDbStateBksIconHks(vDataModFavIdReqParamsObj.id); PlayController.tPl();
+            },
+            cModSysVlsUpdt(gHValMainTitlesTextFormatTitle,bUVSStxtMainLvlX2DescParamsReqF_VDataObjXGNameTrckTpeTrvGkInfoBysParamsTitleFormatDescriptionStrdSysInfReqDataGSubValueParam,iImageXValueGParamRqtResStParamExt) {
+                DOM.title.textContent=gHValMainTitlesTextFormatTitle||'Anonymous Node.'; DOM.sub.textContent=bUVSStxtMainLvlX2DescParamsReqF_VDataObjXGNameTrckTpeTrvGkInfoBysParamsTitleFormatDescriptionStrdSysInfReqDataGSubValueParam;
+                if(iImageXValueGParamRqtResStParamExt){ const ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams=new Image(); ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams.src=iImageXValueGParamRqtResStParamExt; ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams.onload=()=>DOM.logo.innerHTML=`<img src="${iImageXValueGParamRqtResStParamExt}"/>`; ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams.onerror=()=>DOM.logo.innerHTML=`<i class="fas fa-music"></i>`; }else{DOM.logo.innerHTML=`<i class="fas fa-music"></i>`;}
+                DOM.audio.volume = DOM.vol.value;
+            },
+            sysEngnOkyStateReqVnshUnusedUI() { [DOM.playBtn, DOM.nextBtn, DOM.prevBtn].forEach(yBxUixX => yBxUixX.disabled = false); },
+            yThrowGlobalNukWarningStateParamsXUnknReqRqstE() { DOM.title.textContent = 'Awaiting Instructions.'; DOM.sub.textContent = 'Check Country Typings Syntax Params Req For Start Search By Name.'; DOM.logo.innerHTML = '<i class="fas fa-robot" style="color:var(--text-sub)"></i>'; }
         }
 
+        DOM.playBtn.addEventListener('click', () => PlayController.shSwitch()); DOM.nextBtn.addEventListener('click', () => UIUpdateHds.ixApplyFireReq((curId+1)%stations.length));
+        DOM.prevBtn.addEventListener('click', () => UIUpdateHds.ixApplyFireReq((curId-1+stations.length)%stations.length));
+        DOM.vol.addEventListener('input', vGEvntInPutLmtRqValueDataSliderFormEventOjectTargetNodeStrcG => DOM.audio.volume = vGEvntInPutLmtRqValueDataSliderFormEventOjectTargetNodeStrcG.target.value); 
+        DOM.audio.addEventListener('error', () => PlayController.throwWarnHk());
 
-        // ============ Digital Timer Logic (Slimmed Down) ============
-        let TM = { endSlp: null, endSt: null, coreI: null, waitSlp: null, waitSt: null };
-        const F0 = n => String(n).padStart(2,'0');
 
-        function procT(tmMs, digEl, pArr) {
-            let left = Math.round((tmMs - Date.now())/1000);
-            if(left <= 0) left = 0;
-            digEl.textContent = `${F0(Math.floor(left/60))}:${F0(left%60)}`;
-            return left;
-        }
-        function uiSlp(r){ TM.endSlp=null; D.dgSleep.classList.remove('visible'); D.canS.classList.remove('visible'); pShow(D.sOptions);  updateTic(); }
-        function uiSt(r){ TM.endSt=null; D.dgStart.classList.remove('visible'); D.canSt.classList.remove('visible'); pShow(D.stOptions); updateTic(); }
-        
-        function pHide(par){ Array.from(par.querySelectorAll('.chip:not(.chip-cancel)')).forEach(c=>c.style.display='none'); }
-        function pShow(par){ Array.from(par.querySelectorAll('.chip:not(.chip-cancel)')).forEach(c=>c.style.display='inline-block'); }
-
-        const runGlobalTic = () => {
-            if(!TM.coreI) TM.coreI = setInterval(()=> {
-                let anyAct = false;
-                if(TM.endSlp) { procT(TM.endSlp, D.dgSleep); anyAct=true; }
-                if(TM.endSt) { procT(TM.endSt, D.dgStart); anyAct=true; }
-                
-                if(!anyAct) { clearInterval(TM.coreI); TM.coreI=null; }
-            }, 1000);
-        };
-        const updateTic = () => { (TM.endSlp || TM.endSt) ? D.togTimers.classList.add('active') : D.togTimers.classList.remove('active'); };
-
-        // Bind Setup
-        const setSleepM = (m) => {
-            if(TM.endSt) { clearTimeout(TM.waitSt); uiSt(); }
-            PCTRL.runX(); TM.endSlp = Date.now() + (m * 60000);
-            D.dgSleep.classList.add('visible'); D.canS.classList.add('visible'); pHide(D.sOptions); procT(TM.endSlp, D.dgSleep); updateTic();
-            TM.waitSlp = setTimeout(()=> { PCTRL.pOffFade(); uiSlp(); }, m * 60000);
-            runGlobalTic();
+        const SyncDbStateBksIconHks = bUUIDParamBObjHrtChkRq => {
+            const FStParamsYBoolResValCdnkTrUdtHStIconExStFnStateStrdLDBQListArYRsXValHrkFnOpeRspXResBool_bOkQ=storedRadios.some(dObjXRqS => dObjXRqS.id === bUUIDParamBObjHrtChkRq);
+            DOM.saveBtn.className = FStParamsYBoolResValCdnkTrUdtHStIconExStFnStateStrdLDBQListArYRsXValHrkFnOpeRspXResBool_bOkQ ? 'action-btn active-fav':'action-btn'; DOM.saveBtn.innerHTML = FStParamsYBoolResValCdnkTrUdtHStIconExStFnStateStrdLDBQListArYRsXValHrkFnOpeRspXResBool_bOkQ?'<i class="fas fa-heart"></i>':'<i class="far fa-heart"></i>';
         };
 
-        const setStartM = (m) => {
-            if(TM.endSlp) { clearTimeout(TM.waitSlp); uiSlp(); }
-            TM.endSt = Date.now() + (m * 60000);
-            D.dgStart.classList.add('visible'); D.canSt.classList.add('visible'); pHide(D.stOptions); procT(TM.endSt, D.dgStart); updateTic();
-            TM.waitSt = setTimeout(()=> { PCTRL.runX(); uiSt(); }, m * 60000);
-            runGlobalTic();
-        };
-
-        D.sOptions.addEventListener('click', e => { if(e.target.dataset.time) setSleepM(parseInt(e.target.dataset.time)); });
-        D.stOptions.addEventListener('click', e => { if(e.target.dataset.time) setStartM(parseInt(e.target.dataset.time)); });
-        D.canS.addEventListener('click', () => { clearTimeout(TM.waitSlp); uiSlp(); });
-        D.canSt.addEventListener('click', () => { clearTimeout(TM.waitSt); uiSt(); });
-
-
-        // ============ Advanced Music System Control ============
-        const PCTRL = {
-            updScreen(tit, stit, imgL) {
-                D.tP.textContent = tit || "Station Audio"; 
-                D.tS.textContent = stit;
-                if(imgL){ 
-                    const mX = new Image(); mX.src=imgL;
-                    mX.onload = () => D.artC.innerHTML = `<img src="${imgL}"/>`;
-                    mX.onerror= () => D.artC.innerHTML = '<i class="fa-solid fa-radio"></i>';
-                } else D.artC.innerHTML = '<i class="fa-solid fa-radio"></i>';
-                this.cFsBtn();
-            },
-            fireIx(dx) {
-                if(!Stations.length) return;
-                curIdx = dx; const ds = Stations[curIdx]; customModePlaying = false;
-                this.updScreen(ds.name, `Local Source ${dx+1} / ${Stations.length}`, ds.favicon);
-                D.aud.src = ds.url_resolved || ds.url; this.bEnable();
-                if(playingState) this.act();
-            },
-            fFire(dataX) {
-                customModePlaying = true;
-                this.updScreen(dataX.name, 'Favorite Memory', dataX.img);
-                D.aud.src = dataX.url; this.bEnable(); this.act();
-            },
-            act() {
-                let prom = D.aud.play();
-                if(prom) prom.then(() => { playingState = true; failsCounter = 0; D.iP.className="fa-solid fa-pause"; D.artC.classList.add('playing'); }).catch(x => {if(x.name!=='AbortError') this.catchBug();});
-            },
-            hlt() { D.aud.pause(); playingState = false; D.iP.className="fa-solid fa-play"; D.artC.classList.remove('playing'); },
-            tgHlt() { playingState ? this.hlt() : this.act(); },
-            runX() { if(D.aud.src || Stations.length) { if(!D.aud.src) this.fireIx(0); this.act(); } },
-            catchBug() {
-                this.hlt(); D.tS.textContent = "Connection issue, relocating..."; D.artC.innerHTML = '<i class="fa-solid fa-satellite-dish fa-fade"></i>';
-                if(!customModePlaying && Stations.length > 1 && failsCounter < 7) {
-                    failsCounter++; setTimeout(() => this.fireIx((curIdx+1) % Stations.length), 2000);
-                } else D.tP.textContent = "Source Unavailable.";
-            },
-            pOffFade() {
-                if(!playingState) return;
-                let c = 20, vV = document.getElementById('volRange').value;
-                let dIn = setInterval(()=>{
-                    c--; D.aud.volume = Math.max(0, (c/20)*vV);
-                    if(c<=0) { clearInterval(dIn); this.hlt(); D.aud.volume = vV; }
-                },150);
-            },
-            cFsBtn() {
-                let cvDataId = customModePlaying ? storedList.find(r=>r.url===D.aud.src)?.id : Stations[curIdx]?.stationuuid;
-                if(!cvDataId) return;
-                let kEx = storedList.some(r => r.id === cvDataId);
-                D.btnF.className = kEx ? 'side-btn active-fav' : 'side-btn';
-                D.btnF.innerHTML = kEx ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
-            },
-            bEnable() { D.bP.disabled = false; D.bN.disabled=false; D.bPr.disabled=false; }
-        };
-
-        D.aud.addEventListener('error', () => PCTRL.catchBug());
-        document.getElementById('volRange').addEventListener('input', e=> D.aud.volume = e.target.value);
-        
-        D.bP.addEventListener('click', () => PCTRL.tgHlt());
-        D.bN.addEventListener('click', () => { if(Stations.length) PCTRL.fireIx((curIdx + 1) % Stations.length); });
-        D.bPr.addEventListener('click', () => { if(Stations.length) PCTRL.fireIx((curIdx - 1 + Stations.length) % Stations.length); });
-
-
-        // ============ Favorites Management System ============
-        D.btnF.addEventListener('click', () => {
-            const mRef = customModePlaying ? storedList.find(x=>x.url === D.aud.src) : Stations[curIdx];
-            if(!mRef) return;
-            const rID = mRef.stationuuid || mRef.id;
-            const yIndex = storedList.findIndex(h => h.id === rID);
-            
-            if(yIndex > -1) storedList.splice(yIndex,1);
-            else storedList.push({ id: rID, name: mRef.name, url: mRef.url_resolved||mRef.url, img: mRef.favicon||mRef.img });
-            
-            localStorage.setItem('premium_fav_radios', JSON.stringify(storedList)); PCTRL.cFsBtn(); popListRend();
+        DOM.saveBtn.addEventListener('click', () => {
+            const hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue=isFavModePlaying ? storedRadios.find(dStData_sReqMntPrmObeUExInfoCmpResDataD => dStData_sReqMntPrmObeUExInfoCmpResDataD.url === DOM.audio.src) : stations[curId]; if(!hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue) return;
+            const rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT = hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.stationuuid || hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.id; const qLcxVIndDBFindMtsResIntRReqParamTIntStoreFindResYIxValIxParamLResTParamUObjReqIndexFItmV=storedRadios.findIndex(p => p.id === rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT);
+            if (qLcxVIndDBFindMtsResIntRReqParamTIntStoreFindResYIxValIxParamLResTParamUObjReqIndexFItmV > -1) storedRadios.splice(qLcxVIndDBFindMtsResIntRReqParamTIntStoreFindResYIxValIxParamLResTParamUObjReqIndexFItmV, 1); else storedRadios.push({id: rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT, name: hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.name, url: hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.url_resolved || hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.url, img: hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.favicon || hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.img});
+            localStorage.setItem('radio_saved_list', JSON.stringify(storedRadios)); SyncDbStateBksIconHks(rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT); bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR()
         });
 
-        const popListRend = () => {
-            D.lstD.innerHTML = storedList.length ? '' : '<div style="color:var(--text-sub); text-align:center; padding-top:40px;">No saved favorites here.</div>';
-            storedList.forEach((st, xIx) => {
-                const ll = document.createElement('li'); ll.className = 'fav-item';
-                ll.innerHTML = `<div class="fav-text"><i class="fa-solid fa-compact-disc"></i> ${st.name}</div><button class="remove-btn"><i class="fa-solid fa-xmark"></i></button>`;
-                ll.querySelector('.fav-text').onclick = () => {
-                    let dRealIdx = Stations.findIndex(z=> z.stationuuid === st.id);
-                    D.wFav.classList.remove('open');
-                    (dRealIdx > -1) ? PCTRL.fireIx(dRealIdx) : PCTRL.fFire(st);
-                };
-                ll.querySelector('.remove-btn').onclick = e => {
-                    e.stopPropagation(); storedList.splice(xIx, 1);
-                    localStorage.setItem('premium_fav_radios', JSON.stringify(storedList));
-                    popListRend(); PCTRL.cFsBtn();
-                };
-                D.lstD.appendChild(ll);
-            });
+        const bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR = () => {
+            DOM.favList.innerHTML = storedRadios.length ? '':'<li style="text-align:center;color:var(--text-sub);margin-top:20px;">List is Clear Empty..</li>';
+            storedRadios.forEach((dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt, ixXLoopRenderParamsIndXValGenRenderNodeUListItemXValIXItPrm_IxNumQxListReqQFnStoreNodeReqGReqInt) => {
+                const bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq=document.createElement('li'); bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.className='fav-item'; bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.innerHTML=`<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.name}">${dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.name||'SYS:ANONYM'}</div></div><button class="fav-remove"><i class="fas fa-trash-alt"></i></button>`;
+                bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.querySelector('.fav-item-content').addEventListener('click', ()=>{DOM.favModal.classList.remove('open'); const cCheckDIfIXTrResLocVItnFindIdentUUIDIxFnP=stations.findIndex(wSysRqDNodeIq => wSysRqDNodeIq.stationuuid === dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id);
+                    if(cCheckDIfIXTrResLocVItnFindIdentUUIDIxFnP>-1){UIUpdateHds.ixApplyFireReq(cCheckDIfIXTrResLocVItnFindIdentUUIDIxFnP);PlayController.tPl()} else {UIUpdateHds.jumperDirectFavRReq(dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt)} });
+                bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.querySelector('.fav-remove').addEventListener('click', eParamsEvBIndReqGstTrClickEvtBBtnRemObjTDataBResLRes_XFnReqCResRqNNodeSItRm=>{ eParamsEvBIndReqGstTrClickEvtBBtnRemObjTDataBResLRes_XFnReqCResRqNNodeSItRm.stopPropagation(); storedRadios.splice(ixXLoopRenderParamsIndXValGenRenderNodeUListItemXValIXItPrm_IxNumQxListReqQFnStoreNodeReqGReqInt, 1); localStorage.setItem('radio_saved_list', JSON.stringify(storedRadios)); bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR(); const kAcDIdsXR_C=isFavModePlaying?dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id:(stations[curId]?.stationuuid); if(kAcDIdsXR_C===dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id)SyncDbStateBksIconHks(dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id) }); DOM.favList.appendChild(bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq); });
         };
 
-        // Window Modals Links
-        D.bList.onclick = () => { popListRend(); D.wFav.classList.add('open'); };
-        D.clList.onclick = () => { D.wFav.classList.remove('open'); };
+        DOM.openFavs.addEventListener('click',()=>{ bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR(); DOM.favModal.classList.add('open')}); DOM.closeFavs.addEventListener('click',()=>{DOM.favModal.classList.remove('open')});
 
-        const uiTgMenu = () => {
-            const fT = D.panTimers.classList.contains('open');
-            D.panTimers.classList.toggle('open');
-            fT ? D.bgFade.classList.remove('open') : D.bgFade.classList.add('open');
+        // == App Runtime Setup Initialization Boot. (Securely fetching specific values parameters strictly).
+        async function YAppRootLaunchInitializeFetchEngineRequestSystemDCoreReqRstP() {
+            if(!TARGET_COUNTRY || TARGET_COUNTRY.length<2) { UIUpdateHds.yThrowGlobalNukWarningStateParamsXUnknReqRqstE(); DOM.loading.style.display='none'; return; }
+            stations=await ConnectRadioService(TARGET_COUNTRY);
+            if(stations.length){UIUpdateHds.ixApplyFireReq(0)} else {UIUpdateHds.yThrowGlobalNukWarningStateParamsXUnknReqRqstE()} DOM.loading.style.display='none';
         }
-        D.togTimers.onclick = uiTgMenu;
-        D.bgFade.onclick = uiTgMenu; // dismiss clicking outside drawer
-        D.panTimers.querySelector('.drawer-handle').onclick = uiTgMenu;
-
-
-        // ============ Execution Engine Initializing ============
-        async function runPlayerReadyProcess() {
-            if(!requestedTarget) requestedTarget = 'USA'; 
-            Stations = await smartStationFetch(requestedTarget);
-            D.ldr.style.display = 'none';
-
-            if(Stations.length) {
-                PCTRL.fireIx(0);
-                PCTRL.cFsBtn();
-            } else {
-                D.tP.textContent = "Location Empty.";
-                D.tS.textContent = `No signals located around '${requestedTarget}'. Check typing/spelling inside bot chat.`;
-                D.artC.innerHTML = '<i class="fa-solid fa-tower-broadcast" style="color:var(--danger)"></i>';
-            }
-        }
-        
-        runPlayerReadyProcess();
+        YAppRootLaunchInitializeFetchEngineRequestSystemDCoreReqRstP();
 
     </script>
 </body>
