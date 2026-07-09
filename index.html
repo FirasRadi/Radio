@@ -2,239 +2,217 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Global Radio Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Radio Player Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         :root {
-            --bg-base: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --success: #22c55e;
+            --bg: #090c14;
+            --surface: rgba(18, 25, 43, 0.75);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #4ade80;  /* لمسة لونية خضراء ذكية وعصرية */
+            --primary-g: #16a34a;
+            --blue: #3b82f6;
+            --blue-g: #1d4ed8;
+            --text-1: #ffffff;
+            --text-2: #8b9bb4;
+            --font: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
             --danger: #ef4444;
-            --warning: #fbbf24;
-            --font-family: 'Poppins', sans-serif;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: var(--font-family);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-base);
-            background-image: radial-gradient(circle at top left, #1e293b, #0f172a);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        /* ── Player Card ── */
-        .player-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            width: 100%;
-            max-width: 420px;
-            border-radius: 28px;
-            padding: 24px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            position: relative;
-            border: 1px solid var(--border-glass);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .icon-btn {
-            background: var(--border-glass);
-            border: none;
-            color: var(--text-sub);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: scale(1.05); }
-
-        /* المؤشر التنبيهي */
-        .icon-btn.active-timer {
-            color: var(--warning);
-            background: rgba(251, 191, 36, 0.15);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-            animation: pulseWarning 2s infinite;
-        }
-        @keyframes pulseWarning {
-            0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-        }
-
-        /* ── Logo ── */
-        .logo-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .logo {
-            width: 120px; height: 120px; border-radius: 50%; background: rgba(15, 23, 42, 0.6);
-            display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--primary);
-            overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease;
-        }
-        .logo img { width: 100%; height: 100%; object-fit: contain; background-color: #fff; border-radius: 50%; padding: 4px; }
-        .logo.playing {
-            border-color: var(--primary); box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
-            animation: spinDisc 10s linear infinite;
-        }
-        @keyframes spinDisc { 100% { transform: rotate(360deg); } }
-
-        .station-name { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-        .station-counter { font-size: 13px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
-
-        /* ── Toggleable Timer Section ── */
-        .timer-section { display: none; flex-direction: column; gap: 12px; margin-top: 5px; }
-        .timer-section.show { display: flex; animation: expandSection 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes expandSection { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
-
-        .timer-row {
-            background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 12px 14px;
-            display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-glass); transition: all 0.3s ease;
-        }
-        .timer-row.sleep-row { border-left: 4px solid var(--primary); }
-        .timer-row.start-row { border-left: 4px solid var(--success); }
-        .timer-row.active-timer-row {
-            border-color: rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.4); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .timer-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .timer-label { font-weight: 600; font-size: 13px; letter-spacing: 0.8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
-        .sleep-row .timer-label { color: #60a5fa; }
-        .start-row .timer-label { color: #4ade80; }
-
-        /* ── NEW Advanced Custom Countdown Visualizer ── */
-        .advanced-readout {
-            font-family: monospace, monospace; font-size: 16px; font-weight: 700; color: var(--warning);
-            background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 10px;
-            letter-spacing: 1px; display: none; border: 1px solid rgba(251, 191, 36, 0.3); text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
-        }
-        .advanced-readout.visible { display: block; }
-
-        /* ── Unified Input Grid Form For Any User Need ── */
-        .timer-presets-wrap { display: flex; flex-direction: column; gap: 8px; }
-        .timer-presets-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
-
-        /* الأقراص المألوفة اختصارات */
-        .timer-preset-pill {
-            background: var(--border-glass); border: 1px solid transparent; color: #cbd5e1;
-            padding: 5px 10px; border-radius: 20px; cursor: pointer; font-weight: 500; font-size: 11px; transition: all 0.2s ease;
-        }
-        .timer-preset-pill:hover { background: var(--primary); color: #fff; transform: translateY(-2px); }
-        .start-row .timer-preset-pill:hover { background: var(--success); }
-
-        .custom-input-grid {
-            display: flex; gap: 5px; justify-content: center; align-items: center;
-        }
-        .custom-input-grid input {
-            width: 48px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass);
-            color: var(--text-main); text-align: center; border-radius: 8px; padding: 6px 4px; outline: none; font-size:12px;
-        }
-        .custom-input-grid input::placeholder { color: rgba(255,255,255,0.25); }
-        .custom-input-grid input:focus { border-color: var(--primary); }
-        .btn-set-custom {
-            background: var(--primary); color: #fff; border: none; padding: 7px 14px; border-radius: 8px;
-            cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; box-shadow: 0 2px 10px rgba(59,130,246,0.3);
-        }
-        .btn-set-custom:hover { background: var(--primary-hover); transform: translateY(-1px); }
-        .start-row .btn-set-custom { background: var(--success); box-shadow: 0 2px 10px rgba(34, 197, 94,0.3); }
-
-        /* إخفاء واجهة الإدخال عند البدء */
-        .timer-inputs-area { display: flex; flex-direction: column; gap: 8px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: var(--font); user-select: none; }
         
-        .timer-cancel-pill { display: none; color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 11px; cursor: pointer;}
-        .timer-cancel-pill.visible { display: inline-flex; align-items: center; gap: 4px; }
-        .timer-cancel-pill:hover { background: var(--danger); color: #fff; }
+        body { background: var(--bg); color: var(--text-1); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; padding: 20px; }
+        
+        /* تأثيرات الخلفية الذكية لتصميم معاصر */
+        .ambient-glow { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; }
+        .ambient-glow.p1 { top: -20%; left: -20%; width: 300px; height: 300px; background: rgba(59, 130, 246, 0.3); }
+        .ambient-glow.p2 { bottom: -20%; right: -20%; width: 400px; height: 400px; background: rgba(74, 222, 128, 0.2); }
 
-        /* ── Player Controls ── */
-        .controls { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 10px; }
-        .ctrl-btn { border: none; cursor: pointer; transition: 0.3s; }
-        .ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        .nav-btn { width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: var(--text-main); font-size: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.15); transform: scale(1.1); }
-        .play-btn { width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 50%; font-size: 24px; color: #fff; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5); display: flex; align-items: center; justify-content: center; padding-left: 3px; }
-        .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
-        .play-btn .fa-pause { padding-left: 0; }
-
-        /* ── Action Bar ── */
-        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 16px 20px; border-radius: 20px; }
-        .volume-container { display: flex; align-items: center; gap: 12px; flex-grow: 1; margin-right: 15px; }
-
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
-        .action-btn { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; transition: 0.3s; }
-        .action-btn:hover { color: #fff; transform: scale(1.1); }
-        .action-btn.active-fav { color: var(--danger); animation: heartBeat 0.4s ease; }
-        @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-
-        .footer-note { font-size: 11px; color: var(--text-sub); margin-top: -5px; }
-
-        /* PayPal UI Box Preserved Correctly */
-        .paypal-wrapper {
-            position: fixed; bottom: 20px; right: 20px; width: 100px; height: 100px;
-            display: flex; align-items: center; justify-content: center; z-index: 100;
+        /* حاوية الراديو المركزية (زجاج متطور) */
+        .premium-card {
+            background: var(--surface); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            width: 100%; max-width: 440px; border-radius: 36px; padding: 25px; 
+            border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative; z-index: 10; display: flex; flex-direction: column; gap: 20px;
         }
+
+        .header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .icon-btn { background: rgba(255, 255, 255, 0.05); color: var(--text-2); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid transparent; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .icon-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-1); transform: translateY(-2px); }
+        
+        /* مؤشر الدورة الدموية/الحياة للمؤقت المخفي (يبقيك في الطمأنينة) */
+        .icon-btn.is-active-pulse { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); animation: warningPulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1); }
+        @keyframes warningPulse { 100% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } }
+
+        /* منطقة الهوية وتصوير الإذاعة */
+        .station-core { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 15px 0; }
+        
+        .disc-wrapper { width: 140px; height: 140px; border-radius: 50%; background: #000; padding: 6px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); position: relative;}
+        .disc-wrapper::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; background: conic-gradient(transparent, transparent, var(--text-2), transparent); opacity: 0.2; transition: 0.4s; pointer-events: none;}
+        .disc-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #fff; z-index: 2; position: relative;}
+        .disc-wrapper .fallback-icon { display: flex; align-items: center; justify-content: center; width:100%; height: 100%; font-size: 50px; color: var(--text-2); background: rgba(255,255,255,0.05); border-radius: 50%;}
+        
+        .disc-wrapper.is-playing { box-shadow: 0 10px 40px rgba(74, 222, 128, 0.3); transform: scale(1.03); }
+        .disc-wrapper.is-playing::before { opacity: 1; background: conic-gradient(from 0deg, var(--primary), var(--blue), var(--primary)); animation: spinFluid 4s linear infinite; }
+        
+        @keyframes spinFluid { 100% { transform: rotate(360deg); } }
+
+        .s-title { font-size: 22px; font-weight: 800; line-height: 1.2; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 5px; }
+        .s-meta { font-size: 13px; color: var(--text-2); letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        
+        /* مؤشر مصغر عند عمل العداد ليذكر المستخدم بالتوقيت في الواجهة الأساسية */
+        .live-timer-tags { display: flex; gap: 8px; justify-content: center; min-height: 25px; margin-top: -10px;}
+        .tg-badge { background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-family: var(--font-mono); border: 1px solid var(--border); display: none; align-items: center; gap: 5px;}
+        .tg-badge.vis { display: flex; }
+        .badge-sleep { color: var(--blue); border-color: rgba(59, 130, 246, 0.3); }
+        .badge-start { color: var(--primary); border-color: rgba(74, 222, 128, 0.3); }
+
+        /* منطقة الصوت والتفاعل السريع */
+        .actions-tray { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(0,0,0,0.25); border-radius: 24px; }
+        .fav-trigger { font-size: 24px; color: var(--text-2); background: none; border: none; padding: 5px 10px; cursor: pointer; transition: 0.2s; }
+        .fav-trigger.active { color: var(--danger); animation: thump 0.4s; }
+        @keyframes thump { 50% { transform: scale(1.3); } }
+
+        .slider-cnt { flex: 1; display: flex; align-items: center; gap: 12px; }
+        .slider-cnt i { color: var(--text-2); font-size: 14px;}
+        .vol-slide { -webkit-appearance: none; flex: 1; height: 5px; background: var(--border); border-radius: 5px; outline: none; }
+        .vol-slide::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; background: #fff; border-radius: 50%; box-shadow: 0 2px 10px rgba(255,255,255,0.4); cursor: pointer; }
+
+        /* مفاتيح اللعب والتوجيه السفلية - حديثة كبرى */
+        .main-controls { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 10px 0 5px; }
+        .seek-btn { font-size: 20px; color: var(--text-1); background: rgba(255,255,255,0.05); width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; transition: 0.3s; }
+        .seek-btn:hover { background: rgba(255,255,255,0.1); }
+        .play-hub { 
+            width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--text-1), #cbd5e1); color: var(--bg); font-size: 26px; display: flex; justify-content: center; align-items: center; border: none; box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2); cursor: pointer; transition: transform 0.2s, background 0.4s; 
+        }
+        .play-hub:active { transform: scale(0.95); }
+        .play-hub.state-play i.fa-play { padding-left: 3px; }
+
+        /* --------- أدوات ضبط التوقيت باللمس الشاملة 21st Century Style --------- */
+        /* تصميم "الدرج الذكي" بالأسفل للصعود */
+        .timer-drawer-bg { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 100; opacity: 0; visibility: hidden; transition: 0.4s ease; pointer-events: none;}
+        .timer-drawer-bg.open { opacity: 1; visibility: visible; pointer-events: all; }
+        
+        .timer-drawer {
+            position: absolute; bottom: 0; left: 0; width: 100%; border-radius: 40px 40px 0 0; background: #0f1523; border-top: 1px solid var(--border); padding: 25px; padding-bottom: 50px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            display: flex; flex-direction: column; gap: 15px; box-shadow: 0 -20px 50px rgba(0,0,0,0.5);
+        }
+        .timer-drawer-bg.open .timer-drawer { transform: translateY(0); }
+        .drawer-bar { width: 50px; height: 6px; border-radius: 6px; background: rgba(255,255,255,0.1); margin: 0 auto 10px; cursor: pointer;}
+        
+        .t-tab-heads { display: flex; gap: 10px; border: 1px solid var(--border); padding: 5px; border-radius: 20px; background: rgba(0,0,0,0.3);}
+        .t-tab { flex: 1; text-align: center; padding: 12px 10px; border-radius: 16px; color: var(--text-2); font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.3s; }
+        .t-tab.act[data-m="sleep"] { background: var(--blue); color: #fff; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+        .t-tab.act[data-m="start"] { background: var(--primary); color: var(--bg); box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3); }
+
+        /* منطقة آلة الزمن بدون كتابة Touch Time Machine UI */
+        .picker-area { margin: 20px 0; background: rgba(0,0,0,0.3); padding: 20px 10px; border-radius: 28px; }
+        
+        /* التصميم المرن للأعمدة (أيام، ساعات، دقايق، ثواني) */
+        .tm-wheels { display: flex; align-items: stretch; justify-content: center; gap: 10px; }
+        .tm-wheel { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; flex: 1;}
+        .whl-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-2); font-weight: 800;}
+        .whl-btn { background: rgba(255,255,255,0.06); border: none; color: #fff; font-size: 14px; width: 45px; height: 36px; border-radius: 12px; cursor: pointer; user-select: none; transition: 0.1s;}
+        .whl-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.9); }
+        .whl-val { font-family: var(--font-mono); font-size: 24px; font-weight: 700; color: #fff; line-height: 1; margin: 5px 0;}
+        
+        .t-apply-row { display: flex; gap: 15px; margin-top: 5px; }
+        .btn-exe { flex: 1; border: none; border-radius: 18px; padding: 16px; font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; background: var(--border); transition: 0.2s;}
+        .btn-exe.sleep-c { background: var(--blue); box-shadow: 0 4px 20px rgba(59,130,246,0.3);}
+        .btn-exe.start-c { background: var(--primary); color: var(--bg); box-shadow: 0 4px 20px rgba(74,222,128,0.3);}
+        .btn-cancel { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        
+        /* -------- Favorite Full Modal ----------- */
+        .f-modal {
+            position: fixed; inset: 0; background: var(--bg); z-index: 105; padding: 25px; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1); display: flex; flex-direction: column;
+        }
+        .f-modal.open { transform: translateX(0); }
+        .fm-header { display: flex; align-items: center; justify-content: space-between; font-size: 22px; font-weight: 700; margin-bottom: 25px; }
+        .list-wrap { list-style: none; overflow-y: auto; flex: 1; margin-right: -10px; padding-right: 10px; }
+        .list-wrap::-webkit-scrollbar { width: 5px;} .list-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        .li-box {
+            display: flex; justify-content: space-between; align-items: center; background: var(--surface);
+            padding: 18px 20px; border-radius: 20px; margin-bottom: 12px; border: 1px solid var(--border); transition: 0.2s;
+        }
+        .li-box:active { transform: scale(0.97); border-color: rgba(255,255,255,0.2);}
+        .li-body { display: flex; flex-direction: column; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; flex: 1;}
+        .li-b-title { font-weight: 700; font-size: 15px;}
+        .li-b-sub { font-size: 12px; color: var(--text-2); margin-top: 3px; font-family: var(--font-mono);}
+        .li-rem { background: none; border: none; font-size: 20px; color: var(--text-2); padding-left: 20px; transition: 0.2s;}
+        .li-rem:hover { color: var(--danger);}
+
+        /* PayPal Area Original Styling Preserved entirely */
+        .paypal-wrapper { position: fixed; bottom: 20px; right: 20px; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; z-index: 5; }
         .paypal-svg { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-        .paypal-svg text { font-size: 9.5px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
+        .paypal-svg text { font-size: 9.5px; fill: var(--text-2); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
         .donate-btn { width: 50px; height: 50px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; text-decoration: none; box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); position: relative; z-index: 2; transition: 0.3s; }
-        .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
+        .donate-btn:active { transform: scale(0.9); }
 
-        /* ── Favorites ── */
-        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 200; display: flex; flex-direction: column; padding: 30px 20px; backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: 0.3s ease; }
-        .modal.open { opacity: 1; visibility: visible; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 700; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-glass); }
-        .close-modal { background: none; border: none; color: var(--text-sub); font-size: 24px; cursor: pointer; transition: 0.2s; }
-        .close-modal:hover { color: var(--danger); transform: rotate(90deg); }
-        .fav-list { flex: 1; overflow-y: auto; list-style: none; padding-right: 5px; }
-        .fav-list::-webkit-scrollbar { width: 5px; }
-        .fav-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
-        .fav-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 14px 18px; border-radius: 14px; margin-bottom: 10px; border: 1px solid var(--border-glass); transition: 0.3s ease; }
-        .fav-item:hover { border-color: var(--primary); background: rgba(59,130,246,0.1); transform: translateX(5px); }
-        .fav-item-content { display: flex; align-items: center; flex: 1; cursor: pointer; gap: 15px; overflow: hidden; }
-        .fav-play-icon { color: var(--primary); font-size: 22px; }
-        .fav-info { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size:14px; }
-        .fav-remove { color: var(--danger); background: rgba(239, 68, 68, 0.15); border: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .fav-remove:hover { background: var(--danger); color: #fff; }
+        #ldng { position: fixed; inset:0; background: var(--bg); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px;}
+        .ring { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--text-1); border-radius: 50%; width: 50px; height: 50px; animation: lS 1s linear infinite;}
+        @keyframes lS { 100% {transform: rotate(360deg);}}
 
-        /* Loader */
-        #loading { position: fixed; inset: 0; background: var(--bg-base); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: var(--primary); font-weight: 600; letter-spacing: 2px; }
-        .spinner { width: 45px; height: 45px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
     </style>
 </head>
 <body>
 
-    <!-- PayPal -->
+    <div id="ldng">
+        <div class="ring"></div>
+        <div style="font-weight:700; letter-spacing:2px; font-size:12px; color:var(--text-2);" id="txtStt">LOCATING REGION</div>
+    </div>
+
+    <!-- Glowing Background effect for ultra-modern UI -->
+    <div class="ambient-glow p1"></div>
+    <div class="ambient-glow p2"></div>
+
+    <div class="premium-card">
+        <header class="header">
+            <button class="icon-btn" id="iFavTop"><i class="fa-solid fa-list-ul"></i></button>
+            <div class="s-meta" style="font-size: 11px; font-weight: 700; background:rgba(0,0,0,0.3); padding:4px 12px; border-radius:20px;">
+                <i class="fa-solid fa-globe" style="color:var(--text-2)"></i>
+                <span id="qCtry" style="text-transform: uppercase;">Country Name</span>
+            </div>
+            <!-- أيقونة التايمر المخفية والنبضية المتقدمة -->
+            <button class="icon-btn" id="toglTimrs"><i class="fa-solid fa-clock-rotate-left"></i></button>
+        </header>
+
+        <!-- مصغرات الحاضنة عند تفعيل العداد لتريح وتخبر المستخدم بنجاح تشغيل أرقامه المعقدة -->
+        <div class="live-timer-tags">
+            <div class="tg-badge badge-sleep" id="tsTag"><i class="fa-solid fa-moon"></i><span id="tsNum">00:00:00</span></div>
+            <div class="tg-badge badge-start" id="taTag"><i class="fa-solid fa-power-off"></i><span id="taNum">00:00:00</span></div>
+        </div>
+
+        <main class="station-core">
+            <div class="disc-wrapper" id="dscIco"><div class="fallback-icon"><i class="fa-solid fa-broadcast-tower"></i></div></div>
+            <div style="width: 100%; display: flex; flex-direction:column; margin-top:5px;">
+                <div class="s-title" id="dTitle" dir="auto">Waiting Source...</div>
+                <div class="s-meta" id="dSub">Searching stations...</div>
+            </div>
+        </main>
+
+        <div class="actions-tray">
+            <button class="fav-trigger" id="heartB"><i class="fa-regular fa-heart"></i></button>
+            <div class="slider-cnt">
+                <i class="fa-solid fa-volume-off"></i>
+                <input type="range" class="vol-slide" id="vSlide" min="0" max="1" step="0.05" value="0.75" />
+                <i class="fa-solid fa-volume-high"></i>
+            </div>
+        </div>
+
+        <footer class="main-controls">
+            <button class="seek-btn" id="bDn"><i class="fa-solid fa-backward-step"></i></button>
+            <button class="play-hub state-play" id="bPg"><i class="fa-solid fa-play" id="pHIc"></i></button>
+            <button class="seek-btn" id="bUp"><i class="fa-solid fa-forward-step"></i></button>
+        </footer>
+        
+        <audio id="coreAu" preload="none"></audio>
+    </div>
+
     <div class="paypal-wrapper">
         <svg class="paypal-svg" viewBox="0 0 100 100">
             <path id="curve" d="M 20 50 A 30 30 0 0 1 80 50" fill="transparent" />
@@ -243,337 +221,270 @@
         <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn"><i class="fab fa-paypal"></i></a>
     </div>
 
-    <!-- Loader -->
-    <div id="loading">
-        <div class="spinner"></div>
-        <span>FETCHING STATIONS...</span>
-    </div>
-
-    <!-- Card -->
-    <div class="player-card">
-        <!-- Header -->
-        <div class="header">
-            <button class="icon-btn" id="toggleTimerBtn" title="Show/Hide Timers"><i class="fas fa-stopwatch"></i></button>
-            <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
-        </div>
-
-        <div class="logo-container">
-            <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
-            <div class="station-name" id="stationTitle">Loading...</div>
-            <div class="station-counter" id="stationSub">Initializing</div>
-        </div>
-
-        <!-- ── ALL NEW Timer Mechanics for Any Limits! ── -->
-        <div class="timer-section" id="timerSection">
+    <!-- أداة الاختيار الفخمة لمؤقت مخصص باللمس الكامل Touch-time-picker Drawer -->
+    <div class="timer-drawer-bg" id="tDrBg">
+        <div class="timer-drawer" id="tDrBox">
+            <div class="drawer-bar"></div>
+            <h3 style="font-weight: 700; text-align:center; font-size: 16px;">Automated Timer Tool</h3>
             
-            <!-- Sleep Timer Row -->
-            <div class="timer-row sleep-row" id="sleepTimerRow">
-                <div class="timer-header">
-                    <span class="timer-label"><i class="fas fa-moon"></i> Sleep System</span>
-                    <!-- Text readout which replaces limits of slot machines visually without glitches -->
-                    <div class="advanced-readout" id="slReadout">00:00</div>
-                    <button class="timer-cancel-pill" id="slCancelBtn"><i class="fas fa-times"></i></button>
-                </div>
+            <div class="t-tab-heads">
+                <div class="t-tab act" data-m="sleep">Stop Radio <i class="fa-solid fa-moon"></i></div>
+                <div class="t-tab" data-m="start">Start Radio <i class="fa-solid fa-power-off"></i></div>
+            </div>
 
-                <div class="timer-inputs-area" id="slInputsArea">
-                    <div class="timer-presets-row" id="sleepPresetsGroup">
-                        <!-- Default smart suggestions back exactly how requested but up scaled for quick taps! -->
-                        <button class="timer-preset-pill" data-mins="1">1m</button>
-                        <button class="timer-preset-pill" data-mins="5">5m</button>
-                        <button class="timer-preset-pill" data-mins="15">15m</button>
-                        <button class="timer-preset-pill" data-mins="30">30m</button>
-                        <button class="timer-preset-pill" data-mins="60">1h</button>
+            <!-- الآلة الذكية بدون أرقام للكتابة Touch Machine Area -->
+            <div class="picker-area">
+                <div class="tm-wheels">
+                    <!-- عمود الأيام -->
+                    <div class="tm-wheel">
+                        <span class="whl-lbl">Day</span>
+                        <button class="whl-btn" data-act="inc" data-f="d"><i class="fa-solid fa-chevron-up"></i></button>
+                        <span class="whl-val" id="pk_d">0</span>
+                        <button class="whl-btn" data-act="dec" data-f="d"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
-                    <!-- Arbitrary full detailed manual selection Inputs -->
-                    <div class="custom-input-grid">
-                        <input type="number" id="slInpD" placeholder="D" min="0"> :
-                        <input type="number" id="slInpH" placeholder="H" min="0" max="999"> :
-                        <input type="number" id="slInpM" placeholder="M" min="0"> :
-                        <input type="number" id="slInpS" placeholder="S" min="0">
-                        <button class="btn-set-custom" id="slRunCustom"><i class="fas fa-check"></i> SET</button>
+                    <!-- عمود الساعات -->
+                    <div class="tm-wheel">
+                        <span class="whl-lbl">Hrs</span>
+                        <button class="whl-btn" data-act="inc" data-f="h"><i class="fa-solid fa-chevron-up"></i></button>
+                        <span class="whl-val" id="pk_h">0</span>
+                        <button class="whl-btn" data-act="dec" data-f="h"><i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                    <!-- عمود الدقايق -->
+                    <div class="tm-wheel">
+                        <span class="whl-lbl">Min</span>
+                        <button class="whl-btn" data-act="inc" data-f="m"><i class="fa-solid fa-chevron-up"></i></button>
+                        <span class="whl-val" id="pk_m">00</span>
+                        <button class="whl-btn" data-act="dec" data-f="m"><i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                    <!-- عمود الثواني العبقرية للمستخدم الاستثنائي -->
+                    <div class="tm-wheel">
+                        <span class="whl-lbl">Sec</span>
+                        <button class="whl-btn" data-act="inc" data-f="s"><i class="fa-solid fa-chevron-up"></i></button>
+                        <span class="whl-val" id="pk_s">00</span>
+                        <button class="whl-btn" data-act="dec" data-f="s"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
                 </div>
             </div>
 
-            <!-- Start Timer Row -->
-            <div class="timer-row start-row" id="startTimerRow">
-                <div class="timer-header">
-                    <span class="timer-label"><i class="fas fa-clock"></i> Start System</span>
-                    <div class="advanced-readout" id="stReadout">00:00</div>
-                    <button class="timer-cancel-pill" id="stCancelBtn"><i class="fas fa-times"></i></button>
-                </div>
-                
-                <div class="timer-inputs-area" id="stInputsArea">
-                    <div class="timer-presets-row" id="startPresetsGroup">
-                        <button class="timer-preset-pill" data-mins="1">1m</button>
-                        <button class="timer-preset-pill" data-mins="5">5m</button>
-                        <button class="timer-preset-pill" data-mins="15">15m</button>
-                        <button class="timer-preset-pill" data-mins="30">30m</button>
-                        <button class="timer-preset-pill" data-mins="60">1h</button>
-                    </div>
-                    <div class="custom-input-grid">
-                        <input type="number" id="stInpD" placeholder="D" min="0"> :
-                        <input type="number" id="stInpH" placeholder="H" min="0" max="999"> :
-                        <input type="number" id="stInpM" placeholder="M" min="0"> :
-                        <input type="number" id="stInpS" placeholder="S" min="0">
-                        <button class="btn-set-custom" id="stRunCustom"><i class="fas fa-check"></i> SET</button>
-                    </div>
-                </div>
+            <div class="t-apply-row">
+                <button class="btn-exe btn-cancel" id="clBkTimer" style="display:none;"><i class="fa-solid fa-trash-can"></i> Abort Active</button>
+                <button class="btn-exe sleep-c" id="acApTim"><i class="fa-solid fa-check"></i> Arm Tracker</button>
             </div>
-
         </div>
-        <!-- End Advanced Customizing Interface -->
-
-        <!-- Controls Area -->
-        <div class="controls">
-            <button class="ctrl-btn nav-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
-            <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
-            <button class="ctrl-btn nav-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
-        </div>
-
-        <div class="actions-bar">
-            <div class="volume-container">
-                <i class="fas fa-volume-down" style="color:var(--text-sub); font-size:14px;"></i>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
-                <i class="fas fa-volume-up" style="color:var(--text-sub); font-size:16px;"></i>
-            </div>
-            <button class="action-btn" id="saveFavBtn" title="Save Station"><i class="far fa-heart"></i></button>
-        </div>
-        <div class="footer-note">Change country inside the bot chat.</div>
-        <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
-    <!-- Modals Overlay-->
-    <div class="modal" id="favModal">
-        <div class="modal-header">
-            <span>Your Favorites</span>
-            <button class="close-modal" id="closeFavsBtn"><i class="fas fa-times"></i></button>
+    <!-- Favorite Stations List native Window -->
+    <div class="f-modal" id="fMWin">
+        <div class="fm-header">
+            <span>Your Frequencies <i class="fa-solid fa-bolt" style="color:var(--primary); font-size: 16px;"></i></span>
+            <button class="icon-btn" id="clFvM"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <ul class="fav-list" id="favList"></ul>
+        <ul class="list-wrap" id="lbLs"></ul>
     </div>
+
 
     <script>
-        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        const tg = window.Telegram?.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
 
-        const DOM = {
-            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'),
-            playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'),
-            audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'),
-            openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'),
-            toggleBtn: document.getElementById('toggleTimerBtn'), tContainer: document.getElementById('timerSection'),
-            tRows: { 
-                slR: document.getElementById('sleepTimerRow'), stR: document.getElementById('startTimerRow') 
-            },
-            tmReads: { slRead: document.getElementById('slReadout'), stRead: document.getElementById('stReadout') },
-            inBoxes: { slInA: document.getElementById('slInputsArea'), stInA: document.getElementById('stInputsArea') },
-            inCans: { slC: document.getElementById('slCancelBtn'), stC: document.getElementById('stCancelBtn') },
-            customBtns: { runSl: document.getElementById('slRunCustom'), runSt: document.getElementById('stRunCustom') }
+        /* ---------- Data Core Params Fetch ----------- */
+        const uPar = new URLSearchParams(window.location.search);
+        // الحصول المباشر الصارم على بيانات بوت تيليجرام
+        const exactOriginReq = (tg?.initDataUnsafe?.start_param?.replace(/_/g, ' ') || uPar.get('country') || uPar.get('name') || '').trim();
+        document.getElementById('qCtry').textContent = exactOriginReq ? exactOriginReq : "Select Zone";
+        
+        // المتغيرات السائلة الرئيسية للتحكم بالصوت والأجهزة
+        const CoreData = { S: [], ix: 0, bPlay: false, customSrc: false, failPings: 0, sF: JSON.parse(localStorage.getItem('premium_fav_rads')) || [] };
+        let TIM_SY = { cRnd: null, S_EN: null, S_TO: null, ST_EN: null, ST_TO: null }; // State Timers Memory Engine
+
+        const eMap = {
+            gT: document.getElementById('dTitle'), gS: document.getElementById('dSub'), au: document.getElementById('coreAu'),
+            phIcon: document.getElementById('pHIc'), pCircl: document.getElementById('bPg'), IcoCont: document.getElementById('dscIco'),
+            v: document.getElementById('vSlide'), btHr: document.getElementById('heartB'), bNx: document.getElementById('bUp'), bPr: document.getElementById('bDn')
         };
 
-        // Extraction strictly matching target parameters of bot, No defaulting! (Safety and accuracy standard).
-        const PARAMS = new URLSearchParams(window.location.search);
-        const targetRaw = (tg?.initDataUnsafe?.start_param || '').replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
-        const TARGET_COUNTRY = targetRaw.trim();
-
-        let stations = [], curId = 0, playingState = false, errorC = 0, autoSkipping = false, sToOut = null, isFavModePlaying = false;
-        let storedRadios = JSON.parse(localStorage.getItem('radio_saved_list')) || [];
+        /* --------------------------- */
+        /*   21st CENTURY TIME ENGINE  */
+        /* --------------------------- */
         
-        let CoreTmr = { tInt: null, endSlp: null, endStr: null, outSlp: null, outStr: null };
-
-        // ============ Unlimited Custom Dynamic Counters System Engine ============ //
-        DOM.toggleBtn.addEventListener('click', () => DOM.tContainer.classList.toggle('show'));
-
-        const tgUpdateLedIndicator = () => { 
-            (CoreTmr.endSlp || CoreTmr.endStr) ? DOM.toggleBtn.classList.add('active-timer') : DOM.toggleBtn.classList.remove('active-timer'); 
+        let cTab = 'sleep'; 
+        let curVals = { d:0, h:0, m:0, s:0 };
+        const LIM = { d:30, h:23, m:59, s:59 };
+        
+        const F0 = x => x < 10 ? '0'+x : x;
+        const R_VW = () => { 
+            document.getElementById('pk_d').innerText = curVals.d; 
+            document.getElementById('pk_h').innerText = curVals.h;
+            document.getElementById('pk_m').innerText = F0(curVals.m); 
+            document.getElementById('pk_s').innerText = F0(curVals.s); 
         };
 
-        const FormattedRemainsString = (futureTs) => {
-            if(!futureTs) return { remain: 0, read: "00:00" };
-            const T = Math.max(0, Math.floor((futureTs - Date.now()) / 1000));
-            const cDays = Math.floor(T / 86400);
-            const cHrs = Math.floor((T % 86400) / 3600);
-            const cMins = Math.floor((T % 3600) / 60);
-            const cSecs = T % 60;
+        const mkInc = (fd, stp=1) => { curVals[fd] += stp; if(curVals[fd] > LIM[fd]) {curVals[fd] = 0; if(fd==='s') mkInc('m'); else if(fd==='m') mkInc('h'); else if(fd==='h') mkInc('d'); } R_VW();};
+        const mkDec = (fd, stp=1) => { curVals[fd] -= stp; if(curVals[fd] < 0) curVals[fd] = LIM[fd]; R_VW(); };
 
-            let st = [];
-            // Dynamically pushes needed groups scaling flawlessly visually mapping DD HH MM SS neatly avoiding screen clip bugs.
-            if(cDays > 0) st.push(`${String(cDays).padStart(2,'0')}d`);
-            if(cHrs > 0 || cDays > 0) st.push(`${String(cHrs).padStart(2,'0')}h`);
-            st.push(`${String(cMins).padStart(2,'0')}m`);
-            st.push(`${String(cSecs).padStart(2,'0')}s`);
-            return { remain: T, read: st.join(':') };
-        }
-
-        const GlobalIntervalFire = () => { if (!CoreTmr.tInt) CoreTmr.tInt = setInterval(ExecGlobalRoutine, 1000); ExecGlobalRoutine(); }
-        const KillGlobalInterval = () => { if(CoreTmr.tInt) { clearInterval(CoreTmr.tInt); CoreTmr.tInt=null; } }
-
-        const ApplySleepUIClean = () => {
-            clearTimeout(CoreTmr.outSlp); CoreTmr.outSlp = null; CoreTmr.endSlp = null;
-            DOM.tRows.slR.classList.remove('active-timer-row');
-            DOM.tmReads.slRead.classList.remove('visible');
-            DOM.inCans.slC.classList.remove('visible');
-            DOM.inBoxes.slInA.style.display = 'flex'; tgUpdateLedIndicator();
-        }
-
-        const ApplyStartUIClean = () => {
-            clearTimeout(CoreTmr.outStr); CoreTmr.outStr = null; CoreTmr.endStr = null;
-            DOM.tRows.stR.classList.remove('active-timer-row');
-            DOM.tmReads.stRead.classList.remove('visible');
-            DOM.inCans.stC.classList.remove('visible');
-            DOM.inBoxes.stInA.style.display = 'flex'; tgUpdateLedIndicator();
-        }
-
-        const ExecGlobalRoutine = () => {
-            let actSlp = CoreTmr.endSlp && Date.now() < CoreTmr.endSlp;
-            let actStr = CoreTmr.endStr && Date.now() < CoreTmr.endStr;
-            if(!actSlp && !actStr) return KillGlobalInterval();
-
-            if(actSlp) {
-                let DataMap = FormattedRemainsString(CoreTmr.endSlp);
-                DOM.tmReads.slRead.textContent = DataMap.read;
-                if(DataMap.remain <= 0) { PlayController.outFade(); ApplySleepUIClean(); }
-            } else if (CoreTmr.endSlp) ApplySleepUIClean();
-
-            if(actStr) {
-                let DataMap = FormattedRemainsString(CoreTmr.endStr);
-                DOM.tmReads.stRead.textContent = DataMap.read;
-                if(DataMap.remain <= 0) { PlayController.sysActReq(); ApplyStartUIClean(); }
-            } else if (CoreTmr.endStr) ApplyStartUIClean();
-        }
-
-        const ExtractForm = (grpP) => {
-            // Highly robust extractor! Sums all inputs regardless of logical limits per units mapping 65seconds correctly upwards!.
-            let pD = parseInt(document.getElementById(`${grpP}InpD`).value) || 0;
-            let pH = parseInt(document.getElementById(`${grpP}InpH`).value) || 0;
-            let pM = parseInt(document.getElementById(`${grpP}InpM`).value) || 0;
-            let pS = parseInt(document.getElementById(`${grpP}InpS`).value) || 0;
-            let finalMS = ((pD * 86400) + (pH * 3600) + (pM * 60) + pS) * 1000;
-            // Clear manually set limits for beauty inside loop fields if reutilized
-            [`${grpP}InpD`,`${grpP}InpH`,`${grpP}InpM`,`${grpP}InpS`].forEach(iId => document.getElementById(iId).value = '');
-            return finalMS;
-        }
-
-        // Connect Pill Events 
-        document.getElementById('sleepPresetsGroup').addEventListener('click', e => { let trP = e.target.closest('.timer-preset-pill'); if(trP) EngBootSl(parseInt(trP.dataset.mins)*60000); });
-        document.getElementById('startPresetsGroup').addEventListener('click', e => { let trP = e.target.closest('.timer-preset-pill'); if(trP) EngBootSt(parseInt(trP.dataset.mins)*60000); });
-        
-        // Connect Any Numbers Events Limits System Extracted mathematically safe Form Arrays
-        DOM.customBtns.runSl.onclick = () => { let genMs = ExtractForm('sl'); if(genMs>0) EngBootSl(genMs); };
-        DOM.customBtns.runSt.onclick = () => { let genMs = ExtractForm('st'); if(genMs>0) EngBootSt(genMs); };
-
-        const EngBootSl = (totalMSReq) => {
-            if(CoreTmr.endStr) ApplyStartUIClean(); // prevent crossing contradictions.
-            PlayController.sysActReq(); ApplySleepUIClean();
-            CoreTmr.endSlp = Date.now() + totalMSReq;
+        /* خوارزمية ذكية لاختيار الوقت بلمس مستمر تنجز ٦٥ ثانية واشياء غريبة بكفاءة وتعديل آلي */
+        let pressInterval = null;
+        document.querySelectorAll('.whl-btn').forEach(btn => {
+            const hClick = (bAct, fieldId) => { (bAct==='inc') ? mkInc(fieldId) : mkDec(fieldId); };
+            const runAuto = (bAct, fieldId) => { hClick(bAct, fieldId); pressInterval = setInterval(()=>hClick(bAct, fieldId), 120); };
+            const cls = (e) => { clearInterval(pressInterval); };
             
-            DOM.tRows.slR.classList.add('active-timer-row');
-            DOM.inBoxes.slInA.style.display = 'none'; 
-            DOM.tmReads.slRead.classList.add('visible'); 
-            DOM.inCans.slC.classList.add('visible'); 
-            
-            DOM.tmReads.slRead.textContent = FormattedRemainsString(CoreTmr.endSlp).read; tgUpdateLedIndicator();
-            CoreTmr.outSlp = setTimeout(() => { PlayController.outFade(); ApplySleepUIClean(); }, totalMSReq);
-            GlobalIntervalFire();
-        }
+            btn.addEventListener('mousedown', (e) => runAuto(btn.dataset.act, btn.dataset.f));
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); runAuto(btn.dataset.act, btn.dataset.f); }, {passive:false});
+            btn.addEventListener('mouseup', cls); btn.addEventListener('mouseleave', cls); btn.addEventListener('touchend', cls);
+        });
 
-        const EngBootSt = (totalMSReq) => {
-            if(CoreTmr.endSlp) ApplySleepUIClean();
-            ApplyStartUIClean(); CoreTmr.endStr = Date.now() + totalMSReq;
-
-            DOM.tRows.stR.classList.add('active-timer-row');
-            DOM.inBoxes.stInA.style.display = 'none'; 
-            DOM.tmReads.stRead.classList.add('visible'); 
-            DOM.inCans.stC.classList.add('visible');
-
-            DOM.tmReads.stRead.textContent = FormattedRemainsString(CoreTmr.endStr).read; tgUpdateLedIndicator();
-            CoreTmr.outStr = setTimeout(() => { PlayController.sysActReq(); ApplyStartUIClean(); }, totalMSReq);
-            GlobalIntervalFire();
-        }
+        // Tabs Action Change (Sleep or Start modal inner logic)
+        document.querySelectorAll('.t-tab').forEach(b => {
+            b.onclick = () => {
+                document.querySelectorAll('.t-tab').forEach(x=>x.classList.remove('act'));
+                b.classList.add('act'); cTab = b.dataset.m; 
+                document.getElementById('acApTim').className = (cTab === 'sleep' ? "btn-exe sleep-c" : "btn-exe start-c");
+                verifyDltOp(cTab);
+            }
+        });
         
-        DOM.inCans.slC.addEventListener('click', ApplySleepUIClean); DOM.inCans.stC.addEventListener('click', ApplyStartUIClean);
+        const verifyDltOp = (modeInFocus) => {
+            document.getElementById('clBkTimer').style.display = ((modeInFocus === 'sleep' && TIM_SY.S_EN) || (modeInFocus === 'start' && TIM_SY.ST_EN)) ? "inline-block" : "none";
+        };
 
+        /* Timer Drawer Mechanics Overlay  */
+        const TDraw = document.getElementById('tDrBg'); const TDrt_tr = document.getElementById('toglTimrs');
+        const TGMenuUi = () => { curVals = {d:0,h:0,m:15,s:0}; R_VW(); verifyDltOp(cTab); TDraw.classList.add('open'); }
+        const ClosMUi = () => TDraw.classList.remove('open');
+        TDrt_tr.onclick = TGMenuUi; document.getElementById('tDrBox').querySelector('.drawer-bar').onclick = ClosMUi;
+        TDraw.addEventListener('click', (e) => { if(e.target===TDraw) ClosMUi(); });
 
-        // ============ Native Application System API Handlers ============ //
-        const ConnectRadioService = async(targetLocNameStr) => {
-            try {
-                for (let urReqX of [`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(targetLocNameStr)}?order=votes&reverse=true`, 
-                                   `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(targetLocNameStr)}?order=votes&reverse=true`]) {
-                    const reqObj = await fetch(urReqX);
-                    if(reqObj.ok) { let finalJsonArr = (await reqObj.json()).filter(fP=>(fP.url_resolved || fP.url).startsWith('https://')); if(finalJsonArr.length>0) return finalJsonArr; }
-                } return [];
-            } catch (xEvnE) { return []; }
+        /* Tick Watch Process (Visual Notification Badge on Home) */
+        const bD1 = document.getElementById('tsTag'), bD2 = document.getElementById('taTag'), btnPlsTg = document.getElementById('toglTimrs');
+        const bNumS = document.getElementById('tsNum'), bNumSt = document.getElementById('taNum');
+        
+        const updateBadgesBgWatch = () => {
+            let leftA = false, leftB = false;
+            if(TIM_SY.S_EN){ 
+                let tMs = Math.round((TIM_SY.S_EN - Date.now())/1000); 
+                if(tMs<=0) { rst_Sl(true); } 
+                else { leftA=true; bD1.classList.add('vis'); bNumS.textContent = `${tMs>3600? F0(Math.floor(tMs/3600))+':':''}${F0(Math.floor((tMs%3600)/60))}:${F0(tMs%60)}`; }
+            } else bD1.classList.remove('vis');
+            
+            if(TIM_SY.ST_EN){ 
+                let ttS = Math.round((TIM_SY.ST_EN - Date.now())/1000); 
+                if(ttS<=0) { rst_St(true); } 
+                else { leftB=true; bD2.classList.add('vis'); bNumSt.textContent = `${ttS>3600? F0(Math.floor(ttS/3600))+':':''}${F0(Math.floor((ttS%3600)/60))}:${F0(ttS%60)}`; }
+            } else bD2.classList.remove('vis');
+
+            leftA || leftB ? btnPlsTg.classList.add('is-active-pulse') : btnPlsTg.classList.remove('is-active-pulse');
+            if(!leftA && !leftB && TIM_SY.cRnd) { clearInterval(TIM_SY.cRnd); TIM_SY.cRnd = null;}
         }
 
-        const PlayController = {
-            tPl() { const actT = DOM.audio.play(); if (actT) actT.then(() => { playingState = true; errorC=0; DOM.playIcon.className='fas fa-pause'; DOM.playBtn.querySelector('i').style.paddingLeft='0'; DOM.logo.classList.add('playing');}).catch(xE=>{if(xE.name!=='AbortError') this.throwWarnHk();})},
-            tPz() { DOM.audio.pause(); playingState = false; DOM.playIcon.className='fas fa-play'; DOM.playBtn.querySelector('i').style.paddingLeft='3px'; DOM.logo.classList.remove('playing');},
-            shSwitch() { playingState ? this.tPz() : this.tPl(); },
-            sysActReq() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIUpdateHds.ixApplyFireReq(0); this.tPl(); } },
-            outFade() { let _b = DOM.audio.volume; if(_b<=0 || !playingState) return this.tPz(); let __hStep=_b/20,cIn_s=0; let mX=setInterval(()=>{cIn_s++;DOM.audio.volume=Math.max(0,_b-(__hStep*cIn_s));if(cIn_s>=20){clearInterval(mX);this.tPz();DOM.audio.volume=_b; DOM.vol.value=_b;}},100);},
-            throwWarnHk() {
-                if(playingState && stations.length > 1 && errorC < 10 && !isFavModePlaying){
-                    errorC++; DOM.sub.textContent = "Re-Tuning Connection.."; DOM.logo.classList.remove('playing'); DOM.playIcon.className='fas fa-spinner fa-spin'; clearTimeout(sToOut); autoSkipping=true;
-                    sToOut = setTimeout(() => { UIUpdateHds.ixApplyFireReq((curId+1)%stations.length); autoSkipping=false;},1600);
-                } else { this.tPz(); DOM.sub.textContent="Loss Connect Detected.";}
+        const StartGlobTik = () => { if(!TIM_SY.cRnd) TIM_SY.cRnd = setInterval(updateBadgesBgWatch, 1000); updateBadgesBgWatch();};
+
+        /* Engine Setup Applying requested durations via touch mechanics computed strictly via maths seconds logic to ms. */
+        document.getElementById('acApTim').onclick = () => {
+            const rawMsDur = ((curVals.d * 86400) + (curVals.h * 3600) + (curVals.m * 60) + curVals.s) * 1000;
+            if(rawMsDur <= 0) return ClosMUi();
+            if (cTab === 'sleep') { 
+                rst_Sl(); rst_St(); EngineCoreOp.hStartSys(); 
+                TIM_SY.S_EN = Date.now() + rawMsDur; TIM_SY.S_TO = setTimeout(() => { rst_Sl(); EngineCoreOp.smoFader(); }, rawMsDur);
+            } else {
+                rst_St(); rst_Sl();
+                TIM_SY.ST_EN = Date.now() + rawMsDur; TIM_SY.ST_TO = setTimeout(() => { rst_St(); EngineCoreOp.hStartSys(); }, rawMsDur);
+            }
+            StartGlobTik(); ClosMUi();
+        };
+
+        const rst_Sl = (exEnd=false) => { clearTimeout(TIM_SY.S_TO); TIM_SY.S_EN = null; TIM_SY.S_TO = null; updateBadgesBgWatch(); }
+        const rst_St = (exEnd=false) => { clearTimeout(TIM_SY.ST_TO); TIM_SY.ST_EN = null; TIM_SY.ST_TO = null; updateBadgesBgWatch(); }
+        document.getElementById('clBkTimer').onclick = () => { if(cTab==='sleep')rst_Sl(); else rst_St(); verifyDltOp(cTab); }
+
+        
+        /* --------------------------- */
+        /*   AUDIO SYS ENGINE          */
+        /* --------------------------- */
+
+        const RadioLogicReq = {
+            async gUrlC() {
+                try {
+                    const bStr = encodeURIComponent(exactOriginReq.toLowerCase());
+                    let uR = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${bStr}?order=votes&reverse=true`);
+                    if(!uR.ok || (await uR.clone().json()).length === 0) { 
+                        // الذكاء الاصطناعي لا يبحث عن دولة وهمية كـ default إن لم تنجح، بل يحاول استخدام نظام عام (string mode fallback).
+                        document.getElementById('txtStt').innerText = "WIDENING SPECTRUM";
+                        uR = await fetch(`https://de1.api.radio-browser.info/json/stations/search?name=${bStr}&order=votes&reverse=true`);
+                    }
+                    const rd = await uR.json();
+                    return rd.filter(s => (s.url_resolved||s.url).startsWith('https://'));
+                } catch(e) { return [];}
             }
         };
 
-        const UIUpdateHds = {
-            ixApplyFireReq(nIxVal) { if(!stations.length) return; curId = nIxVal; const oR=stations[curId]; isFavModePlaying = false;
-                this.cModSysVlsUpdt(oR.name, `SOURCE TRK ${curId+1} // ${stations.length}`, oR.favicon);
-                DOM.audio.src = oR.url_resolved || oR.url || '';
-                this.sysEngnOkyStateReqVnshUnusedUI(); SyncDbStateBksIconHks(oR.stationuuid); if(playingState) PlayController.tPl(); 
+        const EngineCoreOp = {
+            cRenderHst(x1, x2, icoZ) {
+                eMap.gT.textContent = x1; eMap.gS.textContent = x2;
+                if(icoZ){
+                    let zD = new Image(); zD.src=icoZ; zD.onload=()=>{eMap.IcoCont.innerHTML = `<img src="${icoZ}" />`}; zD.onerror=()=> eMap.IcoCont.innerHTML = '<div class="fallback-icon"><i class="fa-solid fa-signal"></i></div>';
+                } else eMap.IcoCont.innerHTML = '<div class="fallback-icon"><i class="fa-solid fa-signal"></i></div>';
+                this.cHertUp();
             },
-            jumperDirectFavRReq(vDataModFavIdReqParamsObj) {
-                isFavModePlaying=true; this.cModSysVlsUpdt(vDataModFavIdReqParamsObj.name,"LOC STORE MEMORY",vDataModFavIdReqParamsObj.img); DOM.audio.src = vDataModFavIdReqParamsObj.url;
-                this.sysEngnOkyStateReqVnshUnusedUI(); SyncDbStateBksIconHks(vDataModFavIdReqParamsObj.id); PlayController.tPl();
+            ldMemIx(zx){
+                if(CoreData.S.length === 0) return; CoreData.ix = zx; CoreData.customSrc = false; let ob = CoreData.S[CoreData.ix];
+                this.cRenderHst(ob.name, `Stream Data ${zx+1} | ${CoreData.S.length}`, ob.favicon);
+                eMap.au.src = ob.url_resolved || ob.url; this.enbCtrl(); if(CoreData.bPlay) this.plxRun();
             },
-            cModSysVlsUpdt(gHValMainTitlesTextFormatTitle,bUVSStxtMainLvlX2DescParamsReqF_VDataObjXGNameTrckTpeTrvGkInfoBysParamsTitleFormatDescriptionStrdSysInfReqDataGSubValueParam,iImageXValueGParamRqtResStParamExt) {
-                DOM.title.textContent=gHValMainTitlesTextFormatTitle||'Anonymous Node.'; DOM.sub.textContent=bUVSStxtMainLvlX2DescParamsReqF_VDataObjXGNameTrckTpeTrvGkInfoBysParamsTitleFormatDescriptionStrdSysInfReqDataGSubValueParam;
-                if(iImageXValueGParamRqtResStParamExt){ const ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams=new Image(); ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams.src=iImageXValueGParamRqtResStParamExt; ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams.onload=()=>DOM.logo.innerHTML=`<img src="${iImageXValueGParamRqtResStParamExt}"/>`; ymgExt_A1VImageObeReqLoadFormatImgCvtReqObJXValMainFParams.onerror=()=>DOM.logo.innerHTML=`<i class="fas fa-music"></i>`; }else{DOM.logo.innerHTML=`<i class="fas fa-music"></i>`;}
-                DOM.audio.volume = DOM.vol.value;
+            ldExCustomUrlObj(objDat){
+                CoreData.customSrc = true; this.cRenderHst(objDat.name, 'Stored Radio Node', objDat.img); eMap.au.src = objDat.url; this.enbCtrl(); this.plxRun();
             },
-            sysEngnOkyStateReqVnshUnusedUI() { [DOM.playBtn, DOM.nextBtn, DOM.prevBtn].forEach(yBxUixX => yBxUixX.disabled = false); },
-            yThrowGlobalNukWarningStateParamsXUnknReqRqstE() { DOM.title.textContent = 'Awaiting Instructions.'; DOM.sub.textContent = 'Check Country Typings Syntax Params Req For Start Search By Name.'; DOM.logo.innerHTML = '<i class="fas fa-robot" style="color:var(--text-sub)"></i>'; }
+            plxRun() { let cA = eMap.au.play(); if(cA) cA.then(()=>{CoreData.bPlay=true; CoreData.failPings=0; eMap.phIcon.className='fa-solid fa-pause'; eMap.pCircl.className='play-hub'; eMap.IcoCont.classList.add('is-playing'); }).catch(bX=>{if(bX.name!=='AbortError')this.bgx();}); },
+            stPxBrak() { eMap.au.pause(); CoreData.bPlay=false; eMap.phIcon.className='fa-solid fa-play'; eMap.pCircl.className='play-hub state-play'; eMap.IcoCont.classList.remove('is-playing'); },
+            hTogglx() { CoreData.bPlay ? this.stPxBrak() : this.plxRun(); },
+            hStartSys() { if(eMap.au.src || CoreData.S.length) { if(!eMap.au.src) this.ldMemIx(0); this.plxRun(); }},
+            bgx() { 
+                this.stPxBrak(); eMap.gS.textContent="Sync failure..."; eMap.IcoCont.innerHTML = '<div class="fallback-icon"><i class="fa-solid fa-tower-broadcast fa-shake" style="color:var(--danger)"></i></div>';
+                if(!CoreData.customSrc && CoreData.S.length > 1 && CoreData.failPings < 10) { CoreData.failPings++; setTimeout(() => this.ldMemIx((CoreData.ix+1)%CoreData.S.length), 1700); } 
+            },
+            smoFader() { if(!CoreData.bPlay) return; let cuI = 20, zV = eMap.v.value; let ti_o = setInterval(()=>{cuI--; eMap.au.volume = Math.max(0,(cuI/20)*zV); if(cuI<=0) {clearInterval(ti_o); this.stPxBrak(); eMap.au.volume = zV;} }, 150);} ,
+            cHertUp(){ let yid = CoreData.customSrc ? CoreData.sF.find(z=>z.url === eMap.au.src)?.id : CoreData.S[CoreData.ix]?.stationuuid;
+                if(!yid)return; eMap.btHr.className = CoreData.sF.some(x=>x.id===yid) ? "fav-trigger active" : "fav-trigger"; 
+                eMap.btHr.innerHTML = CoreData.sF.some(x=>x.id===yid) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
+            }, enbCtrl(){ [eMap.pCircl, eMap.bPr, eMap.bNx].forEach(n=>n.disabled=false); }
         }
 
-        DOM.playBtn.addEventListener('click', () => PlayController.shSwitch()); DOM.nextBtn.addEventListener('click', () => UIUpdateHds.ixApplyFireReq((curId+1)%stations.length));
-        DOM.prevBtn.addEventListener('click', () => UIUpdateHds.ixApplyFireReq((curId-1+stations.length)%stations.length));
-        DOM.vol.addEventListener('input', vGEvntInPutLmtRqValueDataSliderFormEventOjectTargetNodeStrcG => DOM.audio.volume = vGEvntInPutLmtRqValueDataSliderFormEventOjectTargetNodeStrcG.target.value); 
-        DOM.audio.addEventListener('error', () => PlayController.throwWarnHk());
+        eMap.v.addEventListener('input', a => { eMap.au.volume = a.target.value; }); eMap.au.addEventListener('error', () => EngineCoreOp.bgx());
+        eMap.pCircl.onclick = () => EngineCoreOp.hTogglx(); eMap.bNx.onclick = () => { if(CoreData.S.length) EngineCoreOp.ldMemIx((CoreData.ix + 1) % CoreData.S.length); }; eMap.bPr.onclick = () => { if(CoreData.S.length) EngineCoreOp.ldMemIx((CoreData.ix - 1 + CoreData.S.length) % CoreData.S.length); };
 
 
-        const SyncDbStateBksIconHks = bUUIDParamBObjHrtChkRq => {
-            const FStParamsYBoolResValCdnkTrUdtHStIconExStFnStateStrdLDBQListArYRsXValHrkFnOpeRspXResBool_bOkQ=storedRadios.some(dObjXRqS => dObjXRqS.id === bUUIDParamBObjHrtChkRq);
-            DOM.saveBtn.className = FStParamsYBoolResValCdnkTrUdtHStIconExStFnStateStrdLDBQListArYRsXValHrkFnOpeRspXResBool_bOkQ ? 'action-btn active-fav':'action-btn'; DOM.saveBtn.innerHTML = FStParamsYBoolResValCdnkTrUdtHStIconExStFnStateStrdLDBQListArYRsXValHrkFnOpeRspXResBool_bOkQ?'<i class="fas fa-heart"></i>':'<i class="far fa-heart"></i>';
+        /* ----------- User Personal Frequencies Mem ------------------ */
+        eMap.btHr.onclick = () => {
+            const trCx = CoreData.customSrc ? CoreData.sF.find(x=>x.url===eMap.au.src) : CoreData.S[CoreData.ix];
+            if(!trCx)return; const kIds = trCx.stationuuid || trCx.id; const xiI = CoreData.sF.findIndex(m=>m.id === kIds);
+            if(xiI > -1) CoreData.sF.splice(xiI,1); else CoreData.sF.push({ id:kIds, name:trCx.name, url:trCx.url_resolved||trCx.url, img:trCx.favicon||trCx.img });
+            localStorage.setItem('premium_fav_rads', JSON.stringify(CoreData.sF)); EngineCoreOp.cHertUp(); RNDMListQ();
         };
 
-        DOM.saveBtn.addEventListener('click', () => {
-            const hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue=isFavModePlaying ? storedRadios.find(dStData_sReqMntPrmObeUExInfoCmpResDataD => dStData_sReqMntPrmObeUExInfoCmpResDataD.url === DOM.audio.src) : stations[curId]; if(!hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue) return;
-            const rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT = hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.stationuuid || hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.id; const qLcxVIndDBFindMtsResIntRReqParamTIntStoreFindResYIxValIxParamLResTParamUObjReqIndexFItmV=storedRadios.findIndex(p => p.id === rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT);
-            if (qLcxVIndDBFindMtsResIntRReqParamTIntStoreFindResYIxValIxParamLResTParamUObjReqIndexFItmV > -1) storedRadios.splice(qLcxVIndDBFindMtsResIntRReqParamTIntStoreFindResYIxValIxParamLResTParamUObjReqIndexFItmV, 1); else storedRadios.push({id: rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT, name: hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.name, url: hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.url_resolved || hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.url, img: hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.favicon || hLCRsqParamsDataXStoreFnCallResTrkCurOjtDatResRqsRcvGObjXVxReqInfoDBStMainLmtDataQParamSntDParamValue.img});
-            localStorage.setItem('radio_saved_list', JSON.stringify(storedRadios)); SyncDbStateBksIconHks(rUIDParamsObrHValUIDbLcnKeyIdentStFnStoreIdentUUIDQvP_DataF_StoreSysUIDKeyReqQIdentifierT); bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR()
-        });
-
-        const bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR = () => {
-            DOM.favList.innerHTML = storedRadios.length ? '':'<li style="text-align:center;color:var(--text-sub);margin-top:20px;">List is Clear Empty..</li>';
-            storedRadios.forEach((dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt, ixXLoopRenderParamsIndXValGenRenderNodeUListItemXValIXItPrm_IxNumQxListReqQFnStoreNodeReqGReqInt) => {
-                const bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq=document.createElement('li'); bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.className='fav-item'; bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.innerHTML=`<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.name}">${dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.name||'SYS:ANONYM'}</div></div><button class="fav-remove"><i class="fas fa-trash-alt"></i></button>`;
-                bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.querySelector('.fav-item-content').addEventListener('click', ()=>{DOM.favModal.classList.remove('open'); const cCheckDIfIXTrResLocVItnFindIdentUUIDIxFnP=stations.findIndex(wSysRqDNodeIq => wSysRqDNodeIq.stationuuid === dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id);
-                    if(cCheckDIfIXTrResLocVItnFindIdentUUIDIxFnP>-1){UIUpdateHds.ixApplyFireReq(cCheckDIfIXTrResLocVItnFindIdentUUIDIxFnP);PlayController.tPl()} else {UIUpdateHds.jumperDirectFavRReq(dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt)} });
-                bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq.querySelector('.fav-remove').addEventListener('click', eParamsEvBIndReqGstTrClickEvtBBtnRemObjTDataBResLRes_XFnReqCResRqNNodeSItRm=>{ eParamsEvBIndReqGstTrClickEvtBBtnRemObjTDataBResLRes_XFnReqCResRqNNodeSItRm.stopPropagation(); storedRadios.splice(ixXLoopRenderParamsIndXValGenRenderNodeUListItemXValIXItPrm_IxNumQxListReqQFnStoreNodeReqGReqInt, 1); localStorage.setItem('radio_saved_list', JSON.stringify(storedRadios)); bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR(); const kAcDIdsXR_C=isFavModePlaying?dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id:(stations[curId]?.stationuuid); if(kAcDIdsXR_C===dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id)SyncDbStateBksIconHks(dItemXVrReqDataStSysResFnListRenderFListUDBData_ValVNodeSt.id) }); DOM.favList.appendChild(bElDOMReqLiFnBuildTstHqPntItemStNodeCreateFnParamsTNodeGDataLValParamDObjVResParamsDOMCReq); });
+        const UiFavWin = document.getElementById('fMWin'); const UilstF = document.getElementById('lbLs');
+        const RNDMListQ = () => {
+            UilstF.innerHTML = CoreData.sF.length ? '' : '<div style="color:var(--text-2); text-align:center; padding:20px 0;">Heart your stations to drop them here.</div>';
+            CoreData.sF.forEach((lA, Iix) => {
+                let bn = document.createElement('li'); bn.className='li-box';
+                bn.innerHTML = `<div class="li-body"><div class="li-b-title"><i class="fa-solid fa-play" style="font-size:12px; color:var(--primary); margin-right:5px;"></i> ${lA.name||'Audio Signal'}</div><div class="li-b-sub">MEM#0${Iix+1} NODE</div></div><button class="li-rem"><i class="fa-solid fa-trash-can"></i></button>`;
+                bn.querySelector('.li-body').onclick = () => { let cIxSrch = CoreData.S.findIndex(bxX=>bxX.stationuuid===lA.id);
+                    UiFavWin.classList.remove('open'); if(cIxSrch > -1) EngineCoreOp.ldMemIx(cIxSrch); else EngineCoreOp.ldExCustomUrlObj(lA);
+                };
+                bn.querySelector('.li-rem').onclick = (exV) => { exV.stopPropagation(); CoreData.sF.splice(Iix,1); localStorage.setItem('premium_fav_rads',JSON.stringify(CoreData.sF)); RNDMListQ(); EngineCoreOp.cHertUp();};
+                UilstF.appendChild(bn);
+            });
         };
+        
+        document.getElementById('iFavTop').onclick = () => { RNDMListQ(); UiFavWin.classList.add('open'); }; document.getElementById('clFvM').onclick = () => { UiFavWin.classList.remove('open'); };
 
-        DOM.openFavs.addEventListener('click',()=>{ bSyncDListHtmlQDBReqVisblVrt_XStResGenXUpdateVisR(); DOM.favModal.classList.add('open')}); DOM.closeFavs.addEventListener('click',()=>{DOM.favModal.classList.remove('open')});
 
-        // == App Runtime Setup Initialization Boot. (Securely fetching specific values parameters strictly).
-        async function YAppRootLaunchInitializeFetchEngineRequestSystemDCoreReqRstP() {
-            if(!TARGET_COUNTRY || TARGET_COUNTRY.length<2) { UIUpdateHds.yThrowGlobalNukWarningStateParamsXUnknReqRqstE(); DOM.loading.style.display='none'; return; }
-            stations=await ConnectRadioService(TARGET_COUNTRY);
-            if(stations.length){UIUpdateHds.ixApplyFireReq(0)} else {UIUpdateHds.yThrowGlobalNukWarningStateParamsXUnknReqRqstE()} DOM.loading.style.display='none';
-        }
-        YAppRootLaunchInitializeFetchEngineRequestSystemDCoreReqRstP();
+        /* Initialization Setup Runtime  */
+        (async () => {
+            if(!exactOriginReq || exactOriginReq.length < 2) { eMap.gT.textContent="Country Parameter Null"; eMap.gS.textContent="Pass valid country into TG"; document.getElementById('ldng').style.display='none'; eMap.IcoCont.innerHTML='<div class="fallback-icon"><i class="fa-solid fa-user-astronaut"></i></div>'; return;}
+            CoreData.S = await RadioLogicReq.gUrlC();
+            document.getElementById('ldng').style.display='none';
+            if(CoreData.S.length) EngineCoreOp.ldMemIx(0); else { eMap.gT.textContent="Signals lost."; eMap.gS.textContent=`Try spelling / alternative format for "${exactOriginReq}" in the Bot Chat`; }
+        })();
 
     </script>
 </body>
