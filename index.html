@@ -235,7 +235,14 @@
         .action-btn.active-fav { color: var(--danger); animation: heartBeat 0.4s ease; }
         @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
 
-        .footer-note { font-size: 11px; color: var(--text-sub); margin-top: -5px; }
+        /* تم تغيير لون الجملة إلى الأحمر كما طلبت */
+        .footer-note { 
+            font-size: 11px; 
+            color: var(--danger); 
+            margin-top: -5px; 
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
 
         /* ── PayPal Button ── */
         .paypal-wrapper {
@@ -244,7 +251,7 @@
         }
         .paypal-svg { position: absolute; width: 100%; height: 100%; pointer-events: none; }
         .paypal-svg text { 
-            font-size: 11.5px; /* تم تكبير الخط قليلاً كما طلبت */
+            font-size: 11.5px; 
             fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; 
         }
         .donate-btn {
@@ -595,7 +602,6 @@
                 audioController.forceStart(); 
                 
                 const now = Date.now();
-                // نظام تراكمي: يضيف الوقت للوقت الحالي المتبقي
                 timers.sleepEnd = (timers.sleepEnd && timers.sleepEnd > now) ? timers.sleepEnd + (mins * 60000) : now + (mins * 60000);
                 
                 DOM.sleepCancelBtn.classList.add('visible');
@@ -603,9 +609,8 @@
                 
                 updateSmartIndicator();
                 startEngine();
-                timerTick(); // تحديث فوري للواجهة
+                timerTick(); 
                 
-                // إعادة ضبط المؤقت النهائي
                 clearTimeout(timers.sleepTo);
                 const remainingMs = timers.sleepEnd - Date.now();
                 timers.sleepTo = setTimeout(() => { audioController.fadeOut(); clearSleepUI(); }, remainingMs); 
@@ -619,7 +624,6 @@
                 if(timers.sleepEnd) clearSleepUI(); 
                 
                 const now = Date.now();
-                // نظام تراكمي
                 timers.startEnd = (timers.startEnd && timers.startEnd > now) ? timers.startEnd + (mins * 60000) : now + (mins * 60000);
                 
                 DOM.startCancelBtn.classList.add('visible');
@@ -627,7 +631,7 @@
                 
                 updateSmartIndicator();
                 startEngine();
-                timerTick(); // تحديث فوري للواجهة
+                timerTick(); 
                 
                 clearTimeout(timers.startTo);
                 const remainingMs = timers.startEnd - Date.now();
@@ -663,19 +667,30 @@
         const audioController = {
             play() {
                 const prom = DOM.audio.play();
-                if (prom) prom.then(() => { 
-                    isPlaying = true; errorCount = 0; 
-                    DOM.playIcon.className = 'fas fa-pause'; 
-                    DOM.playBtn.querySelector('i').style.paddingLeft = '0'; 
-                    DOM.logo.classList.add('playing'); 
-                }).catch(err => { 
-                    if(err.name !== 'AbortError') this.handleError(); 
-                });
+                if (prom) {
+                    prom.then(() => { 
+                        isPlaying = true; 
+                        errorCount = 0; 
+                        DOM.playIcon.className = 'fas fa-pause'; 
+                        DOM.playIcon.style.paddingLeft = '0'; 
+                        DOM.logo.classList.add('playing'); 
+                    }).catch(err => { 
+                        // إصلاح خطأ التشغيل التلقائي (Autoplay Policy)
+                        if (err.name === 'NotAllowedError') {
+                            isPlaying = false;
+                            DOM.playIcon.className = 'fas fa-play';
+                            DOM.playIcon.style.paddingLeft = '3px';
+                            DOM.logo.classList.remove('playing');
+                        } else if (err.name !== 'AbortError') {
+                            this.handleError(); 
+                        }
+                    });
+                }
             },
             pause() { 
                 DOM.audio.pause(); isPlaying = false; 
                 DOM.playIcon.className = 'fas fa-play'; 
-                DOM.playBtn.querySelector('i').style.paddingLeft = '3px'; 
+                DOM.playIcon.style.paddingLeft = '3px'; 
                 DOM.logo.classList.remove('playing'); 
             },
             toggle() { isPlaying ? this.pause() : this.play(); },
@@ -695,7 +710,6 @@
                     clearTimeout(skipTimeout); 
                     autoSkipInProgress = true;
                     
-                    // إجبار حالة التشغيل لكي يعمل التخطي التلقائي دون تدخل المستخدم
                     isPlaying = true; 
                     
                     skipTimeout = setTimeout(() => { 
@@ -774,7 +788,6 @@
 
         // Boot loader
         async function bootApp() {
-            // وضع اسم الدولة في أعلى الشاشة
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
             
             if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { UIController.emptyState(); DOM.loading.style.display = 'none'; return; }
@@ -782,7 +795,6 @@
             
             if(stations.length) { 
                 UIController.loadIndex(0); 
-                // التشغيل التلقائي فور فتح التطبيق
                 isPlaying = true;
                 audioController.play();
             } else { 
