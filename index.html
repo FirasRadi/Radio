@@ -62,32 +62,29 @@
             z-index: 10;
         }
 
-        /* ── Header Layout ── */
+        /* ── Header (Timer, Country, Favs) ── */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
-            gap: 10px;
+            position: relative;
         }
-        .header-side {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-        .header-center {
-            flex: 2;
-            text-align: center;
-            font-size: 16px;
+
+        .header-country {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 15px;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--text-main);
+            max-width: 45%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-align: center;
             letter-spacing: 0.5px;
         }
-        
+
         .icon-btn {
             background: var(--border-glass);
             border: none;
@@ -101,13 +98,32 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
         }
+
+        .icon-btn.has-text {
+            width: auto;
+            padding: 0 14px;
+            border-radius: 22px;
+        }
+
         .icon-btn:hover {
             background: rgba(255, 255, 255, 0.15);
             color: #fff;
             transform: scale(1.05);
         }
+
+        .header-timer-text {
+            display: none;
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 700;
+            margin-left: 6px;
+            color: var(--warning);
+        }
+        .icon-btn.has-text .header-timer-text {
+            display: inline-block;
+        }
+
         .icon-btn.active-timer {
             color: var(--warning);
             background: rgba(251, 191, 36, 0.15);
@@ -119,16 +135,6 @@
             70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
             100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
         }
-
-        .header-timer-text {
-            font-family: monospace;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--warning);
-            display: none;
-            white-space: nowrap;
-        }
-        .header-timer-text.visible { display: block; }
 
         /* ── Logo Display ── */
         .logo-container {
@@ -164,13 +170,31 @@
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
             animation: spinDisc 10s linear infinite;
         }
-        @keyframes spinDisc { 100% { transform: rotate(360deg); } }
+        @keyframes spinDisc {
+            100% { transform: rotate(360deg); }
+        }
 
-        .station-name { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-        .station-counter { font-size: 13px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+        .station-name {
+            font-size: 20px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .station-counter {
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
 
         /* ── Player Controls ── */
-        .controls { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 10px; }
+        .controls {
+            display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 10px;
+        }
         .ctrl-btn { border: none; cursor: pointer; transition: 0.3s; }
         .ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -215,11 +239,14 @@
 
         /* ── PayPal Button ── */
         .paypal-wrapper {
-            position: fixed; bottom: 20px; right: 20px; width: 110px; height: 110px;
+            position: fixed; bottom: 20px; right: 20px; width: 100px; height: 100px;
             display: flex; align-items: center; justify-content: center; z-index: 100;
         }
         .paypal-svg { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-        .paypal-svg text { font-size: 11.5px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.8px; font-weight: bold; }
+        .paypal-svg text { 
+            font-size: 11.5px; /* تم تكبير الخط قليلاً كما طلبت */
+            fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; 
+        }
         .donate-btn {
             width: 50px; height: 50px; background: #0070ba; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; text-decoration: none;
@@ -247,14 +274,9 @@
             display: flex; justify-content: space-between; align-items: center;
             font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 5px;
         }
-        .sheet-header-left { display: flex; align-items: center; gap: 8px; }
-        
         .sheet-header-timer {
-            font-family: monospace; font-size: 13px; font-weight: 700; color: var(--warning);
-            background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 6px; display: none;
+            color: var(--warning); font-family: monospace; font-size: 15px; margin-left: 8px; font-weight: 700;
         }
-        .sheet-header-timer.visible { display: inline-block; }
-
         .close-sheet { background: none; border: none; color: var(--text-sub); font-size: 20px; cursor: pointer; }
         
         .compact-timer-row {
@@ -262,11 +284,14 @@
             border-radius: 16px; padding: 12px 16px;
             display: flex; flex-direction: column; gap: 10px;
         }
-        .timer-info { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; }
+        .timer-info {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 14px; font-weight: 600;
+        }
         .timer-info-left { display: flex; align-items: center; gap: 8px; }
         
         .digital-timer {
-            font-family: monospace; font-size: 16px; font-weight: 700; color: var(--warning);
+            font-family: monospace; font-size: 18px; font-weight: 700; color: var(--warning);
             background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 6px; display: none;
         }
         .digital-timer.visible { display: block; }
@@ -274,7 +299,7 @@
         .timer-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .timer-actions button {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: #cbd5e1; padding: 6px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+            color: #cbd5e1; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
             cursor: pointer; transition: 0.2s; flex: 1; text-align: center;
         }
         .timer-actions button:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
@@ -318,8 +343,8 @@
 
     <!-- PayPal Component -->
     <div class="paypal-wrapper">
-        <svg class="paypal-svg" viewBox="0 0 120 120">
-            <path id="curve" d="M 15 60 A 45 45 0 0 1 105 60" fill="transparent" />
+        <svg class="paypal-svg" viewBox="0 0 100 100">
+            <path id="curve" d="M 20 50 A 30 30 0 0 1 80 50" fill="transparent" />
             <text><textPath href="#curve" startOffset="50%" text-anchor="middle">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</textPath></text>
         </svg>
         <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn">
@@ -335,19 +360,17 @@
 
     <!-- Main Player Card -->
     <div class="player-card">
-        
-        <!-- ── Header ── -->
         <div class="header">
-            <div class="header-side">
-                <button class="icon-btn" id="toggleTimerBtn" title="Timers"><i class="fas fa-stopwatch"></i></button>
+            <!-- زر فتح قائمة المؤقت السفلية مع العداد المدمج -->
+            <button class="icon-btn" id="toggleTimerBtn" title="Timers">
+                <i class="fas fa-stopwatch"></i>
                 <span id="mainHeaderTimer" class="header-timer-text"></span>
-            </div>
+            </button>
             
-            <div class="header-center" id="headerCountry">Loading...</div>
+            <!-- اسم الدولة في المنتصف -->
+            <div class="header-country" id="headerCountry">Global Radio</div>
             
-            <div class="header-side" style="justify-content: flex-end;">
-                <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
-            </div>
+            <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
         </div>
 
         <div class="logo-container">
@@ -372,16 +395,15 @@
         </div>
 
         <div class="footer-note">Change country inside the bot chat.</div>
-        <audio id="audioPlayer" preload="metadata" autoplay></audio>
+        <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
     <!-- ── Compact Bottom Sheet Timer ── -->
     <div class="sheet-overlay" id="timerOverlay"></div>
     <div class="bottom-sheet" id="timerSheet">
         <div class="sheet-header">
-            <div class="sheet-header-left">
-                <i class="fas fa-stopwatch" style="color:var(--primary);"></i>
-                <span>Auto Timers</span>
+            <div>
+                <i class="fas fa-stopwatch" style="color:var(--primary); margin-right:5px;"></i> Auto Timers
                 <span id="sheetHeaderTimer" class="sheet-header-timer"></span>
             </div>
             <button class="close-sheet" id="closeTimerBtn"><i class="fas fa-times"></i></button>
@@ -394,11 +416,11 @@
                 <span class="digital-timer" id="sleepDigital">00:00</span>
             </div>
             <div class="timer-actions" id="sleepActions">
-                <button data-min="1">+1m</button>
-                <button data-min="5">+5m</button>
-                <button data-min="15">+15m</button>
-                <button data-min="30">+30m</button>
-                <button data-min="60">+1h</button>
+                <button data-min="1">1m</button>
+                <button data-min="5">5m</button>
+                <button data-min="15">15m</button>
+                <button data-min="30">30m</button>
+                <button data-min="60">1h</button>
             </div>
             <button class="cancel-timer-btn" id="sleepCancelBtn">Cancel Sleep Timer</button>
         </div>
@@ -410,11 +432,11 @@
                 <span class="digital-timer" id="startDigital">00:00</span>
             </div>
             <div class="timer-actions" id="startActions">
-                <button data-min="1">+1m</button>
-                <button data-min="5">+5m</button>
-                <button data-min="15">+15m</button>
-                <button data-min="30">+30m</button>
-                <button data-min="60">+1h</button>
+                <button data-min="1">1m</button>
+                <button data-min="5">5m</button>
+                <button data-min="15">15m</button>
+                <button data-min="30">30m</button>
+                <button data-min="60">1h</button>
             </div>
             <button class="cancel-timer-btn" id="startCancelBtn">Cancel Start Timer</button>
         </div>
@@ -478,12 +500,9 @@
         const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
-        
-        // Set Country Name in Header
-        DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
 
-        // === Timer Logic (Incremental & Touch) ===
-        let timers = { sleepEnd: null, startEnd: null, tickInt: null };
+        // === Timer Logic (Additive & Touch) ===
+        let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null };
 
         const toggleTimerSheet = () => {
             const isOpen = DOM.timerSheet.classList.contains('open');
@@ -508,8 +527,7 @@
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
             const s = (totalSeconds % 60).toString().padStart(2, '0');
-            if (h > 0) return `${h}:${m}:${s}`;
-            return `${m}:${s}`;
+            return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
         };
 
         const getRemaining = (endMs) => {
@@ -520,88 +538,77 @@
         const stopEngine = () => { if(timers.tickInt) { clearInterval(timers.tickInt); timers.tickInt = null; } };
         const startEngine = () => { if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); timerTick(); };
 
-        const updateHeaderTimers = () => {
-            let texts = [];
-            if (timers.sleepEnd && timers.sleepEnd > Date.now()) {
-                texts.push(`Slp:${formatTime(getRemaining(timers.sleepEnd).total)}`);
-            }
-            if (timers.startEnd && timers.startEnd > Date.now()) {
-                texts.push(`St:${formatTime(getRemaining(timers.startEnd).total)}`);
-            }
-            
-            if (texts.length > 0) {
-                const txt = texts.join(' | ');
-                DOM.mainHeaderTimer.textContent = txt;
-                DOM.sheetHeaderTimer.textContent = `(${txt})`;
-                DOM.mainHeaderTimer.classList.add('visible');
-                DOM.sheetHeaderTimer.classList.add('visible');
-            } else {
-                DOM.mainHeaderTimer.classList.remove('visible');
-                DOM.sheetHeaderTimer.classList.remove('visible');
-            }
-        };
-
         const clearSleepUI = () => {
-            timers.sleepEnd = null;
+            clearTimeout(timers.sleepTo); timers.sleepTo = null; timers.sleepEnd = null;
             DOM.sleepDigital.classList.remove('visible');
             DOM.sleepCancelBtn.classList.remove('visible');
+            DOM.sheetHeaderTimer.textContent = '';
+            DOM.mainHeaderTimer.textContent = '';
+            DOM.timersToggleBtn.classList.remove('has-text');
             updateSmartIndicator();
-            updateHeaderTimers();
         };
 
         const clearStartUI = () => {
-            timers.startEnd = null;
+            clearTimeout(timers.startTo); timers.startTo = null; timers.startEnd = null;
             DOM.startDigital.classList.remove('visible');
             DOM.startCancelBtn.classList.remove('visible');
+            DOM.sheetHeaderTimer.textContent = '';
+            DOM.mainHeaderTimer.textContent = '';
+            DOM.timersToggleBtn.classList.remove('has-text');
             updateSmartIndicator();
-            updateHeaderTimers();
         };
 
         const timerTick = () => {
-            const now = Date.now();
-            let activeCount = 0;
+            const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd;
+            const startActive = timers.startEnd && Date.now() < timers.startEnd;
+            if (!sleepActive && !startActive) return stopEngine();
 
-            if (timers.sleepEnd) {
-                if (now < timers.sleepEnd) {
-                    DOM.sleepDigital.textContent = formatTime(getRemaining(timers.sleepEnd).total);
-                    activeCount++;
-                } else {
-                    audioController.fadeOut();
-                    clearSleepUI();
-                }
-            }
+            if (sleepActive) {
+                const rem = getRemaining(timers.sleepEnd);
+                const timeStr = formatTime(rem.total);
+                DOM.sleepDigital.textContent = timeStr;
+                DOM.sheetHeaderTimer.textContent = `(Sleep: ${timeStr})`;
+                DOM.mainHeaderTimer.textContent = timeStr;
+                DOM.timersToggleBtn.classList.add('has-text');
+                
+                if (rem.total <= 0) { audioController.fadeOut(); clearSleepUI(); }
+            } else if (timers.sleepEnd) clearSleepUI();
 
-            if (timers.startEnd) {
-                if (now < timers.startEnd) {
-                    DOM.startDigital.textContent = formatTime(getRemaining(timers.startEnd).total);
-                    activeCount++;
-                } else {
-                    audioController.forceStart();
-                    clearStartUI();
-                }
-            }
-
-            updateHeaderTimers();
-
-            if (activeCount === 0) {
-                stopEngine();
-            }
+            if (startActive) {
+                const rem = getRemaining(timers.startEnd);
+                const timeStr = formatTime(rem.total);
+                DOM.startDigital.textContent = timeStr;
+                DOM.sheetHeaderTimer.textContent = `(Start: ${timeStr})`;
+                DOM.mainHeaderTimer.textContent = timeStr;
+                DOM.timersToggleBtn.classList.add('has-text');
+                
+                if (rem.total <= 0) { audioController.forceStart(); clearStartUI(); }
+            } else if (timers.startEnd) clearStartUI();
         };
 
-        // Incremental Touch Events for Presets
+        // Additive Touch Events for Presets
         DOM.sleepActions.addEventListener('click', e => {
             if(e.target.tagName !== 'BUTTON') return;
             const mins = parseInt(e.target.dataset.min);
             if (mins) {
-                let currentRem = (timers.sleepEnd && timers.sleepEnd > Date.now()) ? (timers.sleepEnd - Date.now()) : 0;
-                timers.sleepEnd = Date.now() + currentRem + (mins * 60000);
+                if(timers.startEnd) clearStartUI(); 
+                audioController.forceStart(); 
+                
+                const now = Date.now();
+                // نظام تراكمي: يضيف الوقت للوقت الحالي المتبقي
+                timers.sleepEnd = (timers.sleepEnd && timers.sleepEnd > now) ? timers.sleepEnd + (mins * 60000) : now + (mins * 60000);
                 
                 DOM.sleepCancelBtn.classList.add('visible');
                 DOM.sleepDigital.classList.add('visible');
                 
                 updateSmartIndicator();
-                updateHeaderTimers();
                 startEngine();
+                timerTick(); // تحديث فوري للواجهة
+                
+                // إعادة ضبط المؤقت النهائي
+                clearTimeout(timers.sleepTo);
+                const remainingMs = timers.sleepEnd - Date.now();
+                timers.sleepTo = setTimeout(() => { audioController.fadeOut(); clearSleepUI(); }, remainingMs); 
             }
         });
 
@@ -609,15 +616,22 @@
             if(e.target.tagName !== 'BUTTON') return;
             const mins = parseInt(e.target.dataset.min);
             if (mins) {
-                let currentRem = (timers.startEnd && timers.startEnd > Date.now()) ? (timers.startEnd - Date.now()) : 0;
-                timers.startEnd = Date.now() + currentRem + (mins * 60000);
+                if(timers.sleepEnd) clearSleepUI(); 
+                
+                const now = Date.now();
+                // نظام تراكمي
+                timers.startEnd = (timers.startEnd && timers.startEnd > now) ? timers.startEnd + (mins * 60000) : now + (mins * 60000);
                 
                 DOM.startCancelBtn.classList.add('visible');
                 DOM.startDigital.classList.add('visible');
                 
                 updateSmartIndicator();
-                updateHeaderTimers();
                 startEngine();
+                timerTick(); // تحديث فوري للواجهة
+                
+                clearTimeout(timers.startTo);
+                const remainingMs = timers.startEnd - Date.now();
+                timers.startTo = setTimeout(() => { audioController.forceStart(); clearStartUI(); }, remainingMs); 
             }
         });
 
@@ -649,26 +663,21 @@
         const audioController = {
             play() {
                 const prom = DOM.audio.play();
-                if (prom) {
-                    prom.then(() => { 
-                        isPlaying = true; errorCount = 0; 
-                        DOM.playIcon.className = 'fas fa-pause'; 
-                        DOM.playBtn.querySelector('i').style.paddingLeft = '0'; 
-                        DOM.logo.classList.add('playing'); 
-                    }).catch(err => { 
-                        if(err.name !== 'AbortError') {
-                            if (err.name === 'NotAllowedError') {
-                                // Autoplay blocked by browser, wait for user tap
-                                this.pause();
-                                DOM.sub.textContent = "Tap play to start";
-                            } else {
-                                this.handleError(); 
-                            }
-                        }
-                    });
-                }
+                if (prom) prom.then(() => { 
+                    isPlaying = true; errorCount = 0; 
+                    DOM.playIcon.className = 'fas fa-pause'; 
+                    DOM.playBtn.querySelector('i').style.paddingLeft = '0'; 
+                    DOM.logo.classList.add('playing'); 
+                }).catch(err => { 
+                    if(err.name !== 'AbortError') this.handleError(); 
+                });
             },
-            pause() { DOM.audio.pause(); isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playBtn.querySelector('i').style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); },
+            pause() { 
+                DOM.audio.pause(); isPlaying = false; 
+                DOM.playIcon.className = 'fas fa-play'; 
+                DOM.playBtn.querySelector('i').style.paddingLeft = '3px'; 
+                DOM.logo.classList.remove('playing'); 
+            },
             toggle() { isPlaying ? this.pause() : this.play(); },
             forceStart() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIController.loadIndex(0); this.play(); } },
             fadeOut() {
@@ -678,17 +687,19 @@
                     if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } }, 100);
             },
             handleError() {
-                // Auto-skip logic without requiring user click
                 if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) {
                     errorCount++; 
                     DOM.sub.textContent = "Offline. Skipping..."; 
                     DOM.logo.classList.remove('playing'); 
                     DOM.playIcon.className = 'fas fa-spinner fa-spin';
-                    if (skipTimeout) clearTimeout(skipTimeout); 
+                    clearTimeout(skipTimeout); 
                     autoSkipInProgress = true;
+                    
+                    // إجبار حالة التشغيل لكي يعمل التخطي التلقائي دون تدخل المستخدم
+                    isPlaying = true; 
+                    
                     skipTimeout = setTimeout(() => { 
                         UIController.loadIndex((currentIndex + 1) % stations.length); 
-                        this.play(); // Force play next station automatically
                         autoSkipInProgress = false; 
                     }, 1500);
                 } else { 
@@ -700,26 +711,16 @@
 
         const UIController = {
             loadIndex(index) {
-                if (skipTimeout) { clearTimeout(skipTimeout); autoSkipInProgress = false; }
-                errorCount = 0; // Reset errors on manual switch
-                if (!stations.length) return; 
-                currentIndex = index;
-                const s = stations[currentIndex]; 
-                isExternalFavPlaying = false;
+                if (!stations.length) return; currentIndex = index;
+                const s = stations[currentIndex]; isExternalFavPlaying = false;
                 this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon);
                 DOM.audio.src = s.url_resolved || s.url || '';
-                this.enableControls(); 
-                checkFavState(s.stationuuid); 
+                this.enableControls(); checkFavState(s.stationuuid); 
+                if (isPlaying) audioController.play();
             },
             loadExternalFav(fav) {
-                if (skipTimeout) { clearTimeout(skipTimeout); autoSkipInProgress = false; }
-                errorCount = 0;
-                isExternalFavPlaying = true; 
-                this.updateUI(fav.name, "Saved Station", fav.img);
-                DOM.audio.src = fav.url; 
-                this.enableControls(); 
-                checkFavState(fav.id); 
-                audioController.play();
+                isExternalFavPlaying = true; this.updateUI(fav.name, "Saved Station", fav.img);
+                DOM.audio.src = fav.url; this.enableControls(); checkFavState(fav.id); audioController.play();
             },
             updateUI(title, subtitle, imgSrc) {
                 DOM.title.textContent = title || 'Unknown'; DOM.sub.textContent = subtitle;
@@ -732,10 +733,9 @@
         };
 
         DOM.playBtn.addEventListener('click', () => audioController.toggle());
-        DOM.nextBtn.addEventListener('click', () => { UIController.loadIndex((currentIndex + 1) % stations.length); audioController.play(); });
-        DOM.prevBtn.addEventListener('click', () => { UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length); audioController.play(); });
-        DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
-        DOM.audio.addEventListener('error', () => audioController.handleError());
+        DOM.nextBtn.addEventListener('click', () => UIController.loadIndex((currentIndex + 1) % stations.length));
+        DOM.prevBtn.addEventListener('click', () => UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length));
+        DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); DOM.audio.addEventListener('error', () => audioController.handleError());
 
 
         // === 5. Favoriting logic System ==
@@ -772,13 +772,19 @@
 
         DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
-        // Boot loader strictly using TARGET_COUNTRY matching explicit chat parameters.
+        // Boot loader
         async function bootApp() {
+            // وضع اسم الدولة في أعلى الشاشة
+            DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
+            
             if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { UIController.emptyState(); DOM.loading.style.display = 'none'; return; }
             stations = await radioService.fetchByStr(TARGET_COUNTRY);
+            
             if(stations.length) { 
                 UIController.loadIndex(0); 
-                audioController.play(); // Auto-play on load
+                // التشغيل التلقائي فور فتح التطبيق
+                isPlaying = true;
+                audioController.play();
             } else { 
                 UIController.emptyState(); 
             }
