@@ -74,11 +74,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            width: 90px; /* Fixed width to keep center balanced */
-            flex-shrink: 0;
+            flex: 1;
         }
         .header-center {
-            flex-grow: 1;
+            flex: 2;
             text-align: center;
             font-size: 16px;
             font-weight: 700;
@@ -121,13 +120,13 @@
             100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
         }
 
-        /* العداد في الواجهة الرئيسية */
         .header-timer-text {
             font-family: monospace;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             color: var(--warning);
             display: none;
+            white-space: nowrap;
         }
         .header-timer-text.visible { display: block; }
 
@@ -214,7 +213,7 @@
 
         .footer-note { font-size: 11px; color: var(--text-sub); margin-top: -5px; }
 
-        /* ── PayPal Button (تكبير النص قليلاً) ── */
+        /* ── PayPal Button ── */
         .paypal-wrapper {
             position: fixed; bottom: 20px; right: 20px; width: 110px; height: 110px;
             display: flex; align-items: center; justify-content: center; z-index: 100;
@@ -250,9 +249,8 @@
         }
         .sheet-header-left { display: flex; align-items: center; gap: 8px; }
         
-        /* العداد بجانب كلمة Auto Timers */
         .sheet-header-timer {
-            font-family: monospace; font-size: 14px; font-weight: 700; color: var(--warning);
+            font-family: monospace; font-size: 13px; font-weight: 700; color: var(--warning);
             background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 6px; display: none;
         }
         .sheet-header-timer.visible { display: inline-block; }
@@ -522,54 +520,71 @@
         const stopEngine = () => { if(timers.tickInt) { clearInterval(timers.tickInt); timers.tickInt = null; } };
         const startEngine = () => { if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); timerTick(); };
 
+        const updateHeaderTimers = () => {
+            let texts = [];
+            if (timers.sleepEnd && timers.sleepEnd > Date.now()) {
+                texts.push(`Slp:${formatTime(getRemaining(timers.sleepEnd).total)}`);
+            }
+            if (timers.startEnd && timers.startEnd > Date.now()) {
+                texts.push(`St:${formatTime(getRemaining(timers.startEnd).total)}`);
+            }
+            
+            if (texts.length > 0) {
+                const txt = texts.join(' | ');
+                DOM.mainHeaderTimer.textContent = txt;
+                DOM.sheetHeaderTimer.textContent = `(${txt})`;
+                DOM.mainHeaderTimer.classList.add('visible');
+                DOM.sheetHeaderTimer.classList.add('visible');
+            } else {
+                DOM.mainHeaderTimer.classList.remove('visible');
+                DOM.sheetHeaderTimer.classList.remove('visible');
+            }
+        };
+
         const clearSleepUI = () => {
             timers.sleepEnd = null;
             DOM.sleepDigital.classList.remove('visible');
             DOM.sleepCancelBtn.classList.remove('visible');
-            DOM.sheetHeaderTimer.classList.remove('visible');
-            DOM.mainHeaderTimer.classList.remove('visible');
             updateSmartIndicator();
+            updateHeaderTimers();
         };
 
         const clearStartUI = () => {
             timers.startEnd = null;
             DOM.startDigital.classList.remove('visible');
             DOM.startCancelBtn.classList.remove('visible');
-            DOM.sheetHeaderTimer.classList.remove('visible');
-            DOM.mainHeaderTimer.classList.remove('visible');
             updateSmartIndicator();
+            updateHeaderTimers();
         };
 
         const timerTick = () => {
-            const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd;
-            const startActive = timers.startEnd && Date.now() < timers.startEnd;
-            
-            if (!sleepActive && !startActive) {
-                if (timers.sleepEnd && Date.now() >= timers.sleepEnd) { audioController.fadeOut(); clearSleepUI(); }
-                if (timers.startEnd && Date.now() >= timers.startEnd) { audioController.forceStart(); clearStartUI(); }
-                return stopEngine();
+            const now = Date.now();
+            let activeCount = 0;
+
+            if (timers.sleepEnd) {
+                if (now < timers.sleepEnd) {
+                    DOM.sleepDigital.textContent = formatTime(getRemaining(timers.sleepEnd).total);
+                    activeCount++;
+                } else {
+                    audioController.fadeOut();
+                    clearSleepUI();
+                }
             }
 
-            if (sleepActive) {
-                const rem = getRemaining(timers.sleepEnd);
-                const timeStr = formatTime(rem.total);
-                DOM.sleepDigital.textContent = timeStr;
-                DOM.sheetHeaderTimer.textContent = `(Sleep: ${timeStr})`;
-                DOM.mainHeaderTimer.textContent = timeStr;
-                
-                DOM.sheetHeaderTimer.classList.add('visible');
-                DOM.mainHeaderTimer.classList.add('visible');
+            if (timers.startEnd) {
+                if (now < timers.startEnd) {
+                    DOM.startDigital.textContent = formatTime(getRemaining(timers.startEnd).total);
+                    activeCount++;
+                } else {
+                    audioController.forceStart();
+                    clearStartUI();
+                }
             }
 
-            if (startActive) {
-                const rem = getRemaining(timers.startEnd);
-                const timeStr = formatTime(rem.total);
-                DOM.startDigital.textContent = timeStr;
-                DOM.sheetHeaderTimer.textContent = `(Start: ${timeStr})`;
-                DOM.mainHeaderTimer.textContent = timeStr;
-                
-                DOM.sheetHeaderTimer.classList.add('visible');
-                DOM.mainHeaderTimer.classList.add('visible');
+            updateHeaderTimers();
+
+            if (activeCount === 0) {
+                stopEngine();
             }
         };
 
@@ -578,9 +593,6 @@
             if(e.target.tagName !== 'BUTTON') return;
             const mins = parseInt(e.target.dataset.min);
             if (mins) {
-                if(timers.startEnd) clearStartUI(); 
-                
-                // Add to existing time or start new
                 let currentRem = (timers.sleepEnd && timers.sleepEnd > Date.now()) ? (timers.sleepEnd - Date.now()) : 0;
                 timers.sleepEnd = Date.now() + currentRem + (mins * 60000);
                 
@@ -588,6 +600,7 @@
                 DOM.sleepDigital.classList.add('visible');
                 
                 updateSmartIndicator();
+                updateHeaderTimers();
                 startEngine();
             }
         });
@@ -596,9 +609,6 @@
             if(e.target.tagName !== 'BUTTON') return;
             const mins = parseInt(e.target.dataset.min);
             if (mins) {
-                if(timers.sleepEnd) clearSleepUI(); 
-                
-                // Add to existing time or start new
                 let currentRem = (timers.startEnd && timers.startEnd > Date.now()) ? (timers.startEnd - Date.now()) : 0;
                 timers.startEnd = Date.now() + currentRem + (mins * 60000);
                 
@@ -606,6 +616,7 @@
                 DOM.startDigital.classList.add('visible');
                 
                 updateSmartIndicator();
+                updateHeaderTimers();
                 startEngine();
             }
         });
@@ -673,7 +684,7 @@
                     DOM.sub.textContent = "Offline. Skipping..."; 
                     DOM.logo.classList.remove('playing'); 
                     DOM.playIcon.className = 'fas fa-spinner fa-spin';
-                    clearTimeout(skipTimeout); 
+                    if (skipTimeout) clearTimeout(skipTimeout); 
                     autoSkipInProgress = true;
                     skipTimeout = setTimeout(() => { 
                         UIController.loadIndex((currentIndex + 1) % stations.length); 
@@ -689,15 +700,26 @@
 
         const UIController = {
             loadIndex(index) {
-                if (!stations.length) return; currentIndex = index;
-                const s = stations[currentIndex]; isExternalFavPlaying = false;
+                if (skipTimeout) { clearTimeout(skipTimeout); autoSkipInProgress = false; }
+                errorCount = 0; // Reset errors on manual switch
+                if (!stations.length) return; 
+                currentIndex = index;
+                const s = stations[currentIndex]; 
+                isExternalFavPlaying = false;
                 this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon);
                 DOM.audio.src = s.url_resolved || s.url || '';
-                this.enableControls(); checkFavState(s.stationuuid); 
+                this.enableControls(); 
+                checkFavState(s.stationuuid); 
             },
             loadExternalFav(fav) {
-                isExternalFavPlaying = true; this.updateUI(fav.name, "Saved Station", fav.img);
-                DOM.audio.src = fav.url; this.enableControls(); checkFavState(fav.id); audioController.play();
+                if (skipTimeout) { clearTimeout(skipTimeout); autoSkipInProgress = false; }
+                errorCount = 0;
+                isExternalFavPlaying = true; 
+                this.updateUI(fav.name, "Saved Station", fav.img);
+                DOM.audio.src = fav.url; 
+                this.enableControls(); 
+                checkFavState(fav.id); 
+                audioController.play();
             },
             updateUI(title, subtitle, imgSrc) {
                 DOM.title.textContent = title || 'Unknown'; DOM.sub.textContent = subtitle;
