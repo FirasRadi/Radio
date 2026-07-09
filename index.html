@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        /* ... (جميع الأنماط السابقة مع تعديلات body و paypal) ... */
         :root {
             --bg-base: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.7);
@@ -41,18 +40,8 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            /* السماح بالتمرير عند الحاجة */
-            overflow-y: auto;
-        }
-
-        /* حاوية رئيسية تجمع المشغل وزر البايبال */
-        .main-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-            width: 100%;
-            max-width: 420px;
+            overflow: hidden;
+            gap: 20px;
         }
 
         .player-card {
@@ -60,15 +49,18 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             width: 100%;
+            max-width: 420px;
             border-radius: 28px;
             padding: 24px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
             text-align: center;
+            position: relative;
             border: 1px solid var(--border-glass);
             display: flex;
             flex-direction: column;
             gap: 16px;
             z-index: 10;
+            order: 1;
         }
 
         .header {
@@ -142,6 +134,13 @@
             100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
         }
 
+        /* صف زر المشاركة تحت الهيدر */
+        .share-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: -8px; /* تقريب المسافة */
+        }
+
         .logo-container {
             display: flex;
             flex-direction: column;
@@ -156,8 +155,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            color: var(--primary);
             overflow: hidden;
             border: 4px solid var(--border-glass);
             transition: border-color 0.4s ease, box-shadow 0.4s ease;
@@ -174,10 +171,6 @@
         .logo.playing {
             border-color: var(--primary);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
-            animation: spinDisc 10s linear infinite;
-        }
-        @keyframes spinDisc {
-            100% { transform: rotate(360deg); }
         }
 
         .station-name {
@@ -247,45 +240,31 @@
             letter-spacing: 0.5px;
         }
 
-        /* PayPal wrapper أصبح الآن داخل main-wrapper */
+        /* PayPal تحت اللوحة */
         .paypal-wrapper {
+            width: 100%;
+            max-width: 420px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 40px;
-            padding: 10px 25px;
-            border: 1px solid var(--border-glass);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 5;
+            order: 2;
         }
-        .paypal-text {
-            color: var(--text-sub);
-            font-family: monospace;
-            font-size: 12px;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
+        .paypal-svg { position: absolute; width: 100px; height: 100px; pointer-events: none; }
+        .paypal-svg text { 
+            font-size: 11.5px; 
+            fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; 
         }
         .donate-btn {
-            width: 40px;
-            height: 40px;
-            background: #0070ba;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 18px;
-            text-decoration: none;
-            box-shadow: 0 4px 10px rgba(0, 112, 186, 0.5);
-            transition: 0.3s;
+            width: 50px; height: 50px; background: #0070ba; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); position: relative; z-index: 2; transition: 0.3s;
+            margin: 10px 0;
         }
-        .donate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0, 112, 186, 0.7); }
+        .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
 
-        /* باقي الأنماط (bottom sheet, modal, loading) كما هي دون تغيير */
-        /* ... */
+        /* Bottom Sheet */
         .sheet-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
             z-index: 140; opacity: 0; visibility: hidden; transition: 0.3s ease;
@@ -343,7 +322,6 @@
         .cancel-timer-btn.visible { display: block; }
         .cancel-timer-btn:hover { background: var(--danger); color: #fff; }
 
-        /* Modal */
         .modal {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 200;
             display: flex; flex-direction: column; padding: 30px 20px; backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: 0.3s ease;
@@ -367,91 +345,79 @@
 
         #loading { position: fixed; inset: 0; background: var(--bg-base); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: var(--primary); font-weight: 600; letter-spacing: 2px; }
         .spinner { width: 45px; height: 45px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-
-        /* أنماط الراقص */
-        .dancer-svg {
-            width: 100%;
-            height: 100%;
-        }
-        .dancer-svg .head {
-            fill: none;
-            stroke: var(--primary);
-            stroke-width: 2;
-            filter: drop-shadow(0 0 4px var(--primary));
-        }
-        .dancer-svg .limb {
-            stroke: var(--primary);
-            stroke-width: 3;
-            stroke-linecap: round;
-            filter: drop-shadow(0 0 5px var(--primary));
-        }
-        .dancer-svg .joint {
-            fill: var(--primary);
-            filter: drop-shadow(0 0 3px var(--primary));
-        }
     </style>
 </head>
 <body>
 
-    <!-- Loading -->
+    <!-- PayPal Component (تحت اللوحة) -->
+    <div class="paypal-wrapper">
+        <svg class="paypal-svg" viewBox="0 0 100 100">
+            <path id="curve" d="M 18 50 A 32 32 0 0 1 82 50" fill="transparent" />
+            <text>
+                <textPath href="#curve" startOffset="50%" text-anchor="middle">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</textPath>
+            </text>
+        </svg>
+        <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn">
+            <i class="fab fa-paypal"></i>
+        </a>
+    </div>
+
+    <!-- Loading Screen -->
     <div id="loading">
         <div class="spinner"></div>
         <span>FETCHING STATIONS...</span>
     </div>
 
-    <!-- Main Wrapper (player + paypal) -->
-    <div class="main-wrapper">
-        <!-- Player Card -->
-        <div class="player-card">
-            <div class="header">
-                <button class="icon-btn" id="toggleTimerBtn" title="Timers">
-                    <i class="fas fa-stopwatch"></i>
-                    <span id="mainHeaderTimer" class="header-timer-text"></span>
-                </button>
-                
-                <div class="header-country" id="headerCountry">Global Radio</div>
-                
-                <button class="icon-btn" id="shareBtn" title="Share Station"><i class="fas fa-share-alt"></i></button>
-                <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
-            </div>
-
-            <div class="logo-container">
-                <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
-                <div class="station-name" id="stationTitle">Loading...</div>
-                <div class="station-counter" id="stationSub">Initializing</div>
-            </div>
-
-            <div class="controls">
-                <button class="ctrl-btn nav-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
-                <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
-                <button class="ctrl-btn nav-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
-            </div>
-
-            <div class="actions-bar">
-                <div class="volume-container">
-                    <i class="fas fa-volume-down" style="color:var(--text-sub); font-size:14px;"></i>
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
-                    <i class="fas fa-volume-up" style="color:var(--text-sub); font-size:16px;"></i>
-                </div>
-                <button class="action-btn" id="saveFavBtn" title="Save Station"><i class="far fa-heart"></i></button>
-            </div>
-
-            <div class="footer-note">Change country inside the bot chat.</div>
-            <audio id="audioPlayer" preload="metadata"></audio>
+    <!-- Main Player Card -->
+    <div class="player-card">
+        <div class="header">
+            <button class="icon-btn" id="toggleTimerBtn" title="Timers">
+                <i class="fas fa-stopwatch"></i>
+                <span id="mainHeaderTimer" class="header-timer-text"></span>
+            </button>
+            
+            <div class="header-country" id="headerCountry">Global Radio</div>
+            
+            <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
         </div>
 
-        <!-- PayPal Section (تحت المشغل) -->
-        <div class="paypal-wrapper">
-            <span class="paypal-text">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</span>
-            <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn">
-                <i class="fab fa-paypal"></i>
-            </a>
+        <!-- زر المشاركة تحت الهيدر (تحت زر المؤقت) -->
+        <div class="share-row">
+            <button class="icon-btn" id="shareBtn" title="Share Station">
+                <i class="fas fa-share-alt"></i>
+            </button>
         </div>
+
+        <div class="logo-container">
+            <div class="logo" id="stationLogo"></div>
+            <div class="station-name" id="stationTitle">Loading...</div>
+            <div class="station-counter" id="stationSub">Initializing</div>
+        </div>
+
+        <div class="controls">
+            <button class="ctrl-btn nav-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
+            <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
+            <button class="ctrl-btn nav-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
+        </div>
+
+        <div class="actions-bar">
+            <div class="volume-container">
+                <i class="fas fa-volume-down" style="color:var(--text-sub); font-size:14px;"></i>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+                <i class="fas fa-volume-up" style="color:var(--text-sub); font-size:16px;"></i>
+            </div>
+            <button class="action-btn" id="saveFavBtn" title="Save Station"><i class="far fa-heart"></i></button>
+            <!-- زر المشاركة أزلناه من هنا -->
+        </div>
+
+        <div class="footer-note">Change country inside the bot chat.</div>
+        <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
     <!-- Bottom Sheet Timer -->
     <div class="sheet-overlay" id="timerOverlay"></div>
     <div class="bottom-sheet" id="timerSheet">
+        <!-- ... محتوى الـ Sheet بدون تغيير ... -->
         <div class="sheet-header">
             <div>
                 <i class="fas fa-stopwatch" style="color:var(--primary); margin-right:5px;"></i> Auto Timers
@@ -459,7 +425,6 @@
             </div>
             <button class="close-sheet" id="closeTimerBtn"><i class="fas fa-times"></i></button>
         </div>
-        
         <div class="compact-timer-row">
             <div class="timer-info">
                 <div class="timer-info-left"><i class="fas fa-moon" style="color:#60a5fa"></i> Sleep</div>
@@ -474,7 +439,6 @@
             </div>
             <button class="cancel-timer-btn" id="sleepCancelBtn">Cancel Sleep Timer</button>
         </div>
-
         <div class="compact-timer-row">
             <div class="timer-info">
                 <div class="timer-info-left"><i class="fas fa-clock" style="color:#4ade80"></i> Start</div>
@@ -521,20 +485,16 @@
             closeFavs: document.getElementById('closeFavsBtn'),
             favModal: document.getElementById('favModal'),
             favList: document.getElementById('favList'),
-            
             headerCountry: document.getElementById('headerCountry'),
             mainHeaderTimer: document.getElementById('mainHeaderTimer'),
-            
             timersToggleBtn: document.getElementById('toggleTimerBtn'),
             timerOverlay: document.getElementById('timerOverlay'),
             timerSheet: document.getElementById('timerSheet'),
             closeTimerBtn: document.getElementById('closeTimerBtn'),
             sheetHeaderTimer: document.getElementById('sheetHeaderTimer'),
-            
             sleepDigital: document.getElementById('sleepDigital'),
             sleepActions: document.getElementById('sleepActions'),
             sleepCancelBtn: document.getElementById('sleepCancelBtn'),
-            
             startDigital: document.getElementById('startDigital'),
             startActions: document.getElementById('startActions'),
             startCancelBtn: document.getElementById('startCancelBtn')
@@ -543,14 +503,12 @@
         let stations = []; 
         let currentIndex = 0; 
         let isPlaying = false; 
-        
         let savedStations = [];
         try {
             savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || [];
         } catch (e) {
             savedStations = [];
         }
-
         let errorCount = 0; 
         let isExternalFavPlaying = false; 
         let autoSkipInProgress = false; 
@@ -561,9 +519,8 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // --- Timer Logic (بدون تغيير) ---
+        // نظام المؤقتات (بدون تغيير)
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null };
-
         const toggleTimerSheet = () => {
             const isOpen = DOM.timerSheet.classList.contains('open');
             if (isOpen) {
@@ -574,27 +531,22 @@
                 DOM.timerOverlay.classList.add('open');
             }
         };
-
         DOM.timersToggleBtn.addEventListener('click', toggleTimerSheet);
         DOM.closeTimerBtn.addEventListener('click', toggleTimerSheet);
         DOM.timerOverlay.addEventListener('click', toggleTimerSheet);
-
         const formatTime = (totalSeconds) => {
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
             const s = (totalSeconds % 60).toString().padStart(2, '0');
             return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
         };
-
         const getRemaining = (endMs) => {
             if (!endMs) return { total: 0 };
             return { total: Math.max(0, Math.round((endMs - Date.now()) / 1000)) };
         };
-
         const updateHeaderTimerUI = () => {
             const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd;
             const startActive = timers.startEnd && Date.now() < timers.startEnd;
-
             if (sleepActive) {
                 const rem = getRemaining(timers.sleepEnd);
                 const timeStr = formatTime(rem.total);
@@ -615,115 +567,64 @@
                 DOM.timersToggleBtn.classList.remove('has-text', 'active-timer');
             }
         };
-
-        const stopEngine = () => { 
-            if(timers.tickInt) { 
-                clearInterval(timers.tickInt); 
-                timers.tickInt = null; 
-            } 
-        };
-
-        const startEngine = () => { 
-            if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); 
-            timerTick(); 
-        };
-
+        const stopEngine = () => { if(timers.tickInt) { clearInterval(timers.tickInt); timers.tickInt = null; } };
+        const startEngine = () => { if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); timerTick(); };
         const clearSleepUI = () => {
-            clearTimeout(timers.sleepTo); 
-            timers.sleepTo = null; 
-            timers.sleepEnd = null;
-            DOM.sleepDigital.classList.remove('visible');
-            DOM.sleepCancelBtn.classList.remove('visible');
+            clearTimeout(timers.sleepTo); timers.sleepTo = null; timers.sleepEnd = null;
+            DOM.sleepDigital.classList.remove('visible'); DOM.sleepCancelBtn.classList.remove('visible');
             updateHeaderTimerUI();
         };
-
         const clearStartUI = () => {
-            clearTimeout(timers.startTo); 
-            timers.startTo = null; 
-            timers.startEnd = null;
-            DOM.startDigital.classList.remove('visible');
-            DOM.startCancelBtn.classList.remove('visible');
+            clearTimeout(timers.startTo); timers.startTo = null; timers.startEnd = null;
+            DOM.startDigital.classList.remove('visible'); DOM.startCancelBtn.classList.remove('visible');
             updateHeaderTimerUI();
         };
-
         const timerTick = () => {
             const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd;
             const startActive = timers.startEnd && Date.now() < timers.startEnd;
-            
-            if (!sleepActive && !startActive) {
-                stopEngine();
-                updateHeaderTimerUI();
-                return;
-            }
-
+            if (!sleepActive && !startActive) { stopEngine(); updateHeaderTimerUI(); return; }
             if (sleepActive) {
                 const rem = getRemaining(timers.sleepEnd);
-                if (rem.total <= 0) { 
-                    audioController.fadeOut(); 
-                    clearSleepUI(); 
-                }
-            } else if (timers.sleepEnd) {
-                clearSleepUI();
-            }
-
+                if (rem.total <= 0) { audioController.fadeOut(); clearSleepUI(); }
+            } else if (timers.sleepEnd) { clearSleepUI(); }
             if (startActive) {
                 const rem = getRemaining(timers.startEnd);
-                if (rem.total <= 0) { 
-                    audioController.forceStart(); 
-                    clearStartUI(); 
-                }
-            } else if (timers.startEnd) {
-                clearStartUI();
-            }
-
+                if (rem.total <= 0) { audioController.forceStart(); clearStartUI(); }
+            } else if (timers.startEnd) { clearStartUI(); }
             updateHeaderTimerUI();
         };
-
         DOM.sleepActions.addEventListener('click', e => {
             if(e.target.tagName !== 'BUTTON') return;
             const mins = parseInt(e.target.dataset.min);
             if (mins) {
                 if(timers.startEnd) clearStartUI(); 
                 audioController.forceStart(); 
-                
                 const now = Date.now();
                 timers.sleepEnd = (timers.sleepEnd && timers.sleepEnd > now) ? timers.sleepEnd + (mins * 60000) : now + (mins * 60000);
-                
-                DOM.sleepCancelBtn.classList.add('visible');
-                DOM.sleepDigital.classList.add('visible');
-                
+                DOM.sleepCancelBtn.classList.add('visible'); DOM.sleepDigital.classList.add('visible');
                 startEngine();
-                
                 clearTimeout(timers.sleepTo);
                 const remainingMs = timers.sleepEnd - Date.now();
                 timers.sleepTo = setTimeout(() => { audioController.fadeOut(); clearSleepUI(); }, remainingMs); 
             }
         });
-
         DOM.startActions.addEventListener('click', e => {
             if(e.target.tagName !== 'BUTTON') return;
             const mins = parseInt(e.target.dataset.min);
             if (mins) {
                 if(timers.sleepEnd) clearSleepUI(); 
-                
                 const now = Date.now();
                 timers.startEnd = (timers.startEnd && timers.startEnd > now) ? timers.startEnd + (mins * 60000) : now + (mins * 60000);
-                
-                DOM.startCancelBtn.classList.add('visible');
-                DOM.startDigital.classList.add('visible');
-                
+                DOM.startCancelBtn.classList.add('visible'); DOM.startDigital.classList.add('visible');
                 startEngine();
-                
                 clearTimeout(timers.startTo);
                 const remainingMs = timers.startEnd - Date.now();
                 timers.startTo = setTimeout(() => { audioController.forceStart(); clearStartUI(); }, remainingMs); 
             }
         });
-
         DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); 
         DOM.startCancelBtn.addEventListener('click', clearStartUI);
 
-        // --- Radio Service (بدون تغيير) ---
         const radioService = {
             async fetchByStr(country) {
                 try {
@@ -744,39 +645,29 @@
             }
         };
 
-        // --- Audio Controller (بدون تغيير) ---
         const audioController = {
             play() {
                 const prom = DOM.audio.play();
                 if (prom) {
                     prom.then(() => { 
-                        isPlaying = true; 
-                        errorCount = 0; 
-                        DOM.playIcon.className = 'fas fa-pause'; 
-                        DOM.playIcon.style.paddingLeft = '0'; 
+                        isPlaying = true; errorCount = 0; 
+                        DOM.playIcon.className = 'fas fa-pause'; DOM.playIcon.style.paddingLeft = '0'; 
                         DOM.logo.classList.add('playing'); 
                     }).catch(err => { 
                         if (err.name === 'NotAllowedError') {
                             isPlaying = false;
-                            DOM.playIcon.className = 'fas fa-play';
-                            DOM.playIcon.style.paddingLeft = '3px';
+                            DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px';
                             DOM.logo.classList.remove('playing');
-                        } else if (err.name !== 'AbortError') {
-                            this.handleError(); 
-                        }
+                        } else if (err.name !== 'AbortError') { this.handleError(); }
                     });
                 }
             },
             pause() { 
-                DOM.audio.pause(); 
-                isPlaying = false; 
-                DOM.playIcon.className = 'fas fa-play'; 
-                DOM.playIcon.style.paddingLeft = '3px'; 
+                DOM.audio.pause(); isPlaying = false; 
+                DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; 
                 DOM.logo.classList.remove('playing'); 
             },
-            toggle() { 
-                isPlaying ? this.pause() : this.play(); 
-            },
+            toggle() { isPlaying ? this.pause() : this.play(); },
             forceStart() { 
                 if(DOM.audio.src || stations.length) { 
                     if(!DOM.audio.src) UIController.loadIndex(0); 
@@ -786,222 +677,203 @@
             fadeOut() {
                 const initVol = DOM.audio.volume; 
                 if(initVol <= 0 || !isPlaying) return this.pause();
-                
-                const step = initVol / 20; 
-                let c = 0;
-                
+                const step = initVol / 20; let c = 0;
                 const i = setInterval(() => { 
-                    c++; 
-                    DOM.audio.volume = Math.max(0, initVol - (step * c));
-                    if(c >= 20) { 
-                        clearInterval(i); 
-                        this.pause(); 
-                        DOM.audio.volume = initVol; 
-                        DOM.vol.value = initVol; 
-                    } 
+                    c++; DOM.audio.volume = Math.max(0, initVol - (step * c));
+                    if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } 
                 }, 100);
             },
             handleError() {
                 if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) {
-                    errorCount++; 
-                    DOM.sub.textContent = "Offline. Skipping..."; 
-                    DOM.logo.classList.remove('playing'); 
-                    DOM.playIcon.className = 'fas fa-spinner fa-spin';
-                    
-                    clearTimeout(skipTimeout); 
-                    autoSkipInProgress = true;
-                    
+                    errorCount++; DOM.sub.textContent = "Offline. Skipping..."; 
+                    DOM.logo.classList.remove('playing'); DOM.playIcon.className = 'fas fa-spinner fa-spin';
+                    clearTimeout(skipTimeout); autoSkipInProgress = true;
                     skipTimeout = setTimeout(() => { 
                         UIController.loadIndex((currentIndex + 1) % stations.length); 
                         autoSkipInProgress = false; 
                     }, 1500);
-                } else { 
-                    this.pause(); 
-                    DOM.sub.textContent = "Stream Unavailable"; 
-                }
+                } else { this.pause(); DOM.sub.textContent = "Stream Unavailable"; }
             }
         };
 
-        // --- راقص النيون المرعب (Stickman Dancer) ---
-        let dancerCleanup = null; // دالة إيقاف الراقص السابق
-
-        function createDancer(seed) {
-            // إيقاف أي راقص سابق
-            if (dancerCleanup) {
-                dancerCleanup();
-                dancerCleanup = null;
-            }
-
-            const logoEl = DOM.logo;
-            logoEl.innerHTML = ''; // مسح المحتوى السابق
-
-            const svgNS = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNS, "svg");
-            svg.setAttribute("viewBox", "-50 -60 100 110");
-            svg.setAttribute("class", "dancer-svg");
-            
-            // رأس
-            const head = document.createElementNS(svgNS, "circle");
-            head.setAttribute("cx", "0");
-            head.setAttribute("cy", "-35");
-            head.setAttribute("r", "12");
-            head.setAttribute("class", "head");
-            
-            // الجسم (عمود فقري)
-            const spine = document.createElementNS(svgNS, "line");
-            spine.setAttribute("x1", "0");
-            spine.setAttribute("y1", "-23");
-            spine.setAttribute("x2", "0");
-            spine.setAttribute("y2", "15");
-            spine.setAttribute("class", "limb");
-
-            // الأطراف: سنستخدم مجموعات لكل طرف، ونطبق عليها تحويلات دورانية
-            const createLimbGroup = (x, y, length1, length2, className) => {
-                const g = document.createElementNS(svgNS, "g");
-                const upper = document.createElementNS(svgNS, "line");
-                upper.setAttribute("x1", x);
-                upper.setAttribute("y1", y);
-                upper.setAttribute("x2", x);
-                upper.setAttribute("y2", y + length1);
-                upper.setAttribute("class", className);
-                
-                const joint = document.createElementNS(svgNS, "circle");
-                joint.setAttribute("cx", x);
-                joint.setAttribute("cy", y + length1);
-                joint.setAttribute("r", "3");
-                joint.setAttribute("class", "joint");
-                
-                const lower = document.createElementNS(svgNS, "line");
-                lower.setAttribute("x1", x);
-                lower.setAttribute("y1", y + length1);
-                lower.setAttribute("x2", x);
-                lower.setAttribute("y2", y + length1 + length2);
-                lower.setAttribute("class", className);
-                
-                g.appendChild(upper);
-                g.appendChild(joint);
-                g.appendChild(lower);
-                return g;
-            };
-
-            // ذراع يسار (من الكتف إلى أسفل)
-            const leftArm = createLimbGroup(0, -23, -20, -18, "limb"); // أطوال عشوائية مبدئياً
-            const rightArm = createLimbGroup(0, -23, -20, -18, "limb");
-            // رجل يسار (من الحوض)
-            const leftLeg = createLimbGroup(0, 15, 22, 20, "limb");
-            const rightLeg = createLimbGroup(0, 15, 22, 20, "limb");
-
-            svg.appendChild(head);
-            svg.appendChild(spine);
-            svg.appendChild(leftArm);
-            svg.appendChild(rightArm);
-            svg.appendChild(leftLeg);
-            svg.appendChild(rightLeg);
-            
-            logoEl.appendChild(svg);
-
-            // توليد معاملات فريدة للحركة بناءً على seed
-            const pseudoRandom = (s) => {
+        // الراقص
+        const dancerSystem = {
+            currentUUID: null, animFrame: null, svg: null,
+            hashFromUUID(uuid) {
                 let hash = 0;
-                for (let i = 0; i < s.length; i++) {
-                    const char = s.charCodeAt(i);
+                for (let i = 0; i < uuid.length; i++) {
+                    const char = uuid.charCodeAt(i);
                     hash = ((hash << 5) - hash) + char;
-                    hash |= 0; // Convert to 32bit integer
+                    hash |= 0;
                 }
-                return Math.abs(hash) / 2147483647;
-            };
+                return Math.abs(hash);
+            },
+            generateParams(uuid) {
+                const seed = this.hashFromUUID(uuid);
+                const freqLA = 1.8 + (seed % 1000) / 1000 * 1.7;
+                const freqRA = 2.1 + ((seed * 3) % 1000) / 1000 * 1.4;
+                const freqLL = 2.4 + ((seed * 5) % 1000) / 1000 * 1.1;
+                const freqRL = 1.9 + ((seed * 7) % 1000) / 1000 * 1.6;
+                const phaseLA = (seed % 360) * Math.PI / 180;
+                const phaseRA = ((seed * 2) % 360) * Math.PI / 180;
+                const phaseLL = ((seed * 3) % 360) * Math.PI / 180;
+                const phaseRL = ((seed * 4) % 360) * Math.PI / 180;
+                const ampElbow = 20 + (seed % 31); 
+                const ampKnee = 15 + ((seed * 11) % 36);
+                return { freqLA, freqRA, freqLL, freqRL, phaseLA, phaseRA, phaseLL, phaseRL, ampElbow, ampKnee };
+            },
+            createSVG() {
+                const svgNS = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNS, "svg");
+                svg.setAttribute("viewBox", "0 0 120 120");
+                svg.setAttribute("width", "120");
+                svg.setAttribute("height", "120");
+                svg.style.position = "absolute";
+                svg.style.top = "0";
+                svg.style.left = "0";
 
-            const seedNum = pseudoRandom(seed);
-            // ترددات وأطوار مختلفة لكل مفصل
-            const freqLArm = 2.3 + seedNum * 2; // بين 2.3 و 4.3
-            const freqRArm = 2.7 + (1 - seedNum) * 2;
-            const freqLLeg = 1.8 + seedNum * 2.5;
-            const freqRLeg = 2.1 + (1 - seedNum) * 2.5;
-            
-            const phaseLArm = seedNum * Math.PI * 2;
-            const phaseRArm = (1 - seedNum) * Math.PI * 2;
-            const phaseLLeg = seedNum * Math.PI;
-            const phaseRLeg = (1 - seedNum) * Math.PI;
+                const head = document.createElementNS(svgNS, "circle");
+                head.setAttribute("cx", "60"); head.setAttribute("cy", "30"); head.setAttribute("r", "10");
+                head.setAttribute("fill", "none"); head.setAttribute("stroke", "#3b82f6");
+                head.setAttribute("stroke-width", "2.5"); head.setAttribute("stroke-linecap", "round");
+                svg.appendChild(head);
 
-            // زوايا قصوى (مرعبة)
-            const ampArm = 60 + seedNum * 40; // 60-100 درجة
-            const ampLeg = 40 + (1 - seedNum) * 50; // 40-90 درجة
+                const body = document.createElementNS(svgNS, "line");
+                body.setAttribute("x1", "60"); body.setAttribute("y1", "40"); body.setAttribute("x2", "60"); body.setAttribute("y2", "70");
+                body.setAttribute("stroke", "#3b82f6"); body.setAttribute("stroke-width", "3"); body.setAttribute("stroke-linecap", "round");
+                svg.appendChild(body);
 
-            let animFrame;
-            const animate = () => {
-                const t = Date.now() / 1000; // الوقت بالثواني
-                // زوايا دورانية (بالدرجات)
-                const lArmAngle = Math.sin(t * freqLArm + phaseLArm) * ampArm;
-                const rArmAngle = Math.sin(t * freqRArm + phaseRArm) * ampArm;
-                const lLegAngle = Math.sin(t * freqLLeg + phaseLLeg) * ampLeg;
-                const rLegAngle = Math.sin(t * freqRLeg + phaseRLeg) * ampLeg;
+                const leftArm = document.createElementNS(svgNS, "polyline");
+                leftArm.setAttribute("stroke", "#3b82f6"); leftArm.setAttribute("stroke-width", "2.5");
+                leftArm.setAttribute("fill", "none"); leftArm.setAttribute("stroke-linecap", "round"); leftArm.setAttribute("stroke-linejoin", "round");
+                leftArm.setAttribute("id", "leftArm"); svg.appendChild(leftArm);
 
-                // تطبيق الدوران على المجموعات (حول نقطة الكتف/الحوض)
-                leftArm.setAttribute("transform", `rotate(${lArmAngle}, 0, -23)`);
-                rightArm.setAttribute("transform", `rotate(${rArmAngle}, 0, -23)`);
-                leftLeg.setAttribute("transform", `rotate(${lLegAngle}, 0, 15)`);
-                rightLeg.setAttribute("transform", `rotate(${rLegAngle}, 0, 15)`);
+                const rightArm = document.createElementNS(svgNS, "polyline");
+                rightArm.setAttribute("stroke", "#3b82f6"); rightArm.setAttribute("stroke-width", "2.5");
+                rightArm.setAttribute("fill", "none"); rightArm.setAttribute("stroke-linecap", "round"); rightArm.setAttribute("stroke-linejoin", "round");
+                rightArm.setAttribute("id", "rightArm"); svg.appendChild(rightArm);
 
-                animFrame = requestAnimationFrame(animate);
-            };
+                const leftLeg = document.createElementNS(svgNS, "polyline");
+                leftLeg.setAttribute("stroke", "#3b82f6"); leftLeg.setAttribute("stroke-width", "2.5");
+                leftLeg.setAttribute("fill", "none"); leftLeg.setAttribute("stroke-linecap", "round"); leftLeg.setAttribute("stroke-linejoin", "round");
+                leftLeg.setAttribute("id", "leftLeg"); svg.appendChild(leftLeg);
 
-            animFrame = requestAnimationFrame(animate);
+                const rightLeg = document.createElementNS(svgNS, "polyline");
+                rightLeg.setAttribute("stroke", "#3b82f6"); rightLeg.setAttribute("stroke-width", "2.5");
+                rightLeg.setAttribute("fill", "none"); rightLeg.setAttribute("stroke-linecap", "round"); rightLeg.setAttribute("stroke-linejoin", "round");
+                rightLeg.setAttribute("id", "rightLeg"); svg.appendChild(rightLeg);
 
-            // دالة التنظيف
-            dancerCleanup = () => {
-                if (animFrame) cancelAnimationFrame(animFrame);
-                logoEl.innerHTML = ''; // إزالة الراقص
-            };
-        }
+                return svg;
+            },
+            updateFigure(time, params) {
+                const { freqLA, freqRA, freqLL, freqRL, phaseLA, phaseRA, phaseLL, phaseRL, ampElbow, ampKnee } = params;
+                const t = time * 0.001;
+                const shoulder = { x: 60, y: 45 };
+                const hip = { x: 60, y: 70 };
+                const leftElbowAngle = Math.sin(t * freqLA + phaseLA) * ampElbow * Math.PI/180;
+                const rightElbowAngle = Math.sin(t * freqRA + phaseRA) * ampElbow * Math.PI/180;
+                const leftKneeAngle = Math.sin(t * freqLL + phaseLL) * ampKnee * Math.PI/180;
+                const rightKneeAngle = Math.sin(t * freqRL + phaseRL) * ampKnee * Math.PI/180;
+                const upperArmLen = 18, foreArmLen = 16, thighLen = 20, shinLen = 18;
 
-        // --- UI Controller (مع تعديل updateUI لإضافة الراقص) ---
+                const leftElbow = {
+                    x: shoulder.x - Math.sin(leftElbowAngle) * upperArmLen * 0.6,
+                    y: shoulder.y + Math.cos(leftElbowAngle) * upperArmLen
+                };
+                const rightElbow = {
+                    x: shoulder.x + Math.sin(rightElbowAngle) * upperArmLen * 0.6,
+                    y: shoulder.y + Math.cos(rightElbowAngle) * upperArmLen
+                };
+                const leftHand = {
+                    x: leftElbow.x - Math.sin(leftElbowAngle * 1.3) * foreArmLen * 0.5,
+                    y: leftElbow.y + Math.cos(leftElbowAngle * 1.3) * foreArmLen
+                };
+                const rightHand = {
+                    x: rightElbow.x + Math.sin(rightElbowAngle * 1.2) * foreArmLen * 0.5,
+                    y: rightElbow.y + Math.cos(rightElbowAngle * 1.2) * foreArmLen
+                };
+                const leftKnee = {
+                    x: hip.x - Math.sin(leftKneeAngle) * thighLen * 0.5,
+                    y: hip.y + Math.cos(leftKneeAngle) * thighLen
+                };
+                const rightKnee = {
+                    x: hip.x + Math.sin(rightKneeAngle) * thighLen * 0.5,
+                    y: hip.y + Math.cos(rightKneeAngle) * thighLen
+                };
+                const leftFoot = {
+                    x: leftKnee.x - Math.sin(leftKneeAngle * 0.8) * shinLen * 0.5,
+                    y: leftKnee.y + Math.cos(leftKneeAngle * 0.8) * shinLen
+                };
+                const rightFoot = {
+                    x: rightKnee.x + Math.sin(rightKneeAngle * 0.9) * shinLen * 0.5,
+                    y: rightKnee.y + Math.cos(rightKneeAngle * 0.9) * shinLen
+                };
+
+                const leftArm = this.svg.getElementById("leftArm");
+                leftArm.setAttribute("points", `${shoulder.x},${shoulder.y} ${leftElbow.x},${leftElbow.y} ${leftHand.x},${leftHand.y}`);
+                const rightArm = this.svg.getElementById("rightArm");
+                rightArm.setAttribute("points", `${shoulder.x},${shoulder.y} ${rightElbow.x},${rightElbow.y} ${rightHand.x},${rightHand.y}`);
+                const leftLeg = this.svg.getElementById("leftLeg");
+                leftLeg.setAttribute("points", `${hip.x},${hip.y} ${leftKnee.x},${leftKnee.y} ${leftFoot.x},${leftFoot.y}`);
+                const rightLeg = this.svg.getElementById("rightLeg");
+                rightLeg.setAttribute("points", `${hip.x},${hip.y} ${rightKnee.x},${rightKnee.y} ${rightFoot.x},${rightFoot.y}`);
+            },
+            startDance(uuid) {
+                this.stopDance();
+                this.currentUUID = uuid;
+                const params = this.generateParams(uuid);
+                this.svg = this.createSVG();
+                DOM.logo.innerHTML = '';
+                DOM.logo.appendChild(this.svg);
+                const animate = (time) => {
+                    if (this.currentUUID !== uuid) return;
+                    this.updateFigure(time, params);
+                    this.animFrame = requestAnimationFrame(animate);
+                };
+                this.animFrame = requestAnimationFrame(animate);
+            },
+            stopDance() {
+                if (this.animFrame) { cancelAnimationFrame(this.animFrame); this.animFrame = null; }
+                if (this.svg && this.svg.parentNode) { this.svg.parentNode.removeChild(this.svg); }
+                this.currentUUID = null;
+            }
+        };
+
         const UIController = {
             loadIndex(index) {
                 if (!stations.length) return; 
                 currentIndex = index;
                 const s = stations[currentIndex]; 
                 isExternalFavPlaying = false;
-                
-                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon);
+                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon, s.stationuuid);
                 DOM.audio.src = s.url_resolved || s.url || '';
                 this.enableControls(); 
                 checkFavState(s.stationuuid); 
-                
                 if (isPlaying) audioController.play();
             },
             loadExternalFav(fav) {
                 isExternalFavPlaying = true; 
-                this.updateUI(fav.name, "Saved Station", fav.img);
+                this.updateUI(fav.name, "Saved Station", fav.img, fav.id);
                 DOM.audio.src = fav.url; 
                 this.enableControls(); 
                 checkFavState(fav.id); 
                 audioController.play();
             },
-            updateUI(title, subtitle, imgSrc) {
+            updateUI(title, subtitle, imgSrc, uuid) {
                 DOM.title.textContent = title || 'Unknown'; 
                 DOM.sub.textContent = subtitle;
-
-                // إيقاف أي راقص سابق
-                if (dancerCleanup) {
-                    dancerCleanup();
-                    dancerCleanup = null;
-                }
-
-                if(imgSrc) { 
+                if (imgSrc) {
+                    dancerSystem.stopDance();
                     const img = new Image(); 
                     img.src = imgSrc; 
-                    img.onload = () => {
-                        DOM.logo.innerHTML = `<img src="${imgSrc}"/>`;
-                    }; 
+                    img.onload = () => { DOM.logo.innerHTML = `<img src="${imgSrc}"/>`; }; 
                     img.onerror = () => {
-                        // إذا فشل تحميل الصورة، نعرض الراقص المرعب
-                        const seed = (stations[currentIndex]?.stationuuid) || (title || 'default');
-                        createDancer(seed);
-                    }; 
-                } else { 
-                    // لا توجد صورة -> راقص مرعب
-                    const seed = (stations[currentIndex]?.stationuuid) || (title || 'default');
-                    createDancer(seed);
+                        if (uuid) dancerSystem.startDance(uuid);
+                        else DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
+                    };
+                } else {
+                    if (uuid) { dancerSystem.startDance(uuid); }
+                    else { dancerSystem.stopDance(); DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; }
                 }
                 DOM.audio.volume = DOM.vol.value;
             },
@@ -1011,48 +883,36 @@
             emptyState() { 
                 DOM.title.textContent = 'No Stations Found'; 
                 DOM.sub.textContent = 'Please enter a valid country in bot'; 
+                dancerSystem.stopDance();
                 DOM.logo.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger)"></i>'; 
-                if (dancerCleanup) {
-                    dancerCleanup();
-                    dancerCleanup = null;
-                }
             }
         };
 
-        // --- Events (بإضافة زر المشاركة) ---
         DOM.playBtn.addEventListener('click', () => audioController.toggle());
         DOM.nextBtn.addEventListener('click', () => UIController.loadIndex((currentIndex + 1) % stations.length));
         DOM.prevBtn.addEventListener('click', () => UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length));
         DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
         DOM.audio.addEventListener('error', () => audioController.handleError());
 
-        // مشاركة المحطة
+        // زر المشاركة (يعمل من تحت الهيدر)
         DOM.shareBtn.addEventListener('click', () => {
-            let stationId = '';
-            if (isExternalFavPlaying) {
-                const fav = savedStations.find(s => s.url === DOM.audio.src);
-                stationId = fav?.id || '';
-            } else if (stations.length) {
-                stationId = stations[currentIndex]?.stationuuid || '';
-            }
-            if (!stationId) {
-                alert('No station selected');
-                return;
-            }
+            const currentStation = isExternalFavPlaying 
+                ? savedStations.find(s => s.url === DOM.audio.src) 
+                : stations[currentIndex];
+            if (!currentStation) return;
+            const stationId = currentStation.stationuuid || currentStation.id || '';
             const shareUrl = `https://t.me/Time_of_world_origins_bot/Radio?startapp=${stationId}`;
-            
             if (navigator.share) {
                 navigator.share({
-                    title: 'Listen to this radio station',
-                    text: `🎵 ${DOM.title.textContent}`,
+                    title: 'Listen to ' + (currentStation.name || 'this station'),
+                    text: 'Tune in to ' + (currentStation.name || 'radio') + ' on Global Radio Player!',
                     url: shareUrl,
                 }).catch(() => {});
             } else {
-                // Fallback: نسخ الرابط
-                navigator.clipboard.writeText(shareUrl).then(() => {
+                navigator.clipboard?.writeText(shareUrl).then(() => {
                     alert('Station link copied to clipboard!');
                 }).catch(() => {
-                    prompt('Copy this link:', shareUrl);
+                    prompt('Copy this link to share:', shareUrl);
                 });
             }
         });
@@ -1066,18 +926,12 @@
         DOM.saveBtn.addEventListener('click', () => {
             const current = isExternalFavPlaying ? savedStations.find(s => s.url === DOM.audio.src) : stations[currentIndex];
             if(!current) return;
-            
             const stId = current.stationuuid || current.id;
             const existIdx = savedStations.findIndex(s => s.id === stId);
-            
-            if (existIdx > -1) {
-                savedStations.splice(existIdx, 1); 
-            } else {
+            if (existIdx > -1) { savedStations.splice(existIdx, 1); } 
+            else {
                 savedStations.push({ 
-                    id: stId, 
-                    name: current.name, 
-                    url: current.url_resolved || current.url, 
-                    img: current.favicon || current.img 
+                    id: stId, name: current.name, url: current.url_resolved || current.url, img: current.favicon || current.img 
                 });
             }
             localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); 
@@ -1091,58 +945,39 @@
                 const li = document.createElement('li'); 
                 li.className = 'fav-item';
                 li.innerHTML = `<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${f.name}">${f.name || 'Unknown'}</div></div><button class="fav-remove" title="Remove"><i class="fas fa-trash-alt"></i></button>`;
-                
                 li.querySelector('.fav-item-content').addEventListener('click', () => {
                     DOM.favModal.classList.remove('open'); 
                     const idx = stations.findIndex(s => s.stationuuid === f.id);
-                    if(idx > -1) { 
-                        UIController.loadIndex(idx); 
-                        audioController.play(); 
-                    } else { 
-                        UIController.loadExternalFav(f); 
-                    }
+                    if(idx > -1) { UIController.loadIndex(idx); audioController.play(); } 
+                    else { UIController.loadExternalFav(f); }
                 });
-                
                 li.querySelector('.fav-remove').addEventListener('click', e => {
                     e.stopPropagation(); 
                     savedStations.splice(i, 1); 
                     localStorage.setItem('radio_saved_list', JSON.stringify(savedStations));
                     renderFavorites(); 
-                    
                     const activeId = isExternalFavPlaying ? f.id : (stations[currentIndex]?.stationuuid);
                     if (activeId === f.id) checkFavState(f.id);
                 }); 
-                
                 DOM.favList.appendChild(li);
             });
         };
 
-        DOM.openFavs.addEventListener('click', () => { 
-            renderFavorites(); 
-            DOM.favModal.classList.add('open'); 
-        }); 
-        
+        DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); 
         DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
         async function bootApp() {
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
-            
             if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { 
                 UIController.emptyState(); 
                 DOM.loading.style.display = 'none'; 
                 return; 
             }
-            
             stations = await radioService.fetchByStr(TARGET_COUNTRY);
-            
-            if(stations.length) { 
-                UIController.loadIndex(0); 
-            } else { 
-                UIController.emptyState(); 
-            }
+            if(stations.length) { UIController.loadIndex(0); } 
+            else { UIController.emptyState(); }
             DOM.loading.style.display = 'none';
         }
-        
         bootApp();
     </script>
 </body>
