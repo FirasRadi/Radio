@@ -70,6 +70,13 @@
             gap: 10px;
         }
 
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
         .header-country {
             flex: 1;
             font-size: 15px;
@@ -80,6 +87,7 @@
             text-overflow: ellipsis;
             text-align: center;
             letter-spacing: 0.5px;
+            align-self: center;
         }
 
         .icon-btn {
@@ -132,13 +140,6 @@
             0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
             100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-        }
-
-        /* صف زر المشاركة تحت الهيدر */
-        .share-row {
-            display: flex;
-            justify-content: center;
-            margin-bottom: -8px; /* تقريب المسافة */
         }
 
         .logo-container {
@@ -207,7 +208,7 @@
             width: 70px; height: 70px;
             background: linear-gradient(135deg, var(--primary), var(--primary-hover));
             border-radius: 50%; font-size: 24px; color: #fff; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
-            display: flex; align-items: center; justify-content: center; padding-left: 3px; 
+            display: flex; align-items: center; justify-content: center; padding-left: 3px;
         }
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
@@ -232,15 +233,14 @@
         .action-btn.active-fav { color: var(--danger); animation: heartBeat 0.4s ease; }
         @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
 
-        .footer-note { 
-            font-size: 11px; 
-            color: var(--danger); 
-            margin-top: -5px; 
+        .footer-note {
+            font-size: 11px;
+            color: var(--danger);
+            margin-top: -5px;
             font-weight: 600;
             letter-spacing: 0.5px;
         }
 
-        /* PayPal تحت اللوحة */
         .paypal-wrapper {
             width: 100%;
             max-width: 420px;
@@ -252,9 +252,9 @@
             order: 2;
         }
         .paypal-svg { position: absolute; width: 100px; height: 100px; pointer-events: none; }
-        .paypal-svg text { 
-            font-size: 11.5px; 
-            fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; 
+        .paypal-svg text {
+            font-size: 11.5px;
+            fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold;
         }
         .donate-btn {
             width: 50px; height: 50px; background: #0070ba; border-radius: 50%;
@@ -264,7 +264,7 @@
         }
         .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
 
-        /* Bottom Sheet */
+        /* Bottom Sheets */
         .sheet-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
             z-index: 140; opacity: 0; visibility: hidden; transition: 0.3s ease;
@@ -284,11 +284,8 @@
             display: flex; justify-content: space-between; align-items: center;
             font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 5px;
         }
-        .sheet-header-timer {
-            color: var(--warning); font-family: monospace; font-size: 15px; margin-left: 8px; font-weight: 700;
-        }
         .close-sheet { background: none; border: none; color: var(--text-sub); font-size: 20px; cursor: pointer; }
-        
+
         .compact-timer-row {
             background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass);
             border-radius: 16px; padding: 12px 16px;
@@ -299,7 +296,7 @@
             font-size: 14px; font-weight: 600;
         }
         .timer-info-left { display: flex; align-items: center; gap: 8px; }
-        
+
         .digital-timer {
             font-family: monospace; font-size: 18px; font-weight: 700; color: var(--warning);
             background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 6px; display: none;
@@ -313,7 +310,7 @@
             cursor: pointer; transition: 0.2s; flex: 1; text-align: center;
         }
         .timer-actions button:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-        
+
         .cancel-timer-btn {
             background: rgba(239, 68, 68, 0.15); color: var(--danger); border: none;
             padding: 8px; border-radius: 12px; font-size: 13px; font-weight: 600;
@@ -321,6 +318,17 @@
         }
         .cancel-timer-btn.visible { display: block; }
         .cancel-timer-btn:hover { background: var(--danger); color: #fff; }
+
+        /* Theme Color Picker */
+        .theme-colors {
+            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+        }
+        .theme-color-btn {
+            width: 48px; height: 48px; border-radius: 50%; border: 2px solid transparent;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .theme-color-btn:hover { transform: scale(1.1); border-color: #fff; }
 
         .modal {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 200;
@@ -330,7 +338,7 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 700; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-glass); }
         .close-modal { background: none; border: none; color: var(--text-sub); font-size: 24px; cursor: pointer; transition: 0.2s; }
         .close-modal:hover { color: var(--danger); transform: rotate(90deg); }
-        
+
         .fav-list { flex: 1; overflow-y: auto; list-style: none; padding-right: 5px; }
         .fav-list::-webkit-scrollbar { width: 5px; }
         .fav-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
@@ -339,7 +347,7 @@
         .fav-item-content { display: flex; align-items: center; flex: 1; cursor: pointer; gap: 15px; overflow: hidden; }
         .fav-play-icon { color: var(--primary); font-size: 22px; }
         .fav-info { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size:14px; }
-        
+
         .fav-remove { color: var(--danger); background: rgba(239, 68, 68, 0.15); border: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .fav-remove:hover { background: var(--danger); color: #fff; }
 
@@ -349,7 +357,7 @@
 </head>
 <body>
 
-    <!-- PayPal Component (تحت اللوحة) -->
+    <!-- PayPal Component -->
     <div class="paypal-wrapper">
         <svg class="paypal-svg" viewBox="0 0 100 100">
             <path id="curve" d="M 18 50 A 32 32 0 0 1 82 50" fill="transparent" />
@@ -362,34 +370,31 @@
         </a>
     </div>
 
-    <!-- Loading Screen -->
     <div id="loading">
         <div class="spinner"></div>
         <span>FETCHING STATIONS...</span>
     </div>
 
-    <!-- Main Player Card -->
     <div class="player-card">
         <div class="header">
-            <button class="icon-btn" id="toggleTimerBtn" title="Timers">
-                <i class="fas fa-stopwatch"></i>
-                <span id="mainHeaderTimer" class="header-timer-text"></span>
-            </button>
-            
+            <div class="header-left">
+                <button class="icon-btn" id="toggleTimerBtn" title="Timers">
+                    <i class="fas fa-stopwatch"></i>
+                    <span id="mainHeaderTimer" class="header-timer-text"></span>
+                </button>
+                <button class="icon-btn" id="shareBtn" title="Share Station">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button class="icon-btn" id="themeBtn" title="Change Theme">
+                    <i class="fas fa-palette"></i>
+                </button>
+            </div>
             <div class="header-country" id="headerCountry">Global Radio</div>
-            
             <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
         </div>
 
-        <!-- زر المشاركة تحت الهيدر (تحت زر المؤقت) -->
-        <div class="share-row">
-            <button class="icon-btn" id="shareBtn" title="Share Station">
-                <i class="fas fa-share-alt"></i>
-            </button>
-        </div>
-
         <div class="logo-container">
-            <div class="logo" id="stationLogo"></div>
+            <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
             <div class="station-name" id="stationTitle">Loading...</div>
             <div class="station-counter" id="stationSub">Initializing</div>
         </div>
@@ -407,17 +412,15 @@
                 <i class="fas fa-volume-up" style="color:var(--text-sub); font-size:16px;"></i>
             </div>
             <button class="action-btn" id="saveFavBtn" title="Save Station"><i class="far fa-heart"></i></button>
-            <!-- زر المشاركة أزلناه من هنا -->
         </div>
 
         <div class="footer-note">Change country inside the bot chat.</div>
         <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
-    <!-- Bottom Sheet Timer -->
+    <!-- Timer Sheet -->
     <div class="sheet-overlay" id="timerOverlay"></div>
     <div class="bottom-sheet" id="timerSheet">
-        <!-- ... محتوى الـ Sheet بدون تغيير ... -->
         <div class="sheet-header">
             <div>
                 <i class="fas fa-stopwatch" style="color:var(--primary); margin-right:5px;"></i> Auto Timers
@@ -455,6 +458,16 @@
         </div>
     </div>
 
+    <!-- Theme Sheet -->
+    <div class="sheet-overlay" id="themeOverlay"></div>
+    <div class="bottom-sheet" id="themeSheet">
+        <div class="sheet-header">
+            <div><i class="fas fa-palette" style="color:var(--primary); margin-right:5px;"></i> Pick a Theme</div>
+            <button class="close-sheet" id="closeThemeBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="theme-colors" id="themeColors"></div>
+    </div>
+
     <!-- Favorites Modal -->
     <div class="modal" id="favModal">
         <div class="modal-header">
@@ -481,6 +494,7 @@
             vol: document.getElementById('volumeSlider'),
             saveBtn: document.getElementById('saveFavBtn'),
             shareBtn: document.getElementById('shareBtn'),
+            themeBtn: document.getElementById('themeBtn'),
             openFavs: document.getElementById('openFavsBtn'),
             closeFavs: document.getElementById('closeFavsBtn'),
             favModal: document.getElementById('favModal'),
@@ -497,18 +511,18 @@
             sleepCancelBtn: document.getElementById('sleepCancelBtn'),
             startDigital: document.getElementById('startDigital'),
             startActions: document.getElementById('startActions'),
-            startCancelBtn: document.getElementById('startCancelBtn')
+            startCancelBtn: document.getElementById('startCancelBtn'),
+            themeOverlay: document.getElementById('themeOverlay'),
+            themeSheet: document.getElementById('themeSheet'),
+            closeThemeBtn: document.getElementById('closeThemeBtn'),
+            themeColors: document.getElementById('themeColors')
         };
 
         let stations = []; 
         let currentIndex = 0; 
         let isPlaying = false; 
         let savedStations = [];
-        try {
-            savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || [];
-        } catch (e) {
-            savedStations = [];
-        }
+        try { savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || []; } catch (e) { savedStations = []; }
         let errorCount = 0; 
         let isExternalFavPlaying = false; 
         let autoSkipInProgress = false; 
@@ -519,21 +533,16 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // نظام المؤقتات (بدون تغيير)
+        // ── مؤقتات ──
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null };
         const toggleTimerSheet = () => {
-            const isOpen = DOM.timerSheet.classList.contains('open');
-            if (isOpen) {
-                DOM.timerSheet.classList.remove('open');
-                DOM.timerOverlay.classList.remove('open');
-            } else {
-                DOM.timerSheet.classList.add('open');
-                DOM.timerOverlay.classList.add('open');
-            }
+            DOM.timerSheet.classList.toggle('open');
+            DOM.timerOverlay.classList.toggle('open');
         };
         DOM.timersToggleBtn.addEventListener('click', toggleTimerSheet);
         DOM.closeTimerBtn.addEventListener('click', toggleTimerSheet);
         DOM.timerOverlay.addEventListener('click', toggleTimerSheet);
+
         const formatTime = (totalSeconds) => {
             const h = Math.floor(totalSeconds / 3600);
             const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
@@ -625,6 +634,61 @@
         DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); 
         DOM.startCancelBtn.addEventListener('click', clearStartUI);
 
+        // ── الثيمات ──
+        const themes = [
+            { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)', emoji: '👑' },
+            { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)', emoji: '🍃' },
+            { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)', emoji: '❤️' },
+            { name: 'Amethyst', primary: '#a855f7', bg: '#1a0a2e', cardBg: 'rgba(88, 28, 135, 0.7)', emoji: '🪻' },
+            { name: 'Sunset', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(154, 52, 18, 0.7)', emoji: '🌅' },
+            { name: 'Ocean', primary: '#06b6d4', bg: '#042f2e', cardBg: 'rgba(21, 94, 117, 0.7)', emoji: '🌊' },
+            { name: 'Lavender', primary: '#d8b4fe', bg: '#1e1b2e', cardBg: 'rgba(109, 40, 217, 0.5)', emoji: '🌸' },
+            { name: 'Midnight', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(49, 46, 129, 0.7)', emoji: '🌙' },
+            { name: 'Golden', primary: '#eab308', bg: '#1f1a04', cardBg: 'rgba(133, 77, 14, 0.7)', emoji: '✨' },
+            { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)', emoji: '🌹' }
+        ];
+
+        function applyTheme(theme) {
+            document.documentElement.style.setProperty('--primary', theme.primary);
+            document.documentElement.style.setProperty('--primary-hover', theme.primary + 'cc');
+            document.documentElement.style.setProperty('--bg-base', theme.bg);
+            document.documentElement.style.setProperty('--card-bg', theme.cardBg);
+            localStorage.setItem('radio_theme', JSON.stringify(theme));
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('radio_theme');
+            if (saved) {
+                try { applyTheme(JSON.parse(saved)); } catch(e){}
+            }
+        }
+
+        function renderThemeButtons() {
+            DOM.themeColors.innerHTML = themes.map(t => 
+                `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'>${t.emoji}</button>`
+            ).join('');
+            DOM.themeColors.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = JSON.parse(btn.dataset.theme);
+                    applyTheme(theme);
+                    DOM.themeSheet.classList.remove('open');
+                    DOM.themeOverlay.classList.remove('open');
+                });
+            });
+        }
+
+        const toggleThemeSheet = () => {
+            DOM.themeSheet.classList.toggle('open');
+            DOM.themeOverlay.classList.toggle('open');
+        };
+        DOM.themeBtn.addEventListener('click', toggleThemeSheet);
+        DOM.closeThemeBtn.addEventListener('click', toggleThemeSheet);
+        DOM.themeOverlay.addEventListener('click', toggleThemeSheet);
+
+        renderThemeButtons();
+        loadTheme();
+
+        // ── الراديو ──
         const radioService = {
             async fetchByStr(country) {
                 try {
@@ -696,156 +760,13 @@
             }
         };
 
-        // الراقص
-        const dancerSystem = {
-            currentUUID: null, animFrame: null, svg: null,
-            hashFromUUID(uuid) {
-                let hash = 0;
-                for (let i = 0; i < uuid.length; i++) {
-                    const char = uuid.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash |= 0;
-                }
-                return Math.abs(hash);
-            },
-            generateParams(uuid) {
-                const seed = this.hashFromUUID(uuid);
-                const freqLA = 1.8 + (seed % 1000) / 1000 * 1.7;
-                const freqRA = 2.1 + ((seed * 3) % 1000) / 1000 * 1.4;
-                const freqLL = 2.4 + ((seed * 5) % 1000) / 1000 * 1.1;
-                const freqRL = 1.9 + ((seed * 7) % 1000) / 1000 * 1.6;
-                const phaseLA = (seed % 360) * Math.PI / 180;
-                const phaseRA = ((seed * 2) % 360) * Math.PI / 180;
-                const phaseLL = ((seed * 3) % 360) * Math.PI / 180;
-                const phaseRL = ((seed * 4) % 360) * Math.PI / 180;
-                const ampElbow = 20 + (seed % 31); 
-                const ampKnee = 15 + ((seed * 11) % 36);
-                return { freqLA, freqRA, freqLL, freqRL, phaseLA, phaseRA, phaseLL, phaseRL, ampElbow, ampKnee };
-            },
-            createSVG() {
-                const svgNS = "http://www.w3.org/2000/svg";
-                const svg = document.createElementNS(svgNS, "svg");
-                svg.setAttribute("viewBox", "0 0 120 120");
-                svg.setAttribute("width", "120");
-                svg.setAttribute("height", "120");
-                svg.style.position = "absolute";
-                svg.style.top = "0";
-                svg.style.left = "0";
-
-                const head = document.createElementNS(svgNS, "circle");
-                head.setAttribute("cx", "60"); head.setAttribute("cy", "30"); head.setAttribute("r", "10");
-                head.setAttribute("fill", "none"); head.setAttribute("stroke", "#3b82f6");
-                head.setAttribute("stroke-width", "2.5"); head.setAttribute("stroke-linecap", "round");
-                svg.appendChild(head);
-
-                const body = document.createElementNS(svgNS, "line");
-                body.setAttribute("x1", "60"); body.setAttribute("y1", "40"); body.setAttribute("x2", "60"); body.setAttribute("y2", "70");
-                body.setAttribute("stroke", "#3b82f6"); body.setAttribute("stroke-width", "3"); body.setAttribute("stroke-linecap", "round");
-                svg.appendChild(body);
-
-                const leftArm = document.createElementNS(svgNS, "polyline");
-                leftArm.setAttribute("stroke", "#3b82f6"); leftArm.setAttribute("stroke-width", "2.5");
-                leftArm.setAttribute("fill", "none"); leftArm.setAttribute("stroke-linecap", "round"); leftArm.setAttribute("stroke-linejoin", "round");
-                leftArm.setAttribute("id", "leftArm"); svg.appendChild(leftArm);
-
-                const rightArm = document.createElementNS(svgNS, "polyline");
-                rightArm.setAttribute("stroke", "#3b82f6"); rightArm.setAttribute("stroke-width", "2.5");
-                rightArm.setAttribute("fill", "none"); rightArm.setAttribute("stroke-linecap", "round"); rightArm.setAttribute("stroke-linejoin", "round");
-                rightArm.setAttribute("id", "rightArm"); svg.appendChild(rightArm);
-
-                const leftLeg = document.createElementNS(svgNS, "polyline");
-                leftLeg.setAttribute("stroke", "#3b82f6"); leftLeg.setAttribute("stroke-width", "2.5");
-                leftLeg.setAttribute("fill", "none"); leftLeg.setAttribute("stroke-linecap", "round"); leftLeg.setAttribute("stroke-linejoin", "round");
-                leftLeg.setAttribute("id", "leftLeg"); svg.appendChild(leftLeg);
-
-                const rightLeg = document.createElementNS(svgNS, "polyline");
-                rightLeg.setAttribute("stroke", "#3b82f6"); rightLeg.setAttribute("stroke-width", "2.5");
-                rightLeg.setAttribute("fill", "none"); rightLeg.setAttribute("stroke-linecap", "round"); rightLeg.setAttribute("stroke-linejoin", "round");
-                rightLeg.setAttribute("id", "rightLeg"); svg.appendChild(rightLeg);
-
-                return svg;
-            },
-            updateFigure(time, params) {
-                const { freqLA, freqRA, freqLL, freqRL, phaseLA, phaseRA, phaseLL, phaseRL, ampElbow, ampKnee } = params;
-                const t = time * 0.001;
-                const shoulder = { x: 60, y: 45 };
-                const hip = { x: 60, y: 70 };
-                const leftElbowAngle = Math.sin(t * freqLA + phaseLA) * ampElbow * Math.PI/180;
-                const rightElbowAngle = Math.sin(t * freqRA + phaseRA) * ampElbow * Math.PI/180;
-                const leftKneeAngle = Math.sin(t * freqLL + phaseLL) * ampKnee * Math.PI/180;
-                const rightKneeAngle = Math.sin(t * freqRL + phaseRL) * ampKnee * Math.PI/180;
-                const upperArmLen = 18, foreArmLen = 16, thighLen = 20, shinLen = 18;
-
-                const leftElbow = {
-                    x: shoulder.x - Math.sin(leftElbowAngle) * upperArmLen * 0.6,
-                    y: shoulder.y + Math.cos(leftElbowAngle) * upperArmLen
-                };
-                const rightElbow = {
-                    x: shoulder.x + Math.sin(rightElbowAngle) * upperArmLen * 0.6,
-                    y: shoulder.y + Math.cos(rightElbowAngle) * upperArmLen
-                };
-                const leftHand = {
-                    x: leftElbow.x - Math.sin(leftElbowAngle * 1.3) * foreArmLen * 0.5,
-                    y: leftElbow.y + Math.cos(leftElbowAngle * 1.3) * foreArmLen
-                };
-                const rightHand = {
-                    x: rightElbow.x + Math.sin(rightElbowAngle * 1.2) * foreArmLen * 0.5,
-                    y: rightElbow.y + Math.cos(rightElbowAngle * 1.2) * foreArmLen
-                };
-                const leftKnee = {
-                    x: hip.x - Math.sin(leftKneeAngle) * thighLen * 0.5,
-                    y: hip.y + Math.cos(leftKneeAngle) * thighLen
-                };
-                const rightKnee = {
-                    x: hip.x + Math.sin(rightKneeAngle) * thighLen * 0.5,
-                    y: hip.y + Math.cos(rightKneeAngle) * thighLen
-                };
-                const leftFoot = {
-                    x: leftKnee.x - Math.sin(leftKneeAngle * 0.8) * shinLen * 0.5,
-                    y: leftKnee.y + Math.cos(leftKneeAngle * 0.8) * shinLen
-                };
-                const rightFoot = {
-                    x: rightKnee.x + Math.sin(rightKneeAngle * 0.9) * shinLen * 0.5,
-                    y: rightKnee.y + Math.cos(rightKneeAngle * 0.9) * shinLen
-                };
-
-                const leftArm = this.svg.getElementById("leftArm");
-                leftArm.setAttribute("points", `${shoulder.x},${shoulder.y} ${leftElbow.x},${leftElbow.y} ${leftHand.x},${leftHand.y}`);
-                const rightArm = this.svg.getElementById("rightArm");
-                rightArm.setAttribute("points", `${shoulder.x},${shoulder.y} ${rightElbow.x},${rightElbow.y} ${rightHand.x},${rightHand.y}`);
-                const leftLeg = this.svg.getElementById("leftLeg");
-                leftLeg.setAttribute("points", `${hip.x},${hip.y} ${leftKnee.x},${leftKnee.y} ${leftFoot.x},${leftFoot.y}`);
-                const rightLeg = this.svg.getElementById("rightLeg");
-                rightLeg.setAttribute("points", `${hip.x},${hip.y} ${rightKnee.x},${rightKnee.y} ${rightFoot.x},${rightFoot.y}`);
-            },
-            startDance(uuid) {
-                this.stopDance();
-                this.currentUUID = uuid;
-                const params = this.generateParams(uuid);
-                this.svg = this.createSVG();
-                DOM.logo.innerHTML = '';
-                DOM.logo.appendChild(this.svg);
-                const animate = (time) => {
-                    if (this.currentUUID !== uuid) return;
-                    this.updateFigure(time, params);
-                    this.animFrame = requestAnimationFrame(animate);
-                };
-                this.animFrame = requestAnimationFrame(animate);
-            },
-            stopDance() {
-                if (this.animFrame) { cancelAnimationFrame(this.animFrame); this.animFrame = null; }
-                if (this.svg && this.svg.parentNode) { this.svg.parentNode.removeChild(this.svg); }
-                this.currentUUID = null;
-            }
-        };
-
         const UIController = {
             loadIndex(index) {
                 if (!stations.length) return; 
                 currentIndex = index;
                 const s = stations[currentIndex]; 
                 isExternalFavPlaying = false;
-                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon, s.stationuuid);
+                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon);
                 DOM.audio.src = s.url_resolved || s.url || '';
                 this.enableControls(); 
                 checkFavState(s.stationuuid); 
@@ -853,27 +774,22 @@
             },
             loadExternalFav(fav) {
                 isExternalFavPlaying = true; 
-                this.updateUI(fav.name, "Saved Station", fav.img, fav.id);
+                this.updateUI(fav.name, "Saved Station", fav.img);
                 DOM.audio.src = fav.url; 
                 this.enableControls(); 
                 checkFavState(fav.id); 
                 audioController.play();
             },
-            updateUI(title, subtitle, imgSrc, uuid) {
+            updateUI(title, subtitle, imgSrc) {
                 DOM.title.textContent = title || 'Unknown'; 
                 DOM.sub.textContent = subtitle;
-                if (imgSrc) {
-                    dancerSystem.stopDance();
+                if(imgSrc) {
                     const img = new Image(); 
                     img.src = imgSrc; 
                     img.onload = () => { DOM.logo.innerHTML = `<img src="${imgSrc}"/>`; }; 
-                    img.onerror = () => {
-                        if (uuid) dancerSystem.startDance(uuid);
-                        else DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
-                    };
+                    img.onerror = () => { DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; };
                 } else {
-                    if (uuid) { dancerSystem.startDance(uuid); }
-                    else { dancerSystem.stopDance(); DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; }
+                    DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
                 }
                 DOM.audio.volume = DOM.vol.value;
             },
@@ -883,7 +799,6 @@
             emptyState() { 
                 DOM.title.textContent = 'No Stations Found'; 
                 DOM.sub.textContent = 'Please enter a valid country in bot'; 
-                dancerSystem.stopDance();
                 DOM.logo.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger)"></i>'; 
             }
         };
@@ -894,23 +809,19 @@
         DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
         DOM.audio.addEventListener('error', () => audioController.handleError());
 
-        // زر المشاركة (يعمل من تحت الهيدر)
+        // زر المشاركة (يستخدم اسم الدولة)
         DOM.shareBtn.addEventListener('click', () => {
-            const currentStation = isExternalFavPlaying 
-                ? savedStations.find(s => s.url === DOM.audio.src) 
-                : stations[currentIndex];
-            if (!currentStation) return;
-            const stationId = currentStation.stationuuid || currentStation.id || '';
-            const shareUrl = `https://t.me/Time_of_world_origins_bot/Radio?startapp=${stationId}`;
+            const country = TARGET_COUNTRY || 'Global';
+            const shareUrl = `https://t.me/Time_of_world_origins_bot/Radio?start=${encodeURIComponent(country)}`;
             if (navigator.share) {
                 navigator.share({
-                    title: 'Listen to ' + (currentStation.name || 'this station'),
-                    text: 'Tune in to ' + (currentStation.name || 'radio') + ' on Global Radio Player!',
+                    title: 'Global Radio Player',
+                    text: `Listen to radio stations from ${country}!`,
                     url: shareUrl,
                 }).catch(() => {});
             } else {
                 navigator.clipboard?.writeText(shareUrl).then(() => {
-                    alert('Station link copied to clipboard!');
+                    alert('Link copied!');
                 }).catch(() => {
                     prompt('Copy this link to share:', shareUrl);
                 });
