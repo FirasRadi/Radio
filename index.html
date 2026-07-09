@@ -173,7 +173,8 @@
             border-color: var(--primary);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
         }
-        .logo.playing img {
+        /* تدوير أي عنصر داخل الشعار (صورة أو أيقونة) */
+        .logo.playing > * {
             animation: spinDisc 10s linear infinite;
         }
         @keyframes spinDisc {
@@ -350,13 +351,6 @@
         }
         #searchResults li:hover { background: rgba(59,130,246,0.2); }
 
-        /* Butterfly */
-        #butterfly {
-            position: fixed; top: -50px; left: -50px; font-size: 28px;
-            pointer-events: none; z-index: 300; transition: transform 0.2s ease-out;
-            filter: drop-shadow(0 0 8px var(--primary));
-        }
-
         .modal {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 200;
             display: flex; flex-direction: column; padding: 30px 20px; backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: 0.3s ease;
@@ -517,8 +511,6 @@
         <ul class="fav-list" id="favList"></ul>
     </div>
 
-    <div id="butterfly" style="display:none;">🦋</div>
-
     <script>
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
@@ -563,8 +555,7 @@
             searchSheet: document.getElementById('searchSheet'),
             closeSearchBtn: document.getElementById('closeSearchBtn'),
             searchInput: document.getElementById('searchInput'),
-            searchResults: document.getElementById('searchResults'),
-            butterfly: document.getElementById('butterfly')
+            searchResults: document.getElementById('searchResults')
         };
 
         let stations = []; 
@@ -579,10 +570,11 @@
 
         const PARAMS = new URLSearchParams(window.location.search);
         const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
+        // نستبدل الشرطة السفلية بمسافة للحصول على اسم الدولة الفعلي
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // ── مؤقتات (دون تغيير) ──
+        // ── مؤقتات ──
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null };
         const toggleTimerSheet = () => {
             DOM.timerSheet.classList.toggle('open');
@@ -683,20 +675,20 @@
         DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); 
         DOM.startCancelBtn.addEventListener('click', clearStartUI);
 
-        // ── الثيمات (12 لون) ──
+        // ── الثيمات (12 لون بدون فراشة) ──
         const themes = [
-            { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)', emoji: '👑', butterfly: false },
-            { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)', emoji: '🍃', butterfly: true },
-            { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)', emoji: '❤️', butterfly: true },
-            { name: 'Amethyst', primary: '#a855f7', bg: '#1a0a2e', cardBg: 'rgba(88, 28, 135, 0.7)', emoji: '🪻', butterfly: false },
-            { name: 'Sunset', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(154, 52, 18, 0.7)', emoji: '🌅', butterfly: true },
-            { name: 'Ocean', primary: '#06b6d4', bg: '#042f2e', cardBg: 'rgba(21, 94, 117, 0.7)', emoji: '🌊', butterfly: true },
-            { name: 'Lavender', primary: '#d8b4fe', bg: '#1e1b2e', cardBg: 'rgba(109, 40, 217, 0.5)', emoji: '🌸', butterfly: false },
-            { name: 'Midnight', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(49, 46, 129, 0.7)', emoji: '🌙', butterfly: false },
-            { name: 'Golden', primary: '#eab308', bg: '#1f1a04', cardBg: 'rgba(133, 77, 14, 0.7)', emoji: '✨', butterfly: true },
-            { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)', emoji: '🌹', butterfly: false },
-            { name: 'Mint', primary: '#34d399', bg: '#0a2e1f', cardBg: 'rgba(4, 120, 87, 0.6)', emoji: '🌿', butterfly: true },
-            { name: 'Plum', primary: '#c084fc', bg: '#1e1033', cardBg: 'rgba(107, 33, 168, 0.6)', emoji: '🍇', butterfly: false }
+            { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)', emoji: '👑' },
+            { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)', emoji: '🍃' },
+            { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)', emoji: '❤️' },
+            { name: 'Amethyst', primary: '#a855f7', bg: '#1a0a2e', cardBg: 'rgba(88, 28, 135, 0.7)', emoji: '🪻' },
+            { name: 'Sunset', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(154, 52, 18, 0.7)', emoji: '🌅' },
+            { name: 'Ocean', primary: '#06b6d4', bg: '#042f2e', cardBg: 'rgba(21, 94, 117, 0.7)', emoji: '🌊' },
+            { name: 'Lavender', primary: '#d8b4fe', bg: '#1e1b2e', cardBg: 'rgba(109, 40, 217, 0.5)', emoji: '🌸' },
+            { name: 'Midnight', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(49, 46, 129, 0.7)', emoji: '🌙' },
+            { name: 'Golden', primary: '#eab308', bg: '#1f1a04', cardBg: 'rgba(133, 77, 14, 0.7)', emoji: '✨' },
+            { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)', emoji: '🌹' },
+            { name: 'Mint', primary: '#34d399', bg: '#0a2e1f', cardBg: 'rgba(4, 120, 87, 0.6)', emoji: '🌿' },
+            { name: 'Plum', primary: '#c084fc', bg: '#1e1033', cardBg: 'rgba(107, 33, 168, 0.6)', emoji: '🍇' }
         ];
 
         function applyTheme(theme) {
@@ -705,11 +697,6 @@
             document.documentElement.style.setProperty('--bg-base', theme.bg);
             document.documentElement.style.setProperty('--card-bg', theme.cardBg);
             localStorage.setItem('radio_theme', JSON.stringify(theme));
-            if (theme.butterfly) {
-                startButterflyEffect();
-            } else {
-                stopButterflyEffect();
-            }
         }
 
         function loadTheme() {
@@ -717,6 +704,7 @@
             if (saved) {
                 try { applyTheme(JSON.parse(saved)); } catch(e){}
             }
+            // إذا لم يوجد ثيم محفوظ، يبقى الـ CSS الافتراضي (Royal Blue)
         }
 
         function renderThemeButtons() {
@@ -742,37 +730,7 @@
         DOM.themeOverlay.addEventListener('click', toggleThemeSheet);
 
         renderThemeButtons();
-        loadTheme();
-
-        // ── الفراشة (Butterfly Effect) ──
-        let butterflyAnimFrame = null;
-        function startButterflyEffect() {
-            if (butterflyAnimFrame) return;
-            DOM.butterfly.style.display = 'block';
-            const logoRect = DOM.logo.getBoundingClientRect();
-            const centerX = logoRect.left + logoRect.width/2;
-            const centerY = logoRect.top + logoRect.height/2;
-            let phase = 0;
-
-            function animate() {
-                phase += 0.03;
-                const radius = 60 + Math.sin(phase * 2) * 20;
-                const angle = phase * 1.5;
-                const x = centerX + Math.cos(angle) * radius;
-                const y = centerY + Math.sin(angle * 2) * (radius * 0.6);
-                const rotation = Math.sin(phase * 3) * 15;
-                DOM.butterfly.style.transform = `translate(${x - 20}px, ${y - 20}px) rotate(${rotation}deg)`;
-                butterflyAnimFrame = requestAnimationFrame(animate);
-            }
-            animate();
-        }
-        function stopButterflyEffect() {
-            if (butterflyAnimFrame) {
-                cancelAnimationFrame(butterflyAnimFrame);
-                butterflyAnimFrame = null;
-                DOM.butterfly.style.display = 'none';
-            }
-        }
+        loadTheme();  // تحميل الثيم المحفوظ أو الافتراضي
 
         // ── الراديو ──
         const radioService = {
@@ -895,10 +853,10 @@
         DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
         DOM.audio.addEventListener('error', () => audioController.handleError());
 
-        // زر المشاركة (startapp=Country)
+        // زر المشاركة (باستخدام شرطة سفلية بدل المسافات)
         DOM.shareBtn.addEventListener('click', () => {
             const country = TARGET_COUNTRY || 'Global';
-            const shareUrl = `https://t.me/Time_of_world_origins_bot/Radio?startapp=${encodeURIComponent(country)}`;
+            const shareUrl = `https://t.me/Time_of_world_origins_bot/Radio?startapp=${country.replace(/ /g, '_')}`;
             if (navigator.share) {
                 navigator.share({
                     title: 'Global Radio Player',
@@ -945,7 +903,7 @@
             audioController.play();
         });
 
-        // المفضلة (تخزين الدولة)
+        // المفضلة (تظهر الدولة بجانب الاسم)
         const checkFavState = id => {
             const fav = savedStations.some(s => s.id === id);
             DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; 
