@@ -4,12 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Global Radio Player</title>
-    <!-- مكتبات خارجية (تأكد من أن GitHub Pages يسمح بالاتصال بها) -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        /* ... (جميع أنماط CSS تبقى كما هي دون تغيير يذكر) ... */
         :root {
             --bg-base: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.7);
@@ -43,6 +41,7 @@
             justify-content: center;
             padding: 20px;
             overflow: hidden;
+            position: relative;
         }
 
         .player-card {
@@ -153,6 +152,7 @@
             overflow: hidden;
             border: 4px solid var(--border-glass);
             transition: border-color 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
         }
         .logo img {
             width: 100%;
@@ -169,6 +169,12 @@
         }
         @keyframes spinDisc {
             100% { transform: rotate(360deg); }
+        }
+
+        .dancing-boy-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
         .station-name {
@@ -238,10 +244,17 @@
             letter-spacing: 0.5px;
         }
 
-        /* PayPal Button */
+        /* PayPal Button - fixed positioning improved */
         .paypal-wrapper {
-            position: fixed; bottom: 20px; right: 20px; width: 100px; height: 100px;
-            display: flex; align-items: center; justify-content: center; z-index: 100;
+            position: fixed; 
+            bottom: 80px; /* رفع الزر للأعلى قليلاً لعدم تغطية المحتوى */
+            right: 20px; 
+            width: 100px; 
+            height: 100px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 50; /* أعلى من البطاقة لكن أقل من الأوفرلي */
         }
         .paypal-svg { position: absolute; width: 100%; height: 100%; pointer-events: none; }
         .paypal-svg text { 
@@ -254,6 +267,25 @@
             box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); position: relative; z-index: 2; transition: 0.3s;
         }
         .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
+
+        /* Share button */
+        .share-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-sub);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .share-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
         /* Bottom Sheet */
         .sheet-overlay {
@@ -341,9 +373,8 @@
 </head>
 <body>
 
-    <!-- PayPal Component (تم إصلاح الـ SVG ليشمل النص بالكامل) -->
+    <!-- PayPal Component -->
     <div class="paypal-wrapper">
-        <!-- أهم تعديل: تم توسيع مسار curve ليكون أكبر قليلاً بحيث يتسع النص بالكامل دون قطع -->
         <svg class="paypal-svg" viewBox="0 0 100 100">
             <path id="curve" d="M 18 50 A 32 32 0 0 1 82 50" fill="transparent" />
             <text>
@@ -355,7 +386,6 @@
         </a>
     </div>
 
-    <!-- باقي HTML بدون تغيير يذكر -->
     <div id="loading">
         <div class="spinner"></div>
         <span>FETCHING STATIONS...</span>
@@ -378,6 +408,11 @@
             <div class="station-name" id="stationTitle">Loading...</div>
             <div class="station-counter" id="stationSub">Initializing</div>
         </div>
+
+        <!-- زر مشاركة المحطة -->
+        <button class="share-btn" id="shareStationBtn">
+            <i class="fas fa-share-alt"></i> Share Station
+        </button>
 
         <div class="controls">
             <button class="ctrl-btn nav-btn" id="prevBtn" disabled><i class="fas fa-backward"></i></button>
@@ -450,7 +485,6 @@
     </div>
 
     <script>
-        // كود JavaScript كما هو مع تحسينات طفيفة في التعليقات
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
 
@@ -486,7 +520,9 @@
             
             startDigital: document.getElementById('startDigital'),
             startActions: document.getElementById('startActions'),
-            startCancelBtn: document.getElementById('startCancelBtn')
+            startCancelBtn: document.getElementById('startCancelBtn'),
+            
+            shareStationBtn: document.getElementById('shareStationBtn')
         };
 
         let stations = []; 
@@ -693,6 +729,103 @@
             }
         };
 
+        // Dancing Boy Algorithm (مرعب)
+        // سننشئ SVG ديناميكي لشخصية بعصا (stick figure) مع رسوم متحركة مرعبة
+        // seed: stationuuid أو اسم المحطة لتوليد حركات مختلفة
+        function createDancingBoySVG(seed) {
+            // توليد بذرة رقمية من النص
+            let hash = 0;
+            for (let i = 0; i < seed.length; i++) {
+                const char = seed.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0; // Convert to 32bit integer
+            }
+            // استخدام أجزاء من hash لتحديد معلمات الرقصة
+            const rng = (min, max) => {
+                // دالة عشوائية تعتمد على hash والموقع
+                // للحصول على قيم مختلفة لكل حركة
+                return min + (Math.abs(hash) % (max - min));
+            };
+            
+            // حركات الرأس: دوران متقطع 360 درجة أو اهتزاز
+            const headRotate = rng(0, 2) === 0 ? '360deg' : `${rng(10, 80)}deg`;
+            const headDuration = rng(0.3, 1.5);
+            
+            // الذراعين: زوايا غير طبيعية
+            const armAngle = rng(-90, 90);
+            const armDuration = rng(0.2, 0.8);
+            
+            // الأرجل: حركات متقطعة
+            const legAngle = rng(-60, 60);
+            const legDuration = rng(0.3, 1.2);
+            
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute("viewBox", "0 0 100 100");
+            svg.classList.add("dancing-boy-svg");
+            
+            // الأسلوب: خطوط نيون مضيئة
+            const style = document.createElement("style");
+            style.textContent = `
+                .line { stroke: #3b82f6; stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 3px #3b82f6); }
+                @keyframes rotateHead { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(${headRotate}); } }
+                @keyframes moveArmL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(${armAngle}deg); } }
+                @keyframes moveArmR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(${-armAngle}deg); } }
+                @keyframes moveLegL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(${legAngle}deg); } }
+                @keyframes moveLegR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(${-legAngle}deg); } }
+                .head { animation: rotateHead ${headDuration}s infinite ease-in-out; transform-origin: 50px 25px; }
+                .arm-left { animation: moveArmL ${armDuration}s infinite ease-in-out; transform-origin: 50px 45px; }
+                .arm-right { animation: moveArmR ${armDuration}s infinite ease-in-out; transform-origin: 50px 45px; }
+                .leg-left { animation: moveLegL ${legDuration}s infinite ease-in-out; transform-origin: 50px 65px; }
+                .leg-right { animation: moveLegR ${legDuration}s infinite ease-in-out; transform-origin: 50px 65px; }
+            `;
+            svg.appendChild(style);
+            
+            // الجسم
+            const body = document.createElementNS(svgNS, "line");
+            body.setAttribute("x1", "50"); body.setAttribute("y1", "25");
+            body.setAttribute("x2", "50"); body.setAttribute("y2", "65");
+            body.classList.add("line");
+            svg.appendChild(body);
+            
+            // الرأس
+            const head = document.createElementNS(svgNS, "circle");
+            head.setAttribute("cx", "50"); head.setAttribute("cy", "20");
+            head.setAttribute("r", "8");
+            head.classList.add("line", "head");
+            svg.appendChild(head);
+            
+            // الذراع الأيسر
+            const armLeft = document.createElementNS(svgNS, "line");
+            armLeft.setAttribute("x1", "50"); armLeft.setAttribute("y1", "45");
+            armLeft.setAttribute("x2", "35"); armLeft.setAttribute("y2", "55");
+            armLeft.classList.add("line", "arm-left");
+            svg.appendChild(armLeft);
+            
+            // الذراع الأيمن
+            const armRight = document.createElementNS(svgNS, "line");
+            armRight.setAttribute("x1", "50"); armRight.setAttribute("y1", "45");
+            armRight.setAttribute("x2", "65"); armRight.setAttribute("y2", "55");
+            armRight.classList.add("line", "arm-right");
+            svg.appendChild(armRight);
+            
+            // الساق اليسرى
+            const legLeft = document.createElementNS(svgNS, "line");
+            legLeft.setAttribute("x1", "50"); legLeft.setAttribute("y1", "65");
+            legLeft.setAttribute("x2", "40"); legLeft.setAttribute("y2", "85");
+            legLeft.classList.add("line", "leg-left");
+            svg.appendChild(legLeft);
+            
+            // الساق اليمنى
+            const legRight = document.createElementNS(svgNS, "line");
+            legRight.setAttribute("x1", "50"); legRight.setAttribute("y1", "65");
+            legRight.setAttribute("x2", "60"); legRight.setAttribute("y2", "85");
+            legRight.classList.add("line", "leg-right");
+            svg.appendChild(legRight);
+            
+            return svg;
+        }
+
         const audioController = {
             play() {
                 const prom = DOM.audio.play();
@@ -777,7 +910,7 @@
                 const s = stations[currentIndex]; 
                 isExternalFavPlaying = false;
                 
-                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon);
+                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon, s.stationuuid || s.name);
                 DOM.audio.src = s.url_resolved || s.url || '';
                 this.enableControls(); 
                 checkFavState(s.stationuuid); 
@@ -786,23 +919,37 @@
             },
             loadExternalFav(fav) {
                 isExternalFavPlaying = true; 
-                this.updateUI(fav.name, "Saved Station", fav.img);
+                this.updateUI(fav.name, "Saved Station", fav.img, fav.id || fav.name);
                 DOM.audio.src = fav.url; 
                 this.enableControls(); 
                 checkFavState(fav.id); 
                 audioController.play();
             },
-            updateUI(title, subtitle, imgSrc) {
+            updateUI(title, subtitle, imgSrc, seed) {
                 DOM.title.textContent = title || 'Unknown'; 
                 DOM.sub.textContent = subtitle;
-                if(imgSrc) { 
-                    const img = new Image(); 
-                    img.src = imgSrc; 
-                    img.onload = () => DOM.logo.innerHTML = `<img src="${imgSrc}"/>`; 
-                    img.onerror = () => DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; 
-                } else { 
-                    DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; 
+                
+                // إدارة الشعار: إما صورة أو الرجل الراقص
+                DOM.logo.innerHTML = ''; // مسح المحتوى السابق
+                if (imgSrc) {
+                    const img = new Image();
+                    img.src = imgSrc;
+                    img.onload = () => {
+                        DOM.logo.innerHTML = ''; // إعادة تعيين
+                        DOM.logo.appendChild(img);
+                    };
+                    img.onerror = () => {
+                        // إذا فشل تحميل الصورة، اعرض الرجل الراقص
+                        DOM.logo.innerHTML = '';
+                        DOM.logo.appendChild(createDancingBoySVG(seed || 'default'));
+                    };
+                    // أثناء التحميل، يمكن عرض موسيقى مؤقتة لكننا نفضل الراقص مباشرة كحالة افتراضية
+                    DOM.logo.appendChild(createDancingBoySVG(seed || 'default')); 
+                } else {
+                    // لا صورة: استخدم الرجل الراقص
+                    DOM.logo.appendChild(createDancingBoySVG(seed || 'default'));
                 }
+                
                 DOM.audio.volume = DOM.vol.value;
             },
             enableControls() { 
@@ -814,6 +961,27 @@
                 DOM.logo.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger)"></i>'; 
             }
         };
+
+        // زر المشاركة
+        DOM.shareStationBtn.addEventListener('click', () => {
+            const station = stations[currentIndex];
+            if (!station) return;
+            
+            const shareData = {
+                title: station.name,
+                text: `استمع إلى ${station.name} من خلال هذا الراديو الرائع!`,
+                url: window.location.href
+            };
+            
+            if (navigator.share) {
+                navigator.share(shareData).catch(() => {});
+            } else {
+                // fallback: نسخ الرابط
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('تم نسخ رابط المحطة!');
+                });
+            }
+        });
 
         DOM.playBtn.addEventListener('click', () => audioController.toggle());
         DOM.nextBtn.addEventListener('click', () => UIController.loadIndex((currentIndex + 1) % stations.length));
