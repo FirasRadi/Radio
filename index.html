@@ -39,9 +39,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 10px 20px; /* تقليل الحواف للسماح للباي بال بالظهور */
+            padding: 10px 20px;
             overflow: hidden;
-            gap: 15px; /* تقليل الفجوة */
         }
 
         .player-card {
@@ -51,30 +50,36 @@
             width: 100%;
             max-width: 420px;
             border-radius: 28px;
-            padding: 20px; /* تقليل الحشوة قليلا */
+            padding: 20px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
             text-align: center;
             position: relative;
             border: 1px solid var(--border-glass);
             display: flex;
             flex-direction: column;
-            gap: 12px; /* تقليل المسافات */
+            gap: 12px;
             z-index: 10;
-            order: 1;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 8px;
+            align-items: flex-start;
+            width: 100%;
         }
 
         .header-left {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 6px;
+            gap: 10px;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 16px; /* مسافة مريحة بين البايبال والمفضلة */
         }
 
         .header-country {
@@ -87,7 +92,7 @@
             text-overflow: ellipsis;
             text-align: center;
             letter-spacing: 0.5px;
-            align-self: center;
+            padding-top: 10px; /* لمحاذاة النص مع الأزرار العلوية */
         }
 
         .icon-btn {
@@ -118,6 +123,26 @@
             transform: scale(1.05);
         }
 
+        .donate-btn {
+            width: 42px;
+            height: 42px;
+            background: #0070ba;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 112, 186, 0.4);
+            transition: 0.3s;
+            flex-shrink: 0;
+        }
+        .donate-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0, 112, 186, 0.6);
+        }
+
         .header-timer-text {
             display: none;
             font-family: monospace;
@@ -136,9 +161,10 @@
             border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
+        /* زر سلة المهملات */
         #removePhotoBtn {
             color: var(--danger);
-            background: rgba(239, 68, 68, 0.15);
+            background: rgba(239, 68, 68, 0.12);
         }
         #removePhotoBtn:hover {
             background: var(--danger);
@@ -168,7 +194,7 @@
             height: 150px;
             pointer-events: none;
             z-index: 5;
-            top: -18px; /* ترفيع الخط قليلاً حول الدائرة */
+            top: -26px; /* تم الرفع للأعلى لتجنب ملامسة الدائرة */
         }
         .add-photo-svg text {
             font-size: 10.5px;
@@ -285,30 +311,7 @@
             letter-spacing: 0.5px;
         }
 
-        .paypal-wrapper {
-            width: 100%;
-            max-width: 420px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            z-index: 5;
-            order: 2;
-        }
-        .paypal-svg { position: absolute; width: 100px; height: 100px; pointer-events: none; }
-        .paypal-svg text {
-            font-size: 11.5px;
-            fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold;
-        }
-        .donate-btn {
-            width: 46px; height: 46px; background: #0070ba; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; text-decoration: none;
-            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); position: relative; z-index: 2; transition: 0.3s;
-            margin: 10px 0;
-        }
-        .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
-
-        /* Bottom Sheets */
+        /* Bottom Sheets المدمجة */
         .sheet-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
             z-index: 140; opacity: 0; visibility: hidden; transition: 0.3s ease;
@@ -318,22 +321,23 @@
         .bottom-sheet {
             position: fixed; bottom: -100%; left: 0; width: 100%;
             background: #1e293b; border-top-left-radius: 24px; border-top-right-radius: 24px;
-            padding: 20px 24px 30px; z-index: 150; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            padding: 15px 20px 20px; /* تم تصغير الحشوة */
+            z-index: 150; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
             transition: bottom 0.3s cubic-bezier(0.2, 1, 0.3, 1);
-            display: flex; flex-direction: column; gap: 15px;
+            display: flex; flex-direction: column; gap: 12px; /* تم تصغير المسافات */
         }
         .bottom-sheet.open { bottom: 0; }
 
         .sheet-header {
             display: flex; justify-content: space-between; align-items: center;
-            font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 5px;
+            font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 2px;
         }
         .close-sheet { background: none; border: none; color: var(--text-sub); font-size: 20px; cursor: pointer; }
 
         .compact-timer-row {
             background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass);
-            border-radius: 16px; padding: 12px 16px;
-            display: flex; flex-direction: column; gap: 10px;
+            border-radius: 16px; padding: 10px 14px; /* تصغير الصف */
+            display: flex; flex-direction: column; gap: 8px;
         }
         .timer-info {
             display: flex; justify-content: space-between; align-items: center;
@@ -350,31 +354,26 @@
         .timer-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .timer-actions button {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: #cbd5e1; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+            color: #cbd5e1; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
             cursor: pointer; transition: 0.2s; flex: 1; text-align: center;
         }
         .timer-actions button:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-        /* زر الإلغاء تم تعديله للحفاظ على الأبعاد ومنع ارتفاع الشريط */
         .cancel-timer-btn {
             background: rgba(239, 68, 68, 0.15); color: var(--danger); border: none;
-            padding: 8px; border-radius: 12px; font-size: 13px; font-weight: 600;
-            cursor: pointer; width: 100%; transition: 0.2s; margin-top: 5px;
-            visibility: hidden; /* يحجز المساحة بحيث لا تتحرك الأزرار إطلاقاً */
-            opacity: 0;
+            padding: 6px; border-radius: 12px; font-size: 13px; font-weight: 600;
+            cursor: pointer; width: 100%; transition: 0.2s; margin-top: 2px;
+            visibility: hidden; opacity: 0;
         }
-        .cancel-timer-btn.visible { 
-            visibility: visible; 
-            opacity: 1; 
-        }
+        .cancel-timer-btn.visible { visibility: visible; opacity: 1; }
         .cancel-timer-btn:hover { background: var(--danger); color: #fff; }
 
         /* Theme Colors */
         .theme-colors {
-            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
         }
         .theme-color-btn {
-            width: 48px; height: 48px; border-radius: 50%; border: 2px solid transparent;
+            width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent;
             cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
         }
         .theme-color-btn:hover { transform: scale(1.1); border-color: #fff; }
@@ -382,14 +381,14 @@
         /* Search Sheet */
         #searchInput {
             background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass);
-            color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 14px; outline: none;
+            color: #fff; padding: 10px 14px; border-radius: 12px; font-size: 14px; outline: none;
         }
         #searchResults {
-            list-style: none; max-height: 300px; overflow-y: auto;
+            list-style: none; max-height: 220px; overflow-y: auto; /* تقليل ارتفاع نتائج البحث */
         }
         #searchResults li {
-            padding: 12px 16px; margin-bottom: 6px; background: rgba(255,255,255,0.05);
-            border-radius: 12px; cursor: pointer; transition: 0.2s;
+            padding: 10px 14px; margin-bottom: 6px; background: rgba(255,255,255,0.05);
+            border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 14px;
         }
         #searchResults li:hover { background: rgba(59,130,246,0.2); }
 
@@ -420,18 +419,6 @@
 </head>
 <body>
 
-    <div class="paypal-wrapper">
-        <svg class="paypal-svg" viewBox="0 0 100 100">
-            <path id="curve" d="M 18 50 A 32 32 0 0 1 82 50" fill="transparent" />
-            <text>
-                <textPath href="#curve" startOffset="50%" text-anchor="middle">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</textPath>
-            </text>
-        </svg>
-        <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn">
-            <i class="fab fa-paypal"></i>
-        </a>
-    </div>
-
     <div id="loading">
         <div class="spinner"></div>
         <span>FETCHING STATIONS...</span>
@@ -453,18 +440,24 @@
                 <button class="icon-btn" id="searchBtn" title="Search Stations">
                     <i class="fas fa-search"></i>
                 </button>
-                <button class="icon-btn" id="removePhotoBtn" title="Remove Photo" style="display:none;">
+                <button class="icon-btn" id="removePhotoBtn" title="Remove Photo / Text">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
+            
             <div class="header-country" id="headerCountry">Global Radio</div>
-            <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
+            
+            <div class="header-right">
+                <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Developer">
+                    <i class="fab fa-paypal"></i>
+                </a>
+                <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
+            </div>
         </div>
 
         <div class="logo-container">
             <div class="logo-wrapper" id="logoWrapper">
                 <svg class="add-photo-svg" id="addPhotoText" viewBox="0 0 150 150">
-                    <!-- مسار منحني بشكل نصفي يحيط باللوغو -->
                     <path id="logoCurve" d="M 25 75 A 50 50 0 0 1 125 75" fill="transparent" />
                     <text>
                         <textPath href="#logoCurve" startOffset="50%" text-anchor="middle">add your own photo</textPath>
@@ -614,7 +607,7 @@
             searchInput: document.getElementById('searchInput'),
             searchResults: document.getElementById('searchResults'),
             
-            // عناصر الصورة المخصصة
+            // عناصر الصورة المخصصة والنص
             logoWrapper: document.getElementById('logoWrapper'),
             customPhotoInput: document.getElementById('customPhotoInput'),
             removePhotoBtn: document.getElementById('removePhotoBtn'),
@@ -631,7 +624,9 @@
         let autoSkipInProgress = false; 
         let skipTimeout = null;
         
+        // استرجاع الصورة المخصصة أو حالة إخفاء النص
         let customImageUrl = localStorage.getItem('radio_custom_photo') || null;
+        let isTextHidden = localStorage.getItem('radio_hide_text') === 'true';
 
         const PARAMS = new URLSearchParams(window.location.search);
         const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
@@ -644,12 +639,12 @@
                 customImageUrl = url;
                 DOM.logo.innerHTML = `<img src="${url}"/>`;
                 DOM.addPhotoText.style.display = 'none';
-                DOM.removePhotoBtn.style.display = 'flex';
             } else {
                 customImageUrl = null;
                 DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
-                DOM.addPhotoText.style.display = 'block';
-                DOM.removePhotoBtn.style.display = 'none';
+                if (!isTextHidden) {
+                    DOM.addPhotoText.style.display = 'block';
+                }
             }
         }
 
@@ -670,9 +665,18 @@
             }
         });
 
+        // زر سلة المهملات: يحذف الصورة إذا وجدت، وإذا لم توجد يحذف عبارة الإضافة نهائياً
         DOM.removePhotoBtn.addEventListener('click', () => {
             localStorage.removeItem('radio_custom_photo');
-            applyCustomPhoto(null);
+            customImageUrl = null;
+            DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
+            
+            // إخفاء النص بشكل دائم
+            DOM.addPhotoText.style.display = 'none';
+            isTextHidden = true;
+            localStorage.setItem('radio_hide_text', 'true');
+            
+            // تفريغ حقل الصورة للسماح برفع نفس الصورة مجدداً إن رغب
             DOM.customPhotoInput.value = '';
         });
 
@@ -777,7 +781,7 @@
         DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); 
         DOM.startCancelBtn.addEventListener('click', clearStartUI);
 
-        // ── الثيمات (بدون إيموجي) ──
+        // ── الثيمات ──
         const themes = [
             { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)' },
             { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)' },
@@ -1053,7 +1057,12 @@
 
         // بدء التطبيق
         async function bootApp() {
-            applyCustomPhoto(customImageUrl); // تهيئة الصورة المخصصة إن وجدت
+            // استرجاع الصورة إن وجدت، أو إخفاء النص إن كان المستخدم قد حذفه مسبقاً
+            if (customImageUrl) {
+                applyCustomPhoto(customImageUrl);
+            } else if (isTextHidden) {
+                DOM.addPhotoText.style.display = 'none';
+            }
             
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
             if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { 
