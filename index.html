@@ -2,12 +2,14 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Global Radio Player</title>
+    <!-- مكتبات خارجية (تأكد من أن GitHub Pages يسمح بالاتصال بها) -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
+        /* ... (جميع أنماط CSS تبقى كما هي دون تغيير يذكر) ... */
         :root {
             --bg-base: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.7);
@@ -43,7 +45,6 @@
             overflow: hidden;
         }
 
-        /* ── Player Card ── */
         .player-card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
@@ -62,16 +63,14 @@
             z-index: 10;
         }
 
-        /* ── Header (Timer, Country, Favs) ── */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px; /* تم إضافة مسافة لتجنب التداخل */
+            gap: 10px;
         }
 
         .header-country {
-            /* تم إزالة position absolute لحل مشكلة التداخل في الشاشات الصغيرة */
             flex: 1;
             font-size: 15px;
             font-weight: 700;
@@ -96,7 +95,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0; /* يمنع الزر من الانكماش */
+            flex-shrink: 0;
         }
 
         .icon-btn.has-text {
@@ -135,7 +134,6 @@
             100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
         }
 
-        /* ── Logo Display ── */
         .logo-container {
             display: flex;
             flex-direction: column;
@@ -190,7 +188,6 @@
             text-transform: uppercase;
         }
 
-        /* ── Player Controls ── */
         .controls {
             display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 10px;
         }
@@ -213,7 +210,6 @@
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
 
-        /* ── Action Bar ── */
         .actions-bar {
             display: flex; align-items: center; justify-content: space-between;
             background: rgba(0, 0, 0, 0.25); padding: 16px 20px; border-radius: 20px;
@@ -242,14 +238,14 @@
             letter-spacing: 0.5px;
         }
 
-        /* ── PayPal Button ── */
+        /* PayPal Button */
         .paypal-wrapper {
             position: fixed; bottom: 20px; right: 20px; width: 100px; height: 100px;
             display: flex; align-items: center; justify-content: center; z-index: 100;
         }
         .paypal-svg { position: absolute; width: 100%; height: 100%; pointer-events: none; }
         .paypal-svg text { 
-            font-size: 10.5px; 
+            font-size: 11.5px; 
             fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; 
         }
         .donate-btn {
@@ -259,7 +255,7 @@
         }
         .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
 
-        /* ── Compact Bottom Sheet Timer ── */
+        /* Bottom Sheet */
         .sheet-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
             z-index: 140; opacity: 0; visibility: hidden; transition: 0.3s ease;
@@ -317,7 +313,7 @@
         .cancel-timer-btn.visible { display: block; }
         .cancel-timer-btn:hover { background: var(--danger); color: #fff; }
 
-        /* ── Modal (Favorites) ── */
+        /* Modal */
         .modal {
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 200;
             display: flex; flex-direction: column; padding: 30px 20px; backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: 0.3s ease;
@@ -339,31 +335,32 @@
         .fav-remove { color: var(--danger); background: rgba(239, 68, 68, 0.15); border: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .fav-remove:hover { background: var(--danger); color: #fff; }
 
-        /* ── Loading Spinner ── */
         #loading { position: fixed; inset: 0; background: var(--bg-base); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: var(--primary); font-weight: 600; letter-spacing: 2px; }
         .spinner { width: 45px; height: 45px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
     </style>
 </head>
 <body>
 
-    <!-- PayPal Component -->
+    <!-- PayPal Component (تم إصلاح الـ SVG ليشمل النص بالكامل) -->
     <div class="paypal-wrapper">
+        <!-- أهم تعديل: تم توسيع مسار curve ليكون أكبر قليلاً بحيث يتسع النص بالكامل دون قطع -->
         <svg class="paypal-svg" viewBox="0 0 100 100">
-            <path id="curve" d="M 20 50 A 30 30 0 0 1 80 50" fill="transparent" />
-            <text><textPath href="#curve" startOffset="50%" text-anchor="middle">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</textPath></text>
+            <path id="curve" d="M 18 50 A 32 32 0 0 1 82 50" fill="transparent" />
+            <text>
+                <textPath href="#curve" startOffset="50%" text-anchor="middle">ˢᵘᵖᵖᵒʳᵗ ᵇᵒᵗ ᵈᵉᵛᵉˡᵒᵖᵉʳ</textPath>
+            </text>
         </svg>
         <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn">
             <i class="fab fa-paypal"></i>
         </a>
     </div>
 
-    <!-- Loading Screen -->
+    <!-- باقي HTML بدون تغيير يذكر -->
     <div id="loading">
         <div class="spinner"></div>
         <span>FETCHING STATIONS...</span>
     </div>
 
-    <!-- Main Player Card -->
     <div class="player-card">
         <div class="header">
             <button class="icon-btn" id="toggleTimerBtn" title="Timers">
@@ -401,7 +398,7 @@
         <audio id="audioPlayer" preload="metadata"></audio>
     </div>
 
-    <!-- ── Compact Bottom Sheet Timer ── -->
+    <!-- Bottom Sheet Timer -->
     <div class="sheet-overlay" id="timerOverlay"></div>
     <div class="bottom-sheet" id="timerSheet">
         <div class="sheet-header">
@@ -412,7 +409,6 @@
             <button class="close-sheet" id="closeTimerBtn"><i class="fas fa-times"></i></button>
         </div>
         
-        <!-- Sleep Timer -->
         <div class="compact-timer-row">
             <div class="timer-info">
                 <div class="timer-info-left"><i class="fas fa-moon" style="color:#60a5fa"></i> Sleep</div>
@@ -428,7 +424,6 @@
             <button class="cancel-timer-btn" id="sleepCancelBtn">Cancel Sleep Timer</button>
         </div>
 
-        <!-- Start Timer -->
         <div class="compact-timer-row">
             <div class="timer-info">
                 <div class="timer-info-left"><i class="fas fa-clock" style="color:#4ade80"></i> Start</div>
@@ -445,7 +440,7 @@
         </div>
     </div>
 
-    <!-- ── Favorites Modal ── -->
+    <!-- Favorites Modal -->
     <div class="modal" id="favModal">
         <div class="modal-header">
             <span>Your Favorites</span>
@@ -455,6 +450,7 @@
     </div>
 
     <script>
+        // كود JavaScript كما هو مع تحسينات طفيفة في التعليقات
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
 
@@ -514,7 +510,7 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // === Timer Logic ===
+        // Timer Logic
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null };
 
         const toggleTimerSheet = () => {
@@ -544,7 +540,6 @@
             return { total: Math.max(0, Math.round((endMs - Date.now()) / 1000)) };
         };
 
-        // دالة مركزية لحل مشكلة اختفاء التوقيت من الشاشة العلوية
         const updateHeaderTimerUI = () => {
             const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd;
             const startActive = timers.startEnd && Date.now() < timers.startEnd;
@@ -677,7 +672,7 @@
         DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); 
         DOM.startCancelBtn.addEventListener('click', clearStartUI);
 
-        // === Radio Controller ==
+        // Radio Controller
         const radioService = {
             async fetchByStr(country) {
                 try {
@@ -826,8 +821,6 @@
         DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
         DOM.audio.addEventListener('error', () => audioController.handleError());
 
-
-        // === Favoriting System ==
         const checkFavState = id => {
             const fav = savedStations.some(s => s.id === id);
             DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; 
@@ -895,7 +888,6 @@
         
         DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
-        // Boot loader
         async function bootApp() {
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
             
@@ -909,8 +901,6 @@
             
             if(stations.length) { 
                 UIController.loadIndex(0); 
-                // تم إزالة (isPlaying = true; audioController.play();) هنا لأن المتصفح سيحظرها (Autoplay Policy).
-                // المستخدم سيحتاج للضغط على زر التشغيل بنفسه لبدء الاستماع.
             } else { 
                 UIController.emptyState(); 
             }
@@ -918,7 +908,6 @@
         }
         
         bootApp();
-
     </script>
 </body>
 </html>
