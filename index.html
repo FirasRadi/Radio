@@ -38,10 +38,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             padding: 20px;
-            overflow: hidden;
-            gap: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            gap: 30px;
         }
 
         .player-card {
@@ -60,8 +61,32 @@
             flex-direction: column;
             gap: 16px;
             z-index: 10;
-            order: 1;
+            margin-top: 10px;
         }
+
+        /* جعل الـ body يبدأ من الأعلى ليظهر PayPal فوق البطاقة */
+        .paypal-wrapper {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 5;
+            margin-bottom: -10px; /* تقريبه للبطاقة */
+        }
+        .paypal-svg { position: absolute; width: 100px; height: 100px; pointer-events: none; }
+        .paypal-svg text {
+            font-size: 11.5px;
+            fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold;
+        }
+        .donate-btn {
+            width: 50px; height: 50px; background: #0070ba; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); position: relative; z-index: 2; transition: 0.3s;
+            margin: 10px 0;
+        }
+        .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
 
         .header {
             display: flex;
@@ -134,7 +159,6 @@
             color: var(--warning);
             background: rgba(251, 191, 36, 0.15);
             border: 1px solid rgba(251, 191, 36, 0.3);
-            /* تمت إزالة الأنيميشن النابض */
         }
 
         .logo-container {
@@ -142,6 +166,7 @@
             flex-direction: column;
             align-items: center;
             gap: 8px;
+            position: relative;
         }
         .logo {
             width: 120px;
@@ -155,31 +180,47 @@
             border: 4px solid var(--border-glass);
             transition: border-color 0.4s ease, box-shadow 0.4s ease;
             position: relative;
+            cursor: pointer;
         }
-        .logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background-color: #fff;
-            border-radius: 50%;
-            padding: 4px;
+        .logo i {
+            font-size: 50px;
+            color: var(--primary);
         }
         .logo.playing {
             border-color: var(--primary);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
         }
-        .logo.playing img {
-            animation: spinDisc 10s linear infinite;
-        }
-        /* أيقونة الموسيقى تدور وتكبر */
-        .logo i {
-            font-size: 50px;
-        }
         .logo.playing i.fa-music {
             animation: spinDisc 4s linear infinite;
         }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .logo.playing img {
+            animation: spinDisc 10s linear infinite;
+        }
         @keyframes spinDisc {
             100% { transform: rotate(360deg); }
+        }
+
+        /* النص الدائري حول الشعار */
+        .upload-text-svg {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            width: 160px;
+            height: 160px;
+            pointer-events: none;
+        }
+        .upload-text-svg text {
+            font-size: 12px;
+            fill: var(--text-sub);
+            font-family: monospace;
+            letter-spacing: 1px;
+            font-weight: bold;
         }
 
         .station-name {
@@ -249,29 +290,6 @@
             letter-spacing: 0.5px;
         }
 
-        .paypal-wrapper {
-            width: 100%;
-            max-width: 420px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            z-index: 5;
-            order: 2;
-        }
-        .paypal-svg { position: absolute; width: 100px; height: 100px; pointer-events: none; }
-        .paypal-svg text {
-            font-size: 11.5px;
-            fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold;
-        }
-        .donate-btn {
-            width: 50px; height: 50px; background: #0070ba; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; text-decoration: none;
-            box-shadow: 0 5px 15px rgba(0, 112, 186, 0.4); position: relative; z-index: 2; transition: 0.3s;
-            margin: 10px 0;
-        }
-        .donate-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 112, 186, 0.6); }
-
         /* Bottom Sheets */
         .sheet-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
@@ -333,8 +351,7 @@
         }
         .theme-color-btn {
             width: 48px; height: 48px; border-radius: 50%; border: 2px solid transparent;
-            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
+            cursor: pointer; transition: 0.2s;
         }
         .theme-color-btn:hover { transform: scale(1.1); border-color: #fff; }
 
@@ -375,10 +392,16 @@
 
         #loading { position: fixed; inset: 0; background: var(--bg-base); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: var(--primary); font-weight: 600; letter-spacing: 2px; }
         .spinner { width: 45px; height: 45px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* زر حذف الصورة (سلة مهملات) */
+        #deletePhotoBtn {
+            display: none; /* يظهر عند تحميل صورة */
+        }
     </style>
 </head>
 <body>
 
+    <!-- PayPal فوق البطاقة -->
     <div class="paypal-wrapper">
         <svg class="paypal-svg" viewBox="0 0 100 100">
             <path id="curve" d="M 18 50 A 32 32 0 0 1 82 50" fill="transparent" />
@@ -412,13 +435,25 @@
                 <button class="icon-btn" id="searchBtn" title="Search Stations">
                     <i class="fas fa-search"></i>
                 </button>
+                <button class="icon-btn" id="deletePhotoBtn" title="Remove Photo" style="display:none;">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
             <div class="header-country" id="headerCountry">Global Radio</div>
             <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
         </div>
 
-        <div class="logo-container">
-            <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
+        <div class="logo-container" id="logoContainer">
+            <div class="logo" id="stationLogo">
+                <i class="fas fa-music"></i>
+            </div>
+            <!-- النص الدائري للتحميل -->
+            <svg class="upload-text-svg" id="uploadTextSvg" viewBox="0 0 160 160">
+                <path id="uploadCurve" d="M 30 80 A 50 50 0 0 1 130 80" fill="transparent" />
+                <text>
+                    <textPath href="#uploadCurve" startOffset="50%" text-anchor="middle">add your own photo</textPath>
+                </text>
+            </svg>
             <div class="station-name" id="stationTitle">Loading...</div>
             <div class="station-counter" id="stationSub">Initializing</div>
         </div>
@@ -512,6 +547,8 @@
         <ul class="fav-list" id="favList"></ul>
     </div>
 
+    <input type="file" id="fileInput" accept="image/*" style="display: none;" />
+
     <script>
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
@@ -531,6 +568,7 @@
             shareBtn: document.getElementById('shareBtn'),
             themeBtn: document.getElementById('themeBtn'),
             searchBtn: document.getElementById('searchBtn'),
+            deletePhotoBtn: document.getElementById('deletePhotoBtn'),
             openFavs: document.getElementById('openFavsBtn'),
             closeFavs: document.getElementById('closeFavsBtn'),
             favModal: document.getElementById('favModal'),
@@ -556,7 +594,10 @@
             searchSheet: document.getElementById('searchSheet'),
             closeSearchBtn: document.getElementById('closeSearchBtn'),
             searchInput: document.getElementById('searchInput'),
-            searchResults: document.getElementById('searchResults')
+            searchResults: document.getElementById('searchResults'),
+            uploadTextSvg: document.getElementById('uploadTextSvg'),
+            fileInput: document.getElementById('fileInput'),
+            logoContainer: document.getElementById('logoContainer')
         };
 
         let stations = []; 
@@ -573,6 +614,13 @@
         const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
+
+        // صورة المستخدم المخصصة
+        let userCustomImage = localStorage.getItem('user_radio_image') || null;
+        if (userCustomImage) {
+            // تحميل الصورة عند البدء
+            setCustomImage(userCustomImage);
+        }
 
         // ── المؤقتات (بدون تغيير) ──
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null };
@@ -675,20 +723,20 @@
         DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); 
         DOM.startCancelBtn.addEventListener('click', clearStartUI);
 
-        // ── الثيمات (12 لون مميز بدون تكرار) ──
+        // ── الثيمات (12 لون بدون إيموجي) ──
         const themes = [
-            { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)', emoji: '👑' },
-            { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)', emoji: '🍃' },
-            { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)', emoji: '❤️' },
-            { name: 'Amber', primary: '#f59e0b', bg: '#2d1f04', cardBg: 'rgba(180, 83, 9, 0.6)', emoji: '☀️' },
-            { name: 'Sky', primary: '#0ea5e9', bg: '#0a2a3b', cardBg: 'rgba(14, 116, 144, 0.6)', emoji: '☁️' },
-            { name: 'Violet', primary: '#8b5cf6', bg: '#1e1033', cardBg: 'rgba(109, 40, 217, 0.6)', emoji: '🔮' },
-            { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)', emoji: '🌹' },
-            { name: 'Teal', primary: '#14b8a6', bg: '#042f2e', cardBg: 'rgba(20, 184, 166, 0.5)', emoji: '🐚' },
-            { name: 'Indigo', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(79, 70, 229, 0.6)', emoji: '🌌' },
-            { name: 'Lime', primary: '#84cc16', bg: '#1a2e0a', cardBg: 'rgba(101, 163, 13, 0.6)', emoji: '🍀' },
-            { name: 'Fuchsia', primary: '#d946ef', bg: '#2a0a2e', cardBg: 'rgba(192, 38, 211, 0.5)', emoji: '🦄' },
-            { name: 'Orange', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(194, 65, 12, 0.7)', emoji: '🔥' }
+            { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)' },
+            { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)' },
+            { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)' },
+            { name: 'Amber', primary: '#f59e0b', bg: '#2d1f04', cardBg: 'rgba(180, 83, 9, 0.6)' },
+            { name: 'Sky', primary: '#0ea5e9', bg: '#0a2a3b', cardBg: 'rgba(14, 116, 144, 0.6)' },
+            { name: 'Violet', primary: '#8b5cf6', bg: '#1e1033', cardBg: 'rgba(109, 40, 217, 0.6)' },
+            { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)' },
+            { name: 'Teal', primary: '#14b8a6', bg: '#042f2e', cardBg: 'rgba(20, 184, 166, 0.5)' },
+            { name: 'Indigo', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(79, 70, 229, 0.6)' },
+            { name: 'Lime', primary: '#84cc16', bg: '#1a2e0a', cardBg: 'rgba(101, 163, 13, 0.6)' },
+            { name: 'Fuchsia', primary: '#d946ef', bg: '#2a0a2e', cardBg: 'rgba(192, 38, 211, 0.5)' },
+            { name: 'Orange', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(194, 65, 12, 0.7)' }
         ];
 
         function applyTheme(theme) {
@@ -704,13 +752,13 @@
             if (saved) {
                 try { applyTheme(JSON.parse(saved)); } catch(e){ applyTheme(themes[0]); }
             } else {
-                applyTheme(themes[0]); // الثيم الافتراضي التاج
+                applyTheme(themes[0]);
             }
         }
 
         function renderThemeButtons() {
             DOM.themeColors.innerHTML = themes.map(t => 
-                `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'>${t.emoji}</button>`
+                `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'></button>`
             ).join('');
             DOM.themeColors.querySelectorAll('button').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -733,7 +781,54 @@
         renderThemeButtons();
         loadTheme();
 
-        // ── الراديو ──
+        // ── تحميل الصورة الشخصية ──
+        function setCustomImage(dataUrl) {
+            DOM.logo.innerHTML = `<img src="${dataUrl}" />`;
+            DOM.uploadTextSvg.style.display = 'none';
+            DOM.deletePhotoBtn.style.display = 'flex';
+            userCustomImage = dataUrl;
+            localStorage.setItem('user_radio_image', dataUrl);
+        }
+
+        function removeCustomImage() {
+            DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
+            DOM.uploadTextSvg.style.display = 'block';
+            DOM.deletePhotoBtn.style.display = 'none';
+            userCustomImage = null;
+            localStorage.removeItem('user_radio_image');
+        }
+
+        DOM.logo.addEventListener('click', () => {
+            if (userCustomImage) return; // إذا كانت الصورة موجودة لا نفتح الرفع
+            DOM.fileInput.click();
+        });
+
+        DOM.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                setCustomImage(ev.target.result);
+            };
+            reader.readAsDataURL(file);
+            DOM.fileInput.value = '';
+        });
+
+        DOM.deletePhotoBtn.addEventListener('click', removeCustomImage);
+
+        // عند بدء التشغيل، إذا كانت الصورة محملة، نظهرها، وإلا نعرض أيقونة الموسيقى مع النص الدائري
+        function updateLogoDisplay() {
+            if (userCustomImage) {
+                // الصورة محفوظة بالفعل
+            } else {
+                DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
+                DOM.uploadTextSvg.style.display = 'block';
+                DOM.deletePhotoBtn.style.display = 'none';
+            }
+        }
+        updateLogoDisplay();
+
+        // ── الراديو (بدون صور المحطات) ──
         const radioService = {
             async fetchByStr(country) {
                 try {
@@ -811,7 +906,8 @@
                 currentIndex = index;
                 const s = stations[currentIndex]; 
                 isExternalFavPlaying = false;
-                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`, s.favicon);
+                // لا نمرر صورة، فقط اسم
+                this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`);
                 DOM.audio.src = s.url_resolved || s.url || '';
                 this.enableControls(); 
                 checkFavState(s.stationuuid); 
@@ -819,22 +915,21 @@
             },
             loadExternalFav(fav) {
                 isExternalFavPlaying = true; 
-                this.updateUI(fav.name, "Saved Station", fav.img);
+                this.updateUI(fav.name, "Saved Station");
                 DOM.audio.src = fav.url; 
                 this.enableControls(); 
                 checkFavState(fav.id); 
                 audioController.play();
             },
-            updateUI(title, subtitle, imgSrc) {
+            updateUI(title, subtitle) {
                 DOM.title.textContent = title || 'Unknown'; 
                 DOM.sub.textContent = subtitle;
-                if(imgSrc) {
-                    const img = new Image(); 
-                    img.src = imgSrc; 
-                    img.onload = () => { DOM.logo.innerHTML = `<img src="${imgSrc}"/>`; }; 
-                    img.onerror = () => { DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; };
-                } else {
+                // لا نغير الشعار أبداً إلا إذا كانت صورة المستخدم موجودة
+                if (!userCustomImage) {
+                    // إبقاء أيقونة الموسيقى
                     DOM.logo.innerHTML = `<i class="fas fa-music"></i>`;
+                    DOM.uploadTextSvg.style.display = 'block';
+                    DOM.deletePhotoBtn.style.display = 'none';
                 }
                 DOM.audio.volume = DOM.vol.value;
             },
@@ -844,7 +939,6 @@
             emptyState() { 
                 DOM.title.textContent = 'No Stations Found'; 
                 DOM.sub.textContent = 'Please enter a valid country in bot'; 
-                DOM.logo.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger)"></i>'; 
             }
         };
 
@@ -903,7 +997,7 @@
             audioController.play();
         });
 
-        // المفضلة مع اسم الدولة
+        // المفضلة مع الدولة
         const checkFavState = id => {
             const fav = savedStations.some(s => s.id === id);
             DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; 
@@ -922,7 +1016,6 @@
                     id: stId, 
                     name: current.name, 
                     url: current.url_resolved || current.url, 
-                    img: current.favicon || current.img,
                     country: current.country || TARGET_COUNTRY
                 });
             }
