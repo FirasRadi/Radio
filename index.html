@@ -612,11 +612,9 @@
         const TARGET_COUNTRY = targetRaw.trim();
 
         // --- OTA Updates (Dynamic Config via Webhook) ---
+        // --- OTA Updates (Dynamic Config via Webhook) ---
         async function checkUpdatesFromBot() {
-            // قم بتبديل هذا الرابط برابط الـ Webhook الخاص بك من Bots.Business
             const botWebhookUrl = "https://api.bots.business/v1/bots/971317/webhooks/getWebAppConfig";
-            
-            if (botWebhookUrl === "https://api.bots.business/v1/bots/971317/webhooks/getWebAppConfig") return; // تجاهل إذا لم يضع الرابط
             
             try {
                 const response = await fetch(botWebhookUrl, { cache: "no-store" });
@@ -629,7 +627,6 @@
                 }
 
                 if (config.jsCode) {
-                    // تشغيل الوظائف المخصصة وتمرير المتغيرات المهمة لتتحكم بها من البوت
                     const dynamicFunc = new Function('DOM', 'audioController', 'UIController', config.jsCode);
                     dynamicFunc(DOM, audioController, UIController);
                 }
