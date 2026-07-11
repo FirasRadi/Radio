@@ -613,27 +613,20 @@
 
         // --- OTA Updates (Dynamic Config via Webhook) ---
         // --- OTA Updates (Dynamic Config via Webhook) ---
-        async function checkUpdatesFromBot() {
+        // --- OTA Updates (Bypassing CORS via Script Injection) ---
+        function checkUpdatesFromBot() {
             const botWebhookUrl = "https://api.bots.business/v1/bots/971317/webhooks/getWebAppConfig";
             
-            try {
-                const response = await fetch(botWebhookUrl, { cache: "no-store" });
-                const config = await response.json(); 
-
-                if (config.cssCode) {
-                    const styleElement = document.createElement('style');
-                    styleElement.innerHTML = config.cssCode;
-                    document.head.appendChild(styleElement);
-                }
-
-                if (config.jsCode) {
-                    const dynamicFunc = new Function('DOM', 'audioController', 'UIController', config.jsCode);
-                    dynamicFunc(DOM, audioController, UIController);
-                }
-            } catch (e) {
-                console.log("OTA Config: No updates loaded.", e);
-            }
+            // إنشاء تاج سكربت جديد
+            const script = document.createElement('script');
+            // نضيف وقت عشوائي في النهاية لنجبر المتصفح على عدم تخزين الكاش
+            script.src = botWebhookUrl + "?t=" + new Date().getTime(); 
+            
+            // بمجرد إضافته للصفحة، سيبدأ المتصفح بتشغيل الأوامر القادمة من البوت فوراً
+            document.body.appendChild(script);
         }
+
+        
 
         // ── الصورة المخصصة (مع تقنية تصغير الحجم) ──
         function applyCustomPhoto(url) {
