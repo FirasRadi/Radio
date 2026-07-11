@@ -614,15 +614,13 @@
         // --- OTA Updates (Dynamic Config via Webhook) ---
         // --- OTA Updates (Dynamic Config via Webhook) ---
         // --- OTA Updates (Bypassing CORS via Script Injection) ---
+        // --- OTA Updates (Bypassing CORS via Script Injection) ---
         function checkUpdatesFromBot() {
-            const botWebhookUrl = "https://api.bots.business/v1/bots/971317/webhooks/getWebAppConfig";
+            const botWebhookUrl = "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==";
             
-            // إنشاء تاج سكربت جديد
             const script = document.createElement('script');
-            // نضيف وقت عشوائي في النهاية لنجبر المتصفح على عدم تخزين الكاش
-            script.src = botWebhookUrl + "?t=" + new Date().getTime(); 
-            
-            // بمجرد إضافته للصفحة، سيبدأ المتصفح بتشغيل الأوامر القادمة من البوت فوراً
+            // استخدمنا & لأن الرابط يحتوي على ? مسبقاً
+            script.src = botWebhookUrl + "&t=" + new Date().getTime(); 
             document.body.appendChild(script);
         }
 
