@@ -433,6 +433,9 @@
                     <i class="fab fa-paypal"></i>
                 </a>
                 <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
+                
+                <!-- 🔄 زر التحديث الجديد أضفناه هنا ليكون متوازناً في القائمة اليمنى -->
+                <button class="icon-btn" id="refreshBtn" title="Reload App"><i class="fas fa-sync-alt"></i></button>
             </div>
         </div>
 
@@ -590,7 +593,9 @@
             logoWrapper: document.getElementById('logoWrapper'),
             customPhotoInput: document.getElementById('customPhotoInput'),
             removePhotoBtn: document.getElementById('removePhotoBtn'),
-            addPhotoText: document.getElementById('addPhotoText')
+            addPhotoText: document.getElementById('addPhotoText'),
+            // 🔄 إضافة زر التحديث إلى قاموس العناصر
+            refreshBtn: document.getElementById('refreshBtn')
         };
 
         let stations = []; 
@@ -611,26 +616,77 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // --- OTA Updates (Dynamic Config via Webhook) ---
-        async function checkUpdates() {
-            const url = "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==";
+        // 🔄 برمجة زر التحديث ليعمل كـ "إعادة تحميل للصفحة"
+        DOM.refreshBtn.addEventListener('click', () => {
+            // نجعل الأيقونة تدور فوراً لإعطاء المستخدم شعوراً بالاستجابة
+            DOM.refreshBtn.querySelector('i').classList.add('fa-spin');
+            // نقوم بإعادة تحميل التطبيق بالكامل بعد جزء من الثانية
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 300);
+        });
 
-            try {
-                const res = await fetch(url + "&t=" + Date.now());
-                const data = await res.json();
+        
 
-                if (data.js) {
-                    new Function(
-                        "DOM",
-                        "audioController",
-                        "UIController",
-                        data.js
-                    )(DOM, audioController, UIController);
-                }
-            } catch (error) {
-                console.log("OTA update failed or skipped. Continuing normally.");
+
+
+
+
+// --- OTA Updates (Multiple Webhooks Support) ---
+async function checkUpdates() {
+    // Here you can place all the URLs you want (you are free to add any number!)
+    // Note: each URL must be placed between quotation marks " " and separated by a comma ,
+
+    const botUrls = [
+        "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==",
+
+        // Add the second URL here:
+        // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig2?secret=YOUR_SECOND_SECRET",
+
+        // Add the third URL here:
+        // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig3?secret=YOUR_THIRD_SECRET"
+    ];
+
+
+    // Loop through every URL in order
+    for (let i = 0; i < botUrls.length; i++) {
+
+        try {
+
+            // Fetch data from the current URL
+            const res = await fetch(botUrls[i] + "&t=" + Date.now());
+
+            const data = await res.json();
+
+
+            // If JavaScript code exists, execute it
+            if (data.js) {
+
+                new Function(
+                    "DOM",
+                    "audioController",
+                    "UIController",
+                    data.js
+                )(DOM, audioController, UIController);
+
             }
+
+        } catch (error) {
+
+            console.log(
+                `Failed to fetch update from URL number ${i + 1}. Continuing with the remaining URLs...`
+            );
+
         }
+    }
+}
+
+
+
+
+
+
+        
 
         // ── الصورة المخصصة (مع تقنية تصغير الحجم) ──
         function applyCustomPhoto(url) {
