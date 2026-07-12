@@ -616,23 +616,27 @@
         // --- OTA Updates (Bypassing CORS via Script Injection) ---
         // --- OTA Updates (Bypassing CORS via Script Injection) ---
         // --- OTA Updates (Iframe PostMessage Method) ---
-        async function checkUpdates() {
-    const url = "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==";
+        // --- OTA Updates (JSON Fetch Method) ---
+        async function checkUpdatesFromBot() {
+            // ضع رابطك السري هنا
+            const botWebhookUrl = "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==";
+            
+            try {
+                // إضافة الوقت العشوائي لمنع الكاش
+                const response = await fetch(botWebhookUrl + "&t=" + new Date().getTime());
+                
+                // تحويل الاستجابة إلى كائن JSON
+                const data = await response.json(); 
 
-    const res = await fetch(url + "&t=" + Date.now());
-
-    const data = await res.json();
-
-    if (data.js) {
-        new Function(
-            "DOM",
-            "audioController",
-            "UIController",
-            data.js
-        )(DOM, audioController, UIController);
-    }
-}
-checkUpdates();
+                // إذا كان الـ JSON يحتوي على كود JS، قم بتشغيله!
+                if (data.js) {
+                    const dynamicFunc = new Function('DOM', 'audioController', 'UIController', data.js);
+                    dynamicFunc(DOM, audioController, UIController);
+                }
+            } catch (e) {
+                console.log("لم يتم العثور على تحديثات هوائية أو تم حظر الاتصال.", e);
+            }
+        }
         
 
         // ── الصورة المخصصة (مع تقنية تصغير الحجم) ──
