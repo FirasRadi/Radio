@@ -396,6 +396,37 @@
 
         #loading { position: fixed; inset: 0; background: var(--bg-base); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: var(--primary); font-weight: 600; letter-spacing: 2px; }
         .spinner { width: 45px; height: 45px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+
+
+
+
+/* تصميم النقطة الحمراء (الإشعار) */
+        .notification-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: var(--danger);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: none; /* مخفي افتراضياً */
+            align-items: center;
+            justify-content: center;
+            animation: bounceBadge 1s infinite;
+            border: 2px solid var(--card-bg);
+        }
+        @keyframes bounceBadge {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+
+
+
+        
     </style>
 </head>
 <body>
@@ -435,7 +466,10 @@
                 <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
                 
                 <!-- 🔄 زر التحديث الجديد أضفناه هنا ليكون متوازناً في القائمة اليمنى -->
-                <button class="icon-btn" id="refreshBtn" title="Reload App"><i class="fas fa-sync-alt"></i></button>
+                <button class="icon-btn" id="refreshBtn" title="Reload App" style="position: relative;">
+                    <i class="fas fa-sync-alt"></i>
+                    <span class="notification-badge" id="updateBadge">1</span>
+                </button>
             </div>
         </div>
 
@@ -631,58 +665,80 @@
 
 
 
+// مصفوفة لحفظ رقم الإصدار لكل رابط بشكل منفصل
+        let currentVersions = []; 
 
-// --- OTA Updates (Multiple Webhooks Support) ---
-async function checkUpdates() {
-    // Here you can place all the URLs you want (you are free to add any number!)
-    // Note: each URL must be placed between quotation marks " " and separated by a comma ,
+        async function checkUpdates(isSilent = false) {
+            // قائمة الروابط المتعددة (أضف أو احذف ما تشاء)
+            const botUrls = [
+                "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==",
+                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig2?secret=...",
+                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig3?secret=..."
+            ];
 
-    const botUrls = [
-        "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==",
-
-        // Add the second URL here:
-        // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig2?secret=YOUR_SECOND_SECRET",
-
-        // Add the third URL here:
-        // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig3?secret=YOUR_THIRD_SECRET"
-    ];
-
-
-    // Loop through every URL in order
-    for (let i = 0; i < botUrls.length; i++) {
-
-        try {
-
-            // Fetch data from the current URL
-            const res = await fetch(botUrls[i] + "&t=" + Date.now());
-
-            const data = await res.json();
-
-
-            // If JavaScript code exists, execute it
-            if (data.js) {
-
-                new Function(
-                    "DOM",
-                    "audioController",
-                    "UIController",
-                    data.js
-                )(DOM, audioController, UIController);
-
+            // تهيئة مصفوفة الإصدارات بأصفار في أول مرة تفتح فيها الراديو
+            if (currentVersions.length === 0) {
+                currentVersions = new Array(botUrls.length).fill(0);
             }
 
-        } catch (error) {
+            let hasNewUpdate = false; // متغير لمعرفة هل وجدنا تحديثاً في أي رابط من الروابط
 
-            console.log(
-                `Failed to fetch update from URL number ${i + 1}. Continuing with the remaining URLs...`
-            );
+            // المرور على كل الروابط واحداً تلو الآخر
+            for (let i = 0; i < botUrls.length; i++) {
+                try {
+                    const res = await fetch(botUrls[i] + "&t=" + Date.now());
+                    const data = await res.json();
 
+                    // إذا كان هناك إصدار جديد في هذا الرابط التحديداً!
+                    if (data.version && data.version > currentVersions[i]) {
+                        
+                        if (!isSilent) {
+                            // هذه تعمل عند فتح الراديو لأول مرة
+                            currentVersions[i] = data.version; // تحديث رقم إصدار هذا الرابط
+                            if (data.js) {
+                                new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController);
+                            }
+                        } else {
+                            // هذه تعمل في الخلفية إذا تم اكتشاف تحديث جديد
+                            hasNewUpdate = true;
+                        }
+                    }
+                } catch (error) {
+                    // فشل صامت لهذا الرابط، سيكمل للرابط الذي يليه بدون إزعاج المستخدم
+                }
+            }
+
+            // إذا كنا في وضع الخلفية، ووجدنا تحديثاً جديداً في أحد الروابط
+            if (isSilent && hasNewUpdate) {
+                const badge = document.getElementById('updateBadge');
+                if (badge) badge.style.display = 'flex';
+                
+                /* 
+                // للتحديث الأوتوماتيكي الفوري بدون زر، احذف الـ // من الأسفل:
+                // checkUpdates(false); 
+                // if(badge) badge.style.display = 'none';
+                */
+            }
         }
-    }
-}
 
-
-
+        // تشغيل المحرك الأساسي
+        async function bootApp() {
+            // 1. فحص التحديثات لأول مرة عند فتح الراديو
+            await checkUpdates(false);
+            
+            // 2. فحص التحديثات في الخلفية بصمت (كل 10 ثوانٍ)
+            setInterval(() => {
+                checkUpdates(true);
+            }, 10000); // 10000 مللي ثانية = 10 ثوانٍ
+            
+            if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
+            
+            DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
+            if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { UIController.emptyState(); DOM.loading.style.display = 'none'; return; }
+            stations = await radioService.fetchByStr(TARGET_COUNTRY);
+            if(stations.length) { UIController.loadIndex(0); } else { UIController.emptyState(); }
+            DOM.loading.style.display = 'none';
+        }
 
 
 
