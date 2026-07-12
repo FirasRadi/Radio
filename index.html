@@ -976,12 +976,16 @@
         DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
         // بدء التطبيق
+        // بدء التطبيق (المحرك الأساسي)
         async function bootApp() {
-            // جلب التعليمات من البوت (صامت في الخلفية)
-            await checkUpdatesFromBot();
             
+            // 1. أول خطوة: جلب التعليمات والتحديثات من البوت
+            await checkUpdates();
+            
+            // 2. ثاني خطوة: فحص الصورة المخصصة
             if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
             
+            // 3. ثالث خطوة: جلب المحطات وتشغيل الراديو
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
             if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { UIController.emptyState(); DOM.loading.style.display = 'none'; return; }
             stations = await radioService.fetchByStr(TARGET_COUNTRY);
@@ -989,6 +993,7 @@
             DOM.loading.style.display = 'none';
         }
         
+        // تشغيل المحرك الأساسي
         bootApp();
     </script>
 </body>
