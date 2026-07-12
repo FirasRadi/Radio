@@ -402,26 +402,27 @@
 
 /* تصميم النقطة الحمراء (الإشعار) */
         .notification-badge {
-            position: absolute;
-            top: -3px;
-            right: -3px;
-            background-color: var(--danger);
-            color: #fff;
-            font-size: 10px;
-            font-weight: bold;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            display: none; /* مخفي افتراضياً */
-            align-items: center;
-            justify-content: center;
-            animation: bounceBadge 1s infinite;
-            border: 2px solid var(--card-bg);
-        }
-        @keyframes bounceBadge {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-        }
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    background-color: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: none; /* مخفي افتراضياً */
+    align-items: center;
+    justify-content: center;
+    animation: bounceBadge 1s infinite;
+    border: 2px solid var(--card-bg);
+    z-index: 100;
+}
+@keyframes bounceBadge {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
 
 
 
