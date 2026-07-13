@@ -240,48 +240,54 @@
         // --- OTA Updates (Manual Fetch Only - 0 Iteration Load) ---
         async function checkUpdates() {
             try {
-                // ضع رابط البوت الخاص بك هنا
-                const botUrl = "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==";
-                const res = await fetch(botUrl + "&t=" + Date.now());
-                const data = await res.json();
+             
                 
-                const currentVersion = localStorage.getItem("ota_version") || 0;
-                
-                if (data.version && data.version > currentVersion) {
-                    // حفظ الكود الجديد في الذاكرة لتطبيقه في المرات القادمة بدون الحاجة للاتصال
-                    localStorage.setItem("ota_version", data.version);
-                    localStorage.setItem("saved_dynamic_js", data.js);
+                // ضع رابط البوت الخاص بك هن
+                // 1. مصفوفة الروابط (أضف هنا أي عدد تريده من الأوامر مثل getWebAppConfig2 و 3)
+        const botUrls = [
+            "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==",
+            // "رابط_getWebAppConfig2_هنا",
+            // "رابط_getWebAppConfig3_هنا"
+        ];
+
+        // 2. دالة جلب التحديثات (تمر على كل الروابط بالترتيب)
+        async function checkUpdates() {
+            let isUpdated = false;
+            for (let i = 0; i < botUrls.length; i++) {
+                if (!botUrls[i] || botUrls[i].startsWith("//")) continue; // تجاهل الروابط الفارغة
+                try {
+                    const res = await fetch(botUrls[i] + "&t=" + Date.now());
+                    const data = await res.json();
                     
                     if (data.js) {
+                        // نحفظ كل كود برقم يعبر عن ترتيبه في المصفوفة
+                        localStorage.setItem("saved_js_" + i, data.js);
                         new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController);
+                        isUpdated = true;
                     }
-                    return true; 
+                } catch (error) {
+                    console.log("فشل الاتصال بالرابط رقم " + (i+1));
                 }
-                return false;
-            } catch (err) {
-                return false;
             }
+            return isUpdated;
         }
 
-        // تفاعل زر التحديث (مبني على الكود الخاص بك)
+        // 3. برمجة زر التحديث (إجبار التحديث من جميع الروابط عند النقر)
         DOM.refreshBtn.addEventListener('click', async () => {
             const icon = DOM.refreshBtn.querySelector('i');
             icon.classList.add('fa-spin');
             
-            // الاتصال بالبوت فقط عند الضغط
             const hasUpdate = await checkUpdates();
             
             icon.classList.remove('fa-spin');
-            
             if (hasUpdate) {
                 DOM.refreshBtn.classList.add("has-update");
-                // إزالة التوهج الأخضر بعد 3 ثوانٍ
-                setTimeout(() => {
-                    DOM.refreshBtn.classList.remove("has-update");
-                }, 3000);
+                setTimeout(() => DOM.refreshBtn.classList.remove("has-update"), 3000);
             }
         });
 
+
+                
         // ── الصورة المخصصة (مع تقنية تصغير الحجم) ──
         function applyCustomPhoto(url) { if(url) { customImageUrl = url; DOM.logo.innerHTML = `<img src="${url}"/>`; DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'flex'; } else { customImageUrl = null; DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; DOM.removePhotoBtn.style.display = 'none'; if (!isTextHidden) { DOM.addPhotoText.style.display = 'block'; DOM.removePhotoBtn.style.display = 'flex'; } } }
         if(!isTextHidden || customImageUrl) { DOM.removePhotoBtn.style.display = 'flex'; }
@@ -299,15 +305,18 @@
         const toggleSearchSheet = () => { DOM.searchSheet.classList.toggle('open'); DOM.searchOverlay.classList.toggle('open'); DOM.searchInput.value = ''; DOM.searchResults.innerHTML = ''; DOM.searchInput.focus(); }; DOM.searchBtn.addEventListener('click', toggleSearchSheet); DOM.closeSearchBtn.addEventListener('click', toggleSearchSheet); DOM.searchOverlay.addEventListener('click', toggleSearchSheet); DOM.searchInput.addEventListener('input', () => { const term = DOM.searchInput.value.toLowerCase().trim(); if (!term) { DOM.searchResults.innerHTML = ''; return; } const filtered = stations.filter(s => s.name.toLowerCase().includes(term)); DOM.searchResults.innerHTML = filtered.map((s, idx) => { const realIndex = stations.indexOf(s); return `<li data-index="${realIndex}">${s.name}</li>`; }).join(''); }); DOM.searchResults.addEventListener('click', e => { const li = e.target.closest('li'); if (!li) return; UIController.loadIndex(parseInt(li.dataset.index)); toggleSearchSheet(); audioController.play(); });
         const checkFavState = id => { const fav = savedStations.some(s => s.id === id); DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; DOM.saveBtn.innerHTML = fav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; }; DOM.saveBtn.addEventListener('click', () => { const current = isExternalFavPlaying ? savedStations.find(s => s.url === DOM.audio.src) : stations[currentIndex]; if(!current) return; const stId = current.stationuuid || current.id; const existIdx = savedStations.findIndex(s => s.id === stId); if (existIdx > -1) { savedStations.splice(existIdx, 1); } else { savedStations.push({ id: stId, name: current.name, url: current.url_resolved || current.url, country: current.country || TARGET_COUNTRY }); } localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); checkFavState(stId); renderFavorites(); }); const renderFavorites = () => { DOM.favList.innerHTML = savedStations.length ? '' : '<li style="text-align:center; color:var(--text-sub); margin-top:20px;">No saved stations.</li>'; savedStations.forEach((f, i) => { const li = document.createElement('li'); li.className = 'fav-item'; const countryText = f.country ? ` (${f.country})` : ''; li.innerHTML = `<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${f.name}">${f.name || 'Unknown'}${countryText}</div></div><button class="fav-remove" title="Remove"><i class="fas fa-trash-alt"></i></button>`; li.querySelector('.fav-item-content').addEventListener('click', () => { DOM.favModal.classList.remove('open'); const idx = stations.findIndex(s => s.stationuuid === f.id); if(idx > -1) { UIController.loadIndex(idx); audioController.play(); } else { UIController.loadExternalFav(f); } }); li.querySelector('.fav-remove').addEventListener('click', e => { e.stopPropagation(); savedStations.splice(i, 1); localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); renderFavorites(); const activeId = isExternalFavPlaying ? f.id : (stations[currentIndex]?.stationuuid); if (activeId === f.id) checkFavState(f.id); }); DOM.favList.appendChild(li); }); }; DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
-        async function bootApp() {
-            // تنفيذ التحديث المحفوظ مسبقاً (إن وجد) دون استهلاك أي رصيد!
-            const savedJs = localStorage.getItem("saved_dynamic_js");
-            if (savedJs) {
-                try {
-                    new Function("DOM", "audioController", "UIController", savedJs)(DOM, audioController, UIController);
-                } catch(e){}
+       
+                
+                async function bootApp() {
+            // تشغيل كل التعديلات المحفوظة مسبقاً من جميع الروابط فوراً
+            for (let i = 0; i < botUrls.length; i++) {
+                const savedJs = localStorage.getItem("saved_js_" + i);
+                if (savedJs) {
+                    try { new Function("DOM", "audioController", "UIController", savedJs)(DOM, audioController, UIController); } catch(e){}
+                }
             }
 
+            // --- باقي كودك الأساسي يبقى كما هو دون مساس ---
             if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
             
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
@@ -316,6 +325,8 @@
             if(stations.length) { UIController.loadIndex(0); } else { UIController.emptyState(); }
             DOM.loading.style.display = 'none';
         }
+
+                
         
         bootApp();
     </script>
