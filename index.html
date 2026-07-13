@@ -264,7 +264,7 @@
 
         // 🚀 بدء تشغيل التطبيق بأمان تام
         async function bootApp() {
-            // فحص التحديثات مرة واحدة فقط عند فتح الراديو لتوفير الرصيد
+            // فحص التحديثات مرة واحدة فقط لتوفير الرصيد!
             await checkUpdates();
             
             if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
