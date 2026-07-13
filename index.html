@@ -40,24 +40,6 @@
         .donate-btn { width: 42px; height: 42px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; flex-shrink: 0; }
         .donate-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0, 112, 186, 0.6); }
 
-        /* ستايلات زر التحديث الخاص بك */
-        .has-update {
-            color: #22c55e !important;
-            box-shadow: 0 0 15px #22c55e;
-            border-color: #22c55e !important;
-        }
-        #refreshBtn.has-update::after {
-            content: "";
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: red;
-            border-radius: 50%;
-            top: 0px;
-            right: 0px;
-            border: 2px solid var(--card-bg);
-        }
-
         .header-timer-text { display: none; font-family: monospace; font-size: 13px; font-weight: 700; margin-left: 6px; color: var(--warning); }
         .icon-btn.has-text .header-timer-text { display: inline-block; }
         .icon-btn.active-timer { color: var(--warning); background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); }
@@ -168,11 +150,7 @@
             <div class="header-right">
                 <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Developer"><i class="fab fa-paypal"></i></a>
                 <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
-                
-                <!-- زر التحديث اليدوي -->
-                <button class="icon-btn" id="refreshBtn" title="Check for Updates">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+                <!-- تم إزالة زر التحديث كما طلبت -->
             </div>
         </div>
 
@@ -184,8 +162,7 @@
                 </svg>
                 <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
             </div>
-            <!-- تم إزالة قبول صيغ محددة ليقبل كل شيء، وسيتعامل الهاتف معها -->
-            <input type="file" id="customPhotoInput" style="display: none;" />
+            <input type="file" id="customPhotoInput" accept="image/*" style="display: none;" />
             <div class="station-name" id="stationTitle">Loading...</div>
             <div class="station-counter" id="stationSub">Initializing</div>
         </div>
@@ -227,7 +204,7 @@
         if (tg) { tg.ready(); tg.expand(); }
 
         const DOM = {
-            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColors: document.getElementById('themeColors'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText'), refreshBtn: document.getElementById('refreshBtn')
+            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColors: document.getElementById('themeColors'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText')
         };
 
         let stations = []; let currentIndex = 0; let isPlaying = false; let savedStations = []; try { savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || []; } catch (e) { savedStations = []; } let errorCount = 0; let isExternalFavPlaying = false; let autoSkipInProgress = false; let skipTimeout = null;
@@ -238,66 +215,59 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // --- OTA Updates (نظامك الذكي - يعمل بالطلب اليدوي فقط) ---
+        // 🆔 ضع الآي دي الخاص بك في تيليجرام هنا (بدون علامات تنصيص)
+        const ADMIN_ID = 1234567890; 
+        const currentUserId = tg?.initDataUnsafe?.user?.id;
+        const isDevMode = (currentUserId === ADMIN_ID);
+
+        // --- OTA Updates (نظام استدعاء الأوامر المتعددة عند الفتح) ---
         async function checkUpdates() {
-            try {
-                const botUrl = "https://api.bots.business/v2/bots/971317/web-app/yesssss?secret=u/HOIRfProKkKjptbTZ3YPN8ZE6oo8D8yw1nuBJiwwJx+1qKwwals0OWetEARPVLb8cEu5LznizyNnRqYEzW1Q==";
-                const res = await fetch(botUrl + "&t=" + Date.now());
-                const data = await res.json();
-                
-                const currentVersion = localStorage.getItem("ota_version") || 0;
-                
-                if (data.version && data.version > currentVersion) {
-                    localStorage.setItem("ota_version", data.version);
-                    localStorage.setItem("saved_dynamic_js", data.js);
+            // 🌐 قائمة الروابط للمستخدمين العاديين (أضف المزيد مفصولة بفاصلة)
+            const prodUrls = [
+                "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==",
+                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig2?secret=...",
+                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig3?secret=..."
+            ];
+
+            // 🧪 قائمة الروابط السريّة (لك أنت فقط للمعاينة قبل النشر)
+            const devUrls = [
+                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfigDev?secret=..."
+            ];
+
+            const targetUrls = (isDevMode && devUrls.length > 0) ? devUrls : prodUrls;
+
+            // حلقة لجلب الأكواد من كل الروابط تباعاً
+            for (let url of targetUrls) {
+                if (!url || url.includes("YOUR_")) continue;
+                try {
+                    const res = await fetch(url + "&t=" + Date.now());
+                    const data = await res.json();
                     
                     if (data.js) {
                         new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController);
                     }
-                    return true; 
+                } catch (e) {
+                    console.log("OTA Error on link, skipping...");
                 }
-                return false;
-            } catch (err) {
-                return false;
             }
         }
 
-        // تفاعل زر التحديث
-        DOM.refreshBtn.addEventListener('click', async () => {
-            const icon = DOM.refreshBtn.querySelector('i');
-            icon.classList.add('fa-spin');
-            
-            // الاتصال بالبوت وتطبيق الكود
-            const hasUpdate = await checkUpdates();
-            
-            icon.classList.remove('fa-spin');
-            
-            if (hasUpdate) {
-                DOM.refreshBtn.classList.add("has-update");
-                setTimeout(() => {
-                    DOM.refreshBtn.classList.remove("has-update");
-                }, 3000);
+        // 💡 خدعة اختراق (Audio Unlocker) لحل مشكلة الشاشة المطفأة
+        let audioUnlocked = false;
+        document.body.addEventListener('touchstart', function() {
+            if (!audioUnlocked && DOM.audio) {
+                let playPromise = DOM.audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        DOM.audio.pause();
+                        audioUnlocked = true;
+                    }).catch(error => {});
+                }
             }
-        });
+        }, { once: true });
 
-        // ── الصورة المخصصة (إلغاء قيود الحجم ليقبلها بكامل دقتها) ──
-        function applyCustomPhoto(url) { 
-            if(url) { 
-                customImageUrl = url; 
-                DOM.logo.innerHTML = `<img src="${url}"/>`; 
-                DOM.addPhotoText.style.display = 'none'; 
-                DOM.removePhotoBtn.style.display = 'flex'; 
-            } else { 
-                customImageUrl = null; 
-                DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; 
-                DOM.removePhotoBtn.style.display = 'none'; 
-                if (!isTextHidden) { 
-                    DOM.addPhotoText.style.display = 'block'; 
-                    DOM.removePhotoBtn.style.display = 'flex'; 
-                } 
-            } 
-        }
-        
+        // ── الصورة المخصصة (بكامل دقتها الأصلية) ──
+        function applyCustomPhoto(url) { if(url) { customImageUrl = url; DOM.logo.innerHTML = `<img src="${url}"/>`; DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'flex'; } else { customImageUrl = null; DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; DOM.removePhotoBtn.style.display = 'none'; if (!isTextHidden) { DOM.addPhotoText.style.display = 'block'; DOM.removePhotoBtn.style.display = 'flex'; } } }
         if(!isTextHidden || customImageUrl) { DOM.removePhotoBtn.style.display = 'flex'; }
         DOM.logoWrapper.addEventListener('click', () => { DOM.customPhotoInput.click(); });
         
@@ -307,15 +277,8 @@
                 const reader = new FileReader(); 
                 reader.onload = (ev) => { 
                     const originalUrl = ev.target.result;
-                    // تطبيق الصورة مباشرة بدون تصغير
                     applyCustomPhoto(originalUrl);
-                    
-                    // محاولة حفظها (إذا كانت كبيرة جداً قد يرفض الهاتف حفظها للزيارة القادمة، لكنها ستظهر حالياً)
-                    try {
-                        localStorage.setItem('radio_custom_photo', originalUrl); 
-                    } catch(err) {
-                        console.log("الصورة كبيرة جداً ليتم حفظها في الذاكرة الدائمة، لكن تم تطبيقها مؤقتاً.");
-                    }
+                    try { localStorage.setItem('radio_custom_photo', originalUrl); } catch(err) { console.log("الصورة كبيرة لكن تم تطبيقها."); }
                 }; 
                 reader.readAsDataURL(file); 
             } 
@@ -334,13 +297,8 @@
         const checkFavState = id => { const fav = savedStations.some(s => s.id === id); DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; DOM.saveBtn.innerHTML = fav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; }; DOM.saveBtn.addEventListener('click', () => { const current = isExternalFavPlaying ? savedStations.find(s => s.url === DOM.audio.src) : stations[currentIndex]; if(!current) return; const stId = current.stationuuid || current.id; const existIdx = savedStations.findIndex(s => s.id === stId); if (existIdx > -1) { savedStations.splice(existIdx, 1); } else { savedStations.push({ id: stId, name: current.name, url: current.url_resolved || current.url, country: current.country || TARGET_COUNTRY }); } localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); checkFavState(stId); renderFavorites(); }); const renderFavorites = () => { DOM.favList.innerHTML = savedStations.length ? '' : '<li style="text-align:center; color:var(--text-sub); margin-top:20px;">No saved stations.</li>'; savedStations.forEach((f, i) => { const li = document.createElement('li'); li.className = 'fav-item'; const countryText = f.country ? ` (${f.country})` : ''; li.innerHTML = `<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${f.name}">${f.name || 'Unknown'}${countryText}</div></div><button class="fav-remove" title="Remove"><i class="fas fa-trash-alt"></i></button>`; li.querySelector('.fav-item-content').addEventListener('click', () => { DOM.favModal.classList.remove('open'); const idx = stations.findIndex(s => s.stationuuid === f.id); if(idx > -1) { UIController.loadIndex(idx); audioController.play(); } else { UIController.loadExternalFav(f); } }); li.querySelector('.fav-remove').addEventListener('click', e => { e.stopPropagation(); savedStations.splice(i, 1); localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); renderFavorites(); const activeId = isExternalFavPlaying ? f.id : (stations[currentIndex]?.stationuuid); if (activeId === f.id) checkFavState(f.id); }); DOM.favList.appendChild(li); }); }; DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
         async function bootApp() {
-            // تنفيذ التحديث المحفوظ في الذاكرة فوراً ليعمل التصميم (0 استهلاك)
-            const savedJs = localStorage.getItem("saved_dynamic_js");
-            if (savedJs) {
-                try {
-                    new Function("DOM", "audioController", "UIController", savedJs)(DOM, audioController, UIController);
-                } catch(e) {}
-            }
+            // جلب التحديثات تلقائياً عند فتح הרاديو لمرة واحدة فقط
+            await checkUpdates();
 
             if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
             
