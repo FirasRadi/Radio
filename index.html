@@ -24,18 +24,46 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); -webkit-tap-highlight-color: transparent; }
 
-        /* رفع اللوحة للأعلى قليلاً باستخدام padding-bottom */
-        body { background-color: var(--bg-base); background-image: radial-gradient(circle at top left, #1e293b, #0f172a); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px 8vh 20px; overflow: hidden; }
+        body { background-color: var(--bg-base); background-image: radial-gradient(circle at top left, #1e293b, #0f172a); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px; overflow: hidden; }
 
-        .player-card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); width: 100%; max-width: 420px; border-radius: 28px; padding: 20px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); text-align: center; position: relative; border: 1px solid var(--border-glass); display: flex; flex-direction: column; gap: 12px; z-index: 10; }
+        .player-card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px); 
+            width: 100%; 
+            max-width: 420px; 
+            border-radius: 28px; 
+            padding: 24px 24px 16px; 
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); 
+            text-align: center; 
+            position: relative; 
+            border: 1px solid var(--border-glass); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            z-index: 10; 
+            transform: translateY(-4vh);
+        }
 
         .header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
         .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
         
-        /* إطار مستطيل مفرغ وحواف غير مدببة لاسم الدولة */
-        .header-country-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 4px; }
-        .header-country { font-size: 17px; font-weight: 600; color: var(--text-main); text-transform: capitalize; border: 1px solid var(--text-sub); border-radius: 8px; padding: 4px 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; letter-spacing: 0.5px; }
+        .header-country { 
+            font-size: 18px; 
+            font-weight: 700; 
+            color: var(--text-main); 
+            text-transform: capitalize; 
+            text-align: center; 
+            letter-spacing: 1px;
+            border: 1px solid var(--text-sub); 
+            border-radius: 0; 
+            padding: 4px 14px; 
+            display: inline-block; 
+            width: max-content; 
+            margin: 0 auto;
+            align-self: center;
+        }
 
         .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: 42px; height: 42px; border-radius: 50%; font-size: 15px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
         .icon-btn.has-text { width: auto; padding: 0 14px; border-radius: 22px; }
@@ -53,23 +81,21 @@
 
         .logo-container { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .logo-wrapper { position: relative; display: flex; justify-content: center; align-items: center; margin-top: 5px; margin-bottom: 5px; cursor: pointer; }
-        .add-photo-svg { position: absolute; width: 150px; height: 150px; pointer-events: none; z-index: 5; top: -20px; }
+        .add-photo-svg { position: absolute; width: 150px; height: 150px; pointer-events: none; z-index: 5; top: -15px; }
         .add-photo-svg text { font-size: 10.5px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
 
-        /* إرجاع الحجم الأصلي للصورة */
-        .logo { width: 110px; height: 110px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: relative; }
+        .logo { width: 120px; height: 120px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: relative; }
         .logo:hover { border-color: rgba(255, 255, 255, 0.4); transform: scale(1.03); }
         .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .logo.playing { border-color: var(--primary); box-shadow: 0 0 25px rgba(59, 130, 246, 0.5); }
         .logo.playing img { animation: spinDisc 10s linear infinite; }
-        .logo i { font-size: 45px; }
+        .logo i { font-size: 50px; }
         .logo.playing i.fa-music { animation: spinDisc 4s linear infinite; }
         @keyframes spinDisc { 100% { transform: rotate(360deg); } }
 
         .station-name { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
         .station-counter { font-size: 13px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
 
-        /* إرجاع حجم الأزرار الأصلي */
         .controls { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 5px; }
         .ctrl-btn { border: none; cursor: pointer; transition: 0.3s; }
         .ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -79,16 +105,16 @@
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
 
-        /* الإكولايزر: 15 عمود، مساحة عرضية 60% ليحاذي الأزرار، خمود لطيف (0.4s) */
-        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 35px; margin: 10px auto; width: 60%; opacity: 0.4; transition: opacity 0.5s; }
+        /* ستايل الأعمدة (الإكولايزر) - 15 عمود مع توقف ناعم */
+        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 35px; margin: 10px auto; width: 60%; opacity: 0.4; transition: opacity 0.3s; }
         .vis-container.vis-active { opacity: 1; }
-        .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.4s ease-out; }
+        .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.2s ease-out; }
         .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 10px #ff0a54; }
         .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
         .vis-bar:nth-child(4n+3) { background: #10b981; box-shadow: 0 0 10px #10b981; }
         .vis-bar:nth-child(4n+4) { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
 
-        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 12px 20px; border-radius: 20px; }
+        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 12px 20px; border-radius: 20px; margin-top: 5px; }
         .volume-container { display: flex; align-items: center; gap: 12px; flex-grow: 1; margin-right: 15px; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; outline: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
@@ -105,6 +131,7 @@
         .bottom-sheet.open { bottom: 0; }
         .sheet-header { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 2px; }
         .close-sheet { background: none; border: none; color: var(--text-sub); font-size: 20px; cursor: pointer; }
+        
         .compact-timer-row { background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 16px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
         .timer-info { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; }
         .timer-info-left { display: flex; align-items: center; gap: 8px; }
@@ -117,11 +144,10 @@
         .cancel-timer-btn.visible { visibility: visible; opacity: 1; }
         .cancel-timer-btn:hover { background: var(--danger); color: #fff; }
 
-        /* Theme Colors Grid (7 أعمدة للترتيب المطلوب) */
-        .theme-colors { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; justify-items: center; }
-        .theme-color-btn { width: 42px; height: 42px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .theme-colors { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .theme-color-btn { width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .theme-color-btn:hover { transform: scale(1.1); border-color: #fff; }
-
+        
         #searchInput { background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: #fff; padding: 10px 14px; border-radius: 12px; font-size: 14px; outline: none; }
         #searchResults { list-style: none; max-height: 220px; overflow-y: auto; }
         #searchResults li { padding: 10px 14px; margin-bottom: 6px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 14px; }
@@ -170,20 +196,15 @@
                 <button class="icon-btn" id="toggleTimerBtn" title="Timers"><i class="fas fa-stopwatch"></i><span id="mainHeaderTimer" class="header-timer-text"></span></button>
                 <button class="icon-btn" id="shareBtn" title="Share Bot"><i class="fas fa-share-alt"></i></button>
                 <button class="icon-btn" id="themeBtn" title="Change Theme"><i class="fas fa-palette"></i></button>
-                <!-- نقل زر النجمة للقائمة اليسرى لتشغيل النجوم الملونة بدلاً من البحث -->
-                <button class="icon-btn" id="starToggleBtn" title="Toggle Stars"><i class="fas fa-star"></i></button>
                 <button class="icon-btn" id="removePhotoBtn" title="Remove Photo" style="display:none;"><i class="fas fa-trash-alt"></i></button>
             </div>
             
-            <div class="header-country-wrapper">
-                <div class="header-country" id="headerCountry">Global Radio</div>
-            </div>
+            <div class="header-country" id="headerCountry">Global Radio</div>
             
             <div class="header-right">
                 <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Developer"><i class="fab fa-paypal"></i></a>
                 <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
                 <button class="icon-btn" id="notesBtn" title="My Notes"><i class="fas fa-edit"></i></button>
-                <!-- نقل زر البحث للجهة اليمنى تحت الملاحظات -->
                 <button class="icon-btn" id="searchBtn" title="Search Stations"><i class="fas fa-search"></i></button>
             </div>
         </div>
@@ -231,7 +252,15 @@
     </div>
     
     <div class="sheet-overlay" id="themeOverlay"></div>
-    <div class="bottom-sheet" id="themeSheet"><div class="sheet-header"><div><i class="fas fa-palette" style="color:var(--primary); margin-right:5px;"></i> Pick a Theme</div><button class="close-sheet" id="closeThemeBtn"><i class="fas fa-times"></i></button></div><div class="theme-colors" id="themeColors"></div></div>
+    <div class="bottom-sheet" id="themeSheet">
+        <div class="sheet-header"><div><i class="fas fa-palette" style="color:var(--primary); margin-right:5px;"></i> Pick a Theme</div><button class="close-sheet" id="closeThemeBtn"><i class="fas fa-times"></i></button></div>
+        <div class="theme-colors" id="themeColorsTop"></div>
+        <div class="theme-colors" id="themeColorsBottom" style="margin-top: 10px;">
+            <button class="theme-color-btn" id="starToggleBtnInner" style="border: 1px solid var(--border-glass);"><i class="fas fa-star" style="color:var(--text-sub);"></i></button>
+            <div id="themeColorsBottomList" style="display:contents;"></div>
+            <button class="theme-color-btn" id="snowToggleBtnInner" style="border: 1px solid var(--border-glass);"><i class="fas fa-snowflake" style="color:var(--text-sub);"></i></button>
+        </div>
+    </div>
     
     <div class="sheet-overlay" id="searchOverlay"></div>
     <div class="bottom-sheet" id="searchSheet"><div class="sheet-header"><div><i class="fas fa-search" style="color:var(--primary); margin-right:5px;"></i> Search Station</div><button class="close-sheet" id="closeSearchBtn"><i class="fas fa-times"></i></button></div><input type="text" id="searchInput" placeholder="Type station name..." autocomplete="off" /><ul id="searchResults"></ul></div>
@@ -254,8 +283,9 @@
         if (tg) { tg.ready(); tg.expand(); }
 
         const DOM = {
-            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColors: document.getElementById('themeColors'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText'),
-            starToggleBtn: document.getElementById('starToggleBtn'), notesBtn: document.getElementById('notesBtn'), notesOverlay: document.getElementById('notesOverlay'), notesSheet: document.getElementById('notesSheet'), closeNotesBtn: document.getElementById('closeNotesBtn'), noteInput: document.getElementById('noteInput'), saveNoteBtn: document.getElementById('saveNoteBtn'), notesList: document.getElementById('notesList')
+            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColorsTop: document.getElementById('themeColorsTop'), themeColorsBottomList: document.getElementById('themeColorsBottomList'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText'),
+            notesBtn: document.getElementById('notesBtn'), notesOverlay: document.getElementById('notesOverlay'), notesSheet: document.getElementById('notesSheet'), closeNotesBtn: document.getElementById('closeNotesBtn'), noteInput: document.getElementById('noteInput'), saveNoteBtn: document.getElementById('saveNoteBtn'), notesList: document.getElementById('notesList'),
+            starToggleBtnInner: document.getElementById('starToggleBtnInner'), snowToggleBtnInner: document.getElementById('snowToggleBtnInner')
         };
 
         let stations = []; let currentIndex = 0; let isPlaying = false; let savedStations = []; try { savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || []; } catch (e) { savedStations = []; } let errorCount = 0; let isExternalFavPlaying = false; let autoSkipInProgress = false; let skipTimeout = null;
@@ -266,7 +296,7 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // 🎧 خدعة فك حظر الصوت في الخلفية (Audio Unlocker) - تعمل بمجرد اللمس وتضمن عمل المؤقت والشاشة مغلقة
+        // Audio Unlocker (For Background Timers)
         let audioUnlocked = false;
         document.body.addEventListener('touchstart', function() {
             if (!audioUnlocked && DOM.audio) {
@@ -277,9 +307,8 @@
             }
         }, { once: true });
 
-        // --- عاصفة النجوم الملونة (خلف/أمام اللوحة) ---
-        let starsCanvas;
-        let starsInFront = false;
+        // --- Stars Background ---
+        let starsCanvas, starsInFront = false;
         function initStars() {
             starsCanvas = document.createElement('canvas');
             starsCanvas.id = 'starsCanvas';
@@ -289,13 +318,13 @@
             let w = starsCanvas.width = window.innerWidth;
             let h = starsCanvas.height = window.innerHeight;
             const stars = [];
-            const colors = ['#ff0a54', '#3b82f6', '#10b981', '#fbbf24', '#8b5cf6', '#06b6d4'];
-            for(let i=0; i<250; i++) {
-                stars.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*2.5, s: Math.random()*0.5 + 0.1, c: colors[Math.floor(Math.random()*colors.length)] });
+            const colors = ['#ff0a54', '#3b82f6', '#10b981', '#fbbf24', '#8b5cf6', '#06b6d4', '#ffffff'];
+            for(let i=0; i<150; i++) {
+                stars.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*2, s: Math.random()*0.5 + 0.1, c: colors[Math.floor(Math.random()*colors.length)] });
             }
             setInterval(() => {
                 ctx.clearRect(0,0,w,h);
-                for(let i=0; i<250; i++){
+                for(let i=0; i<150; i++){
                     let s = stars[i];
                     ctx.fillStyle = s.c;
                     ctx.beginPath();
@@ -308,9 +337,14 @@
         }
         initStars();
 
-        // --- ندف الثلج (Snowflakes) ---
-        let snowCanvas;
-        let snowInFront = false;
+        DOM.starToggleBtnInner.addEventListener('click', () => {
+            starsInFront = !starsInFront;
+            starsCanvas.style.zIndex = starsInFront ? '20' : '0';
+            DOM.starToggleBtnInner.querySelector('i').style.color = starsInFront ? '#fff' : 'var(--text-sub)';
+        });
+
+        // --- Snow Background ---
+        let snowCanvas, snowInFront = false;
         function initSnow() {
             snowCanvas = document.createElement('canvas');
             snowCanvas.id = 'snowCanvas';
@@ -320,59 +354,38 @@
             let w = snowCanvas.width = window.innerWidth;
             let h = snowCanvas.height = window.innerHeight;
             const flakes = [];
-            for(let i=0; i<100; i++) {
-                flakes.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*2+1, d: Math.random()*1 });
+            for(let i = 0; i < 100; i++) {
+                flakes.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 2 + 1, d: Math.random() * 1 });
             }
             let angle = 0;
             setInterval(() => {
-                ctx.clearRect(0,0,w,h);
+                ctx.clearRect(0, 0, w, h);
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                 angle += 0.01;
                 ctx.beginPath();
-                for(let i=0; i<100; i++){
+                for(let i = 0; i < 100; i++){
                     let f = flakes[i];
                     ctx.moveTo(f.x, f.y);
-                    ctx.arc(f.x, f.y, f.r, 0, Math.PI*2, true);
+                    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
                 }
                 ctx.fill();
-                for(let i=0; i<100; i++){
+                for(let i = 0; i < 100; i++){
                     let f = flakes[i];
                     f.y += Math.pow(f.d, 2) + 1;
                     f.x += Math.sin(angle + f.d) * 1;
-                    if(f.y > h) { flakes[i] = { x: Math.random()*w, y: 0, r: f.r, d: f.d }; }
+                    if(f.y > h) { flakes[i] = { x: Math.random() * w, y: 0, r: f.r, d: f.d }; }
                 }
             }, 30);
         }
         initSnow();
 
-        // التفاعل مع زر النجمة الموجود في القائمة الجانبية (لتحريك النجوم للأمام/الخلف)
-        DOM.starToggleBtn.addEventListener('click', () => {
-            starsInFront = !starsInFront;
-            starsCanvas.style.zIndex = starsInFront ? '20' : '0';
-            document.querySelectorAll('.fa-star').forEach(icon => {
-                icon.style.color = starsInFront ? 'var(--warning)' : 'var(--text-sub)';
-            });
-        });
-
-        // دالة التفاعل مع زر النجمة داخل نافذة الثيمات
-        window.toggleStarsFromTheme = function() {
-            starsInFront = !starsInFront;
-            starsCanvas.style.zIndex = starsInFront ? '20' : '0';
-            document.querySelectorAll('.fa-star').forEach(icon => {
-                icon.style.color = starsInFront ? 'var(--warning)' : 'var(--text-sub)';
-            });
-        };
-
-        // دالة التفاعل مع زر الثلج داخل نافذة الثيمات
-        window.toggleSnowFromTheme = function() {
+        DOM.snowToggleBtnInner.addEventListener('click', () => {
             snowInFront = !snowInFront;
             snowCanvas.style.zIndex = snowInFront ? '20' : '0';
-            document.querySelectorAll('.fa-snowflake').forEach(icon => {
-                icon.style.color = snowInFront ? '#fff' : 'var(--text-sub)';
-            });
-        };
+            DOM.snowToggleBtnInner.querySelector('i').style.color = snowInFront ? '#fff' : 'var(--text-sub)';
+        });
 
-        // --- الإكولايزر (الأعمدة الراقصة) - 15 عمود, خمود ناعم ---
+        // --- Visualizer Logic ---
         function initVisualizer() {
             var visDiv = document.getElementById('cool-visualizer');
             var html = '';
@@ -385,7 +398,7 @@
                 if(DOM.audio.paused) return;
                 bars.forEach((bar, i) => {
                     var dist = Math.abs(i - 7);
-                    var maxH = 35 - (dist * 1.5);
+                    var maxH = 35 - (dist * 2);
                     var h = 4 + Math.random() * maxH;
                     bar.style.height = h + 'px';
                 });
@@ -393,18 +406,16 @@
             }
 
             window.startVis = function() { visDiv.classList.add('vis-active'); renderFrame(); };
-            window.stopVis = function() { 
-                visDiv.classList.remove('vis-active'); 
-                clearTimeout(visTimer); 
-                bars.forEach(b => b.style.height = '4px'); 
-            };
+            window.stopVis = function() { visDiv.classList.remove('vis-active'); clearTimeout(visTimer); bars.forEach(b => b.style.height = '4px'); };
 
             DOM.audio.addEventListener('play', window.startVis);
             DOM.audio.addEventListener('pause', window.stopVis);
+            DOM.audio.addEventListener('waiting', window.stopVis); 
+            DOM.audio.addEventListener('playing', window.startVis); 
         }
         initVisualizer();
 
-        // --- نظام الملاحظات الشخصية ---
+        // --- Notes Logic ---
         let userNotes = JSON.parse(localStorage.getItem('radio_notes')) || [];
         function renderNotes() {
             DOM.notesList.innerHTML = '';
@@ -433,25 +444,40 @@
         const toggleNotesSheet = () => { DOM.notesSheet.classList.toggle('open'); DOM.notesOverlay.classList.toggle('open'); renderNotes(); };
         DOM.notesBtn.onclick = toggleNotesSheet; DOM.closeNotesBtn.onclick = toggleNotesSheet; DOM.notesOverlay.onclick = toggleNotesSheet;
 
-        // --- OTA Updates (Dynamic Config via Webhook) ---
+        // --- OTA Updates (Unlimited Commands via Array) ---
         async function checkUpdates() {
-            // روابط التحديثات التي تفتح تلقائياً وتنفذ بالترتيب
-            const targetUrls = [
-                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==",
-                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig2?secret=..."
+            const botUrls = [
+                // أضف روابط الأوامر هنا، وسيقوم المتصفح بقراءتها كلها بالتسلسل
+                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=...",
+                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig2?secret=...",
             ];
 
-            for (let url of targetUrls) {
+            for (let url of botUrls) {
                 if (!url || url.includes("secret=...")) continue;
                 try {
                     const res = await fetch(url + "&t=" + Date.now());
                     const data = await res.json();
-                    if (data.js) new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController);
-                } catch (e) { console.log("OTA Error on link, skipping..."); }
+                    const storedVerKey = "ota_version_" + url.slice(-10);
+                    const currentVersion = localStorage.getItem(storedVerKey) || 0;
+                    
+                    if (data.version && data.version > currentVersion) {
+                        localStorage.setItem(storedVerKey, data.version);
+                        localStorage.setItem("saved_js_" + url.slice(-10), data.js);
+                        if (data.js) new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController);
+                    } else {
+                        // تشغيل النسخة المحفوظة من الذاكرة إذا لم يكن هناك إصدار جديد
+                        const savedJs = localStorage.getItem("saved_js_" + url.slice(-10));
+                        if (savedJs) new Function("DOM", "audioController", "UIController", savedJs)(DOM, audioController, UIController);
+                    }
+                } catch (e) {
+                    // فشل الاتصال: تشغيل النسخة المحفوظة كاحتياط
+                    const savedJs = localStorage.getItem("saved_js_" + url.slice(-10));
+                    if (savedJs) new Function("DOM", "audioController", "UIController", savedJs)(DOM, audioController, UIController);
+                }
             }
         }
 
-        // ── الصورة المخصصة (دقة كاملة) ──
+        // --- Custom Photo (No Resolution Limit) ---
         function applyCustomPhoto(url) { if(url) { customImageUrl = url; DOM.logo.innerHTML = `<img src="${url}"/>`; DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'flex'; } else { customImageUrl = null; DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; DOM.removePhotoBtn.style.display = 'none'; if (!isTextHidden) { DOM.addPhotoText.style.display = 'block'; DOM.removePhotoBtn.style.display = 'flex'; } } }
         if(!isTextHidden || customImageUrl) { DOM.removePhotoBtn.style.display = 'flex'; }
         DOM.logoWrapper.addEventListener('click', () => { DOM.customPhotoInput.click(); });
@@ -470,28 +496,37 @@
         DOM.removePhotoBtn.addEventListener('click', () => { if (customImageUrl) { localStorage.removeItem('radio_custom_photo'); applyCustomPhoto(null); DOM.customPhotoInput.value = ''; } else { DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'none'; isTextHidden = true; localStorage.setItem('radio_hide_text', 'true'); } });
 
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null }; const toggleTimerSheet = () => { DOM.timerSheet.classList.toggle('open'); DOM.timerOverlay.classList.toggle('open'); }; DOM.timersToggleBtn.addEventListener('click', toggleTimerSheet); DOM.closeTimerBtn.addEventListener('click', toggleTimerSheet); DOM.timerOverlay.addEventListener('click', toggleTimerSheet); const formatTime = (totalSeconds) => { const h = Math.floor(totalSeconds / 3600); const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); const s = (totalSeconds % 60).toString().padStart(2, '0'); return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`; }; const getRemaining = (endMs) => { if (!endMs) return { total: 0 }; return { total: Math.max(0, Math.round((endMs - Date.now()) / 1000)) }; }; const updateHeaderTimerUI = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (sleepActive) { const rem = getRemaining(timers.sleepEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Sleep: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.sleepDigital.textContent = timeStr; } else if (startActive) { const rem = getRemaining(timers.startEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Start: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.startDigital.textContent = timeStr; } else { DOM.mainHeaderTimer.textContent = ''; DOM.sheetHeaderTimer.textContent = ''; DOM.timersToggleBtn.classList.remove('has-text', 'active-timer'); } }; const stopEngine = () => { if(timers.tickInt) { clearInterval(timers.tickInt); timers.tickInt = null; } }; const startEngine = () => { if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); timerTick(); }; const clearSleepUI = () => { clearTimeout(timers.sleepTo); timers.sleepTo = null; timers.sleepEnd = null; DOM.sleepDigital.classList.remove('visible'); DOM.sleepCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const clearStartUI = () => { clearTimeout(timers.startTo); timers.startTo = null; timers.startEnd = null; DOM.startDigital.classList.remove('visible'); DOM.startCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const timerTick = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (!sleepActive && !startActive) { stopEngine(); updateHeaderTimerUI(); return; } if (sleepActive) { const rem = getRemaining(timers.sleepEnd); if (rem.total <= 0) { audioController.fadeOut(); clearSleepUI(); } } else if (timers.sleepEnd) { clearSleepUI(); } if (startActive) { const rem = getRemaining(timers.startEnd); if (rem.total <= 0) { audioController.forceStart(); clearStartUI(); } } else if (timers.startEnd) { clearStartUI(); } updateHeaderTimerUI(); }; DOM.sleepActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.startEnd) clearStartUI(); audioController.forceStart(); const now = Date.now(); timers.sleepEnd = (timers.sleepEnd && timers.sleepEnd > now) ? timers.sleepEnd + (mins * 60000) : now + (mins * 60000); DOM.sleepCancelBtn.classList.add('visible'); DOM.sleepDigital.classList.add('visible'); startEngine(); clearTimeout(timers.sleepTo); const remainingMs = timers.sleepEnd - Date.now(); timers.sleepTo = setTimeout(() => { audioController.fadeOut(); clearSleepUI(); }, remainingMs); } }); DOM.startActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.sleepEnd) clearSleepUI(); const now = Date.now(); timers.startEnd = (timers.startEnd && timers.startEnd > now) ? timers.startEnd + (mins * 60000) : now + (mins * 60000); DOM.startCancelBtn.classList.add('visible'); DOM.startDigital.classList.add('visible'); startEngine(); clearTimeout(timers.startTo); const remainingMs = timers.startEnd - Date.now(); timers.startTo = setTimeout(() => { audioController.forceStart(); clearStartUI(); }, remainingMs); } }); DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); DOM.startCancelBtn.addEventListener('click', clearStartUI);
-        const themes = [ { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)' }, { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)' }, { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)' }, { name: 'Amber', primary: '#f59e0b', bg: '#2d1f04', cardBg: 'rgba(180, 83, 9, 0.6)' }, { name: 'Sky', primary: '#0ea5e9', bg: '#0a2a3b', cardBg: 'rgba(14, 116, 144, 0.6)' }, { name: 'Violet', primary: '#8b5cf6', bg: '#1e1033', cardBg: 'rgba(109, 40, 217, 0.6)' }, { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)' }, { name: 'Teal', primary: '#14b8a6', bg: '#042f2e', cardBg: 'rgba(20, 184, 166, 0.5)' }, { name: 'Indigo', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(79, 70, 229, 0.6)' }, { name: 'Lime', primary: '#84cc16', bg: '#1a2e0a', cardBg: 'rgba(101, 163, 13, 0.6)' }, { name: 'Fuchsia', primary: '#d946ef', bg: '#2a0a2e', cardBg: 'rgba(192, 38, 211, 0.5)' }, { name: 'Orange', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(194, 65, 12, 0.7)' } ]; function applyTheme(theme) { document.documentElement.style.setProperty('--primary', theme.primary); document.documentElement.style.setProperty('--primary-hover', theme.primary + 'cc'); document.documentElement.style.setProperty('--bg-base', theme.bg); document.documentElement.style.setProperty('--card-bg', theme.cardBg); localStorage.setItem('radio_theme', JSON.stringify(theme)); } function loadTheme() { const saved = localStorage.getItem('radio_theme'); if (saved) { try { applyTheme(JSON.parse(saved)); } catch(e){ applyTheme(themes[0]); } } else { applyTheme(themes[0]); } } 
+        
+        const themes = [ { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)' }, { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)' }, { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)' }, { name: 'Amber', primary: '#f59e0b', bg: '#2d1f04', cardBg: 'rgba(180, 83, 9, 0.6)' }, { name: 'Sky', primary: '#0ea5e9', bg: '#0a2a3b', cardBg: 'rgba(14, 116, 144, 0.6)' }, { name: 'Violet', primary: '#8b5cf6', bg: '#1e1033', cardBg: 'rgba(109, 40, 217, 0.6)' }, { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)' }, { name: 'Teal', primary: '#14b8a6', bg: '#042f2e', cardBg: 'rgba(20, 184, 166, 0.5)' }, { name: 'Indigo', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(79, 70, 229, 0.6)' }, { name: 'Lime', primary: '#84cc16', bg: '#1a2e0a', cardBg: 'rgba(101, 163, 13, 0.6)' }, { name: 'Fuchsia', primary: '#d946ef', bg: '#2a0a2e', cardBg: 'rgba(192, 38, 211, 0.5)' }, { name: 'Orange', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(194, 65, 12, 0.7)' } ]; 
+        function applyTheme(theme) { document.documentElement.style.setProperty('--primary', theme.primary); document.documentElement.style.setProperty('--primary-hover', theme.primary + 'cc'); document.documentElement.style.setProperty('--bg-base', theme.bg); document.documentElement.style.setProperty('--card-bg', theme.cardBg); localStorage.setItem('radio_theme', JSON.stringify(theme)); } 
+        function loadTheme() { const saved = localStorage.getItem('radio_theme'); if (saved) { try { applyTheme(JSON.parse(saved)); } catch(e){ applyTheme(themes[0]); } } else { applyTheme(themes[0]); } } 
         function renderThemeButtons() { 
-            let html = '';
-            html += themes.slice(0, 7).map(t => `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'></button>`).join('');
-            html += `<button class="theme-color-btn" title="Toggle Stars Front/Back" onclick="toggleStarsFromTheme()"><i class="fas fa-star" style="color:var(--text-sub)"></i></button>`;
-            html += themes.slice(7, 12).map(t => `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'></button>`).join('');
-            html += `<button class="theme-color-btn" title="Toggle Snow Front/Back" onclick="toggleSnowFromTheme()"><i class="fas fa-snowflake" style="color:var(--text-sub)"></i></button>`;
-            DOM.themeColors.innerHTML = html; 
-            DOM.themeColors.querySelectorAll('button[data-theme]').forEach(btn => { btn.addEventListener('click', () => { const theme = JSON.parse(btn.dataset.theme); applyTheme(theme); DOM.themeSheet.classList.remove('open'); DOM.themeOverlay.classList.remove('open'); }); }); 
+            let topHTML = ''; let bottomHTML = '';
+            themes.forEach((t, i) => { 
+                let btn = `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'></button>`;
+                if(i < 7) topHTML += btn; else bottomHTML += btn;
+            });
+            DOM.themeColorsTop.innerHTML = topHTML;
+            DOM.themeColorsBottomList.innerHTML = bottomHTML;
+            document.querySelectorAll('.theme-color-btn').forEach(btn => { 
+                if(btn.id) return; // تجاهل أزرار الثلج والنجوم
+                btn.addEventListener('click', () => { 
+                    const theme = JSON.parse(btn.dataset.theme); applyTheme(theme); DOM.themeSheet.classList.remove('open'); DOM.themeOverlay.classList.remove('open'); 
+                }); 
+            }); 
         } 
         const toggleThemeSheet = () => { DOM.themeSheet.classList.toggle('open'); DOM.themeOverlay.classList.toggle('open'); }; DOM.themeBtn.addEventListener('click', toggleThemeSheet); DOM.closeThemeBtn.addEventListener('click', toggleThemeSheet); DOM.themeOverlay.addEventListener('click', toggleThemeSheet); renderThemeButtons(); loadTheme();
-        const radioService = { async fetchByStr(country) { try { const endpoints = [ `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true`, `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(country)}?order=votes&reverse=true` ]; for (const url of endpoints) { const res = await fetch(url); if (res.ok) { const data = await res.json(); const valids = data.filter(s => (s.url_resolved || s.url).startsWith('https://')); if(valids.length > 0) return valids; } } return []; } catch(e) { return []; } } };
-        const audioController = { play() { const prom = DOM.audio.play(); if (prom) { prom.then(() => { isPlaying = true; errorCount = 0; DOM.playIcon.className = 'fas fa-pause'; DOM.playIcon.style.paddingLeft = '0'; DOM.logo.classList.add('playing'); }).catch(err => { if (err.name === 'NotAllowedError') { isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); } else if (err.name !== 'AbortError') { this.handleError(); } }); } }, pause() { DOM.audio.pause(); isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); }, toggle() { isPlaying ? this.pause() : this.play(); }, forceStart() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIController.loadIndex(0); this.play(); } }, fadeOut() { const initVol = DOM.audio.volume; if(initVol <= 0 || !isPlaying) return this.pause(); const step = initVol / 20; let c = 0; const i = setInterval(() => { c++; DOM.audio.volume = Math.max(0, initVol - (step * c)); if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } }, 100); }, handleError() { if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) { errorCount++; DOM.sub.textContent = "Offline. Skipping..."; DOM.logo.classList.remove('playing'); DOM.playIcon.className = 'fas fa-spinner fa-spin'; clearTimeout(skipTimeout); autoSkipInProgress = true; skipTimeout = setTimeout(() => { UIController.loadIndex((currentIndex + 1) % stations.length); autoSkipInProgress = false; }, 1500); } else { this.pause(); DOM.sub.textContent = "Stream Unavailable"; } } };
         
+        const radioService = { async fetchByStr(country) { try { const endpoints = [ `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?limit=150&order=votes&reverse=true`, `https://nl1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?limit=150&order=votes&reverse=true` ]; const res = await Promise.any(endpoints.map(url => fetch(url).then(r => { if(!r.ok) throw new Error(); return r.json();} ))); const valids = res.filter(s => (s.url_resolved || s.url).startsWith('https://')); return valids; } catch(e) { return []; } } };
+        const audioController = { play() { const prom = DOM.audio.play(); if (prom) { prom.then(() => { isPlaying = true; errorCount = 0; DOM.playIcon.className = 'fas fa-pause'; DOM.playIcon.style.paddingLeft = '0'; DOM.logo.classList.add('playing'); }).catch(err => { if (err.name === 'NotAllowedError') { isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); } else if (err.name !== 'AbortError') { this.handleError(); } }); } }, pause() { DOM.audio.pause(); isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); }, toggle() { isPlaying ? this.pause() : this.play(); }, forceStart() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIController.loadIndex(0); this.play(); } }, fadeOut() { const initVol = DOM.audio.volume; if(initVol <= 0 || !isPlaying) return this.pause(); const step = initVol / 20; let c = 0; const i = setInterval(() => { c++; DOM.audio.volume = Math.max(0, initVol - (step * c)); if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } }, 100); }, handleError() { if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) { errorCount++; DOM.sub.textContent = "Offline. Skipping..."; DOM.logo.classList.remove('playing'); DOM.playIcon.className = 'fas fa-spinner fa-spin'; clearTimeout(skipTimeout); autoSkipInProgress = true; skipTimeout = setTimeout(() => { UIController.loadIndex((currentIndex + 1) % stations.length); autoSkipInProgress = false; }, 1500); } else { this.pause(); DOM.sub.textContent = "Stream Unavailable"; } } };
         const UIController = { 
             loadIndex(index) { 
                 if (!stations.length) return; 
-                if (window.stopVis) window.stopVis(); // خمود الأشرطة عند التبديل
+                if(window.stopVis) window.stopVis(); // خمود الأشرطة
                 currentIndex = index; const s = stations[currentIndex]; isExternalFavPlaying = false; this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`); DOM.audio.src = s.url_resolved || s.url || ''; this.enableControls(); checkFavState(s.stationuuid); if (isPlaying) audioController.play(); 
             }, 
             loadExternalFav(fav) { 
-                if (window.stopVis) window.stopVis();
+                if(window.stopVis) window.stopVis(); // خمود الأشرطة
                 isExternalFavPlaying = true; this.updateUI(fav.name, "Saved Station"); DOM.audio.src = fav.url; this.enableControls(); checkFavState(fav.id); audioController.play(); 
             }, 
             updateUI(title, subtitle) { DOM.title.textContent = title || 'Unknown'; DOM.sub.textContent = subtitle; DOM.audio.volume = DOM.vol.value; }, enableControls() { [DOM.playBtn, DOM.nextBtn, DOM.prevBtn].forEach(b => b.disabled = false); }, emptyState() { DOM.title.textContent = 'No Stations Found'; DOM.sub.textContent = 'Please enter a valid country in bot'; } 
@@ -502,7 +537,7 @@
         const checkFavState = id => { const fav = savedStations.some(s => s.id === id); DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; DOM.saveBtn.innerHTML = fav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; }; DOM.saveBtn.addEventListener('click', () => { const current = isExternalFavPlaying ? savedStations.find(s => s.url === DOM.audio.src) : stations[currentIndex]; if(!current) return; const stId = current.stationuuid || current.id; const existIdx = savedStations.findIndex(s => s.id === stId); if (existIdx > -1) { savedStations.splice(existIdx, 1); } else { savedStations.push({ id: stId, name: current.name, url: current.url_resolved || current.url, country: current.country || TARGET_COUNTRY }); } localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); checkFavState(stId); renderFavorites(); }); const renderFavorites = () => { DOM.favList.innerHTML = savedStations.length ? '' : '<li style="text-align:center; color:var(--text-sub); margin-top:20px;">No saved stations.</li>'; savedStations.forEach((f, i) => { const li = document.createElement('li'); li.className = 'fav-item'; const countryText = f.country ? ` (${f.country})` : ''; li.innerHTML = `<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${f.name}">${f.name || 'Unknown'}${countryText}</div></div><button class="fav-remove" title="Remove"><i class="fas fa-trash-alt"></i></button>`; li.querySelector('.fav-item-content').addEventListener('click', () => { DOM.favModal.classList.remove('open'); const idx = stations.findIndex(s => s.stationuuid === f.id); if(idx > -1) { UIController.loadIndex(idx); audioController.play(); } else { UIController.loadExternalFav(f); } }); li.querySelector('.fav-remove').addEventListener('click', e => { e.stopPropagation(); savedStations.splice(i, 1); localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); renderFavorites(); const activeId = isExternalFavPlaying ? f.id : (stations[currentIndex]?.stationuuid); if (activeId === f.id) checkFavState(f.id); }); DOM.favList.appendChild(li); }); }; DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
         async function bootApp() {
-            // جلب التحديثات الهوائية لمرة واحدة فقط عند الفتح بدون استنزاف
+            // فحص التحديثات مرة واحدة تلقائياً عند الإقلاع
             await checkUpdates();
 
             if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
