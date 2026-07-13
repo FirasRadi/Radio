@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Global Radio Player</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         :root {
@@ -31,7 +31,21 @@
         .header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
         .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; }
-        .header-country { flex: 1; font-size: 15px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; letter-spacing: 0.5px; padding-top: 10px; }
+        
+        /* تصميم اسم الدولة المعدل (أكبر قليلاً، أول حرف كبير، وخط أنيق) */
+        .header-country { 
+            flex: 1; 
+            font-size: 18px; /* تم التكبير */
+            font-weight: 700; 
+            color: var(--text-main); 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            text-align: center; 
+            letter-spacing: 1px; 
+            padding-top: 8px; 
+            text-transform: capitalize; /* تكبير أول حرف تلقائياً */
+        }
 
         .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: 42px; height: 42px; border-radius: 50%; font-size: 15px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
         .icon-btn.has-text { width: auto; padding: 0 14px; border-radius: 22px; }
@@ -39,6 +53,10 @@
 
         .donate-btn { width: 42px; height: 42px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; flex-shrink: 0; }
         .donate-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0, 112, 186, 0.6); }
+
+        /* ستايل زر التحديث */
+        .has-update { color: #22c55e !important; box-shadow: 0 0 15px #22c55e; border-color: #22c55e !important; }
+        #refreshBtn.has-update::after { content: ""; position: absolute; width: 10px; height: 10px; background: red; border-radius: 50%; top: 0px; right: 0px; border: 2px solid var(--card-bg); }
 
         .header-timer-text { display: none; font-family: monospace; font-size: 13px; font-weight: 700; margin-left: 6px; color: var(--warning); }
         .icon-btn.has-text .header-timer-text { display: inline-block; }
@@ -73,6 +91,15 @@
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
 
+        /* ستايل الأعمدة (الإكولايزر) المدمج */
+        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 35px; margin: 15px auto; width: 72%; opacity: 0.4; transition: 0.5s; }
+        .vis-container.vis-active { opacity: 1; }
+        .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.1s ease-out; }
+        .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 10px #ff0a54; }
+        .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+        .vis-bar:nth-child(4n+3) { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .vis-bar:nth-child(4n+4) { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+
         .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 12px 20px; border-radius: 20px; }
         .volume-container { display: flex; align-items: center; gap: 12px; flex-grow: 1; margin-right: 15px; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; outline: none; }
@@ -83,6 +110,7 @@
         @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
         .footer-note { font-size: 11px; color: var(--danger); margin-top: -5px; font-weight: 600; letter-spacing: 0.5px; }
 
+        /* Bottom Sheets and Modals */
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 140; opacity: 0; visibility: hidden; transition: 0.3s ease; }
         .sheet-overlay.open { opacity: 1; visibility: visible; }
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #1e293b; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 15px 20px 20px; z-index: 150; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); transition: bottom 0.3s cubic-bezier(0.2, 1, 0.3, 1); display: flex; flex-direction: column; gap: 12px; }
@@ -130,10 +158,7 @@
 </head>
 <body>
 
-    <div id="loading">
-        <div class="spinner"></div>
-        <span>FETCHING STATIONS...</span>
-    </div>
+    <div id="loading"><div class="spinner"></div><span>FETCHING STATIONS...</span></div>
 
     <div class="player-card">
         <div class="header">
@@ -150,7 +175,7 @@
             <div class="header-right">
                 <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Developer"><i class="fab fa-paypal"></i></a>
                 <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
-                <!-- تم إزالة زر التحديث كما طلبت -->
+                <button class="icon-btn" id="refreshBtn" title="Check for Updates"><i class="fas fa-sync-alt"></i></button>
             </div>
         </div>
 
@@ -172,8 +197,10 @@
             <button class="ctrl-btn play-btn" id="playBtn" disabled><i class="fas fa-play" id="playIcon"></i></button>
             <button class="ctrl-btn nav-btn" id="nextBtn" disabled><i class="fas fa-forward"></i></button>
         </div>
+        
+        <!-- مساحة الأعمدة (الإكولايزر) ستوضع هنا عبر الجافاسكريبت -->
 
-        <div class="actions-bar">
+        <div class="actions-bar" style="margin-top: 5px;">
             <div class="volume-container">
                 <i class="fas fa-volume-down" style="color:var(--text-sub); font-size:14px;"></i>
                 <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
@@ -204,7 +231,7 @@
         if (tg) { tg.ready(); tg.expand(); }
 
         const DOM = {
-            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColors: document.getElementById('themeColors'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText')
+            loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColors: document.getElementById('themeColors'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText'), refreshBtn: document.getElementById('refreshBtn')
         };
 
         let stations = []; let currentIndex = 0; let isPlaying = false; let savedStations = []; try { savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || []; } catch (e) { savedStations = []; } let errorCount = 0; let isExternalFavPlaying = false; let autoSkipInProgress = false; let skipTimeout = null;
@@ -215,62 +242,116 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // 🆔 ضع الآي دي الخاص بك في تيليجرام هنا (بدون علامات تنصيص)
-        const ADMIN_ID = 1234567890; 
+        const ADMIN_ID = 1234567890; // ضع الآي دي الخاص بك هنا
         const currentUserId = tg?.initDataUnsafe?.user?.id;
         const isDevMode = (currentUserId === ADMIN_ID);
 
-        // --- OTA Updates (نظام استدعاء الأوامر المتعددة عند الفتح) ---
+        // --- النجوم الملونة في الخلفية ---
+        function initStars() {
+            const c = document.createElement('canvas');
+            c.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;';
+            document.body.prepend(c);
+            const ctx = c.getContext('2d');
+            let w = c.width = window.innerWidth;
+            let h = c.height = window.innerHeight;
+            const stars = [];
+            const colors = ['#ff0a54', '#3b82f6', '#10b981', '#fbbf24', '#8b5cf6', '#06b6d4', '#ffffff'];
+            for(let i=0; i<150; i++) {
+                stars.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*2, s: Math.random()*0.5 + 0.1, c: colors[Math.floor(Math.random()*colors.length)] });
+            }
+            setInterval(() => {
+                ctx.clearRect(0,0,w,h);
+                for(let i=0; i<150; i++){
+                    let s = stars[i];
+                    ctx.fillStyle = s.c;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2, true);
+                    ctx.fill();
+                    s.y += s.s;
+                    if(s.y > h) { stars[i] = { x: Math.random()*w, y: 0, r: s.r, s: s.s, c: s.c }; }
+                }
+            }, 30);
+        }
+        initStars();
+
+        // --- الإكولايزر (الأعمدة) المدمج ---
+        function initVisualizer() {
+            var visDiv = document.createElement('div');
+            visDiv.id = 'cool-visualizer';
+            visDiv.className = 'vis-container';
+            var html = '';
+            for(var i=0; i<15; i++){ html += '<div class=\"vis-bar\"></div>'; }
+            visDiv.innerHTML = html;
+            var controls = document.querySelector('.controls');
+            if(controls) controls.parentNode.insertBefore(visDiv, controls.nextSibling);
+
+            var bars = visDiv.querySelectorAll('.vis-bar');
+            var visTimer;
+
+            function renderFrame() {
+                if(DOM.audio.paused) return;
+                bars.forEach((bar, i) => {
+                    var dist = Math.abs(i - 7);
+                    var maxH = 35 - (dist * 1.5);
+                    var h = 4 + Math.random() * maxH;
+                    bar.style.height = h + 'px';
+                });
+                visTimer = setTimeout(renderFrame, 80 + Math.random() * 40);
+            }
+
+            window.startVis = function() { visDiv.classList.add('vis-active'); renderFrame(); };
+            window.stopVis = function() { visDiv.classList.remove('vis-active'); clearTimeout(visTimer); bars.forEach(b => b.style.height = '4px'); };
+
+            DOM.audio.addEventListener('play', window.startVis);
+            DOM.audio.addEventListener('pause', window.stopVis);
+            DOM.audio.addEventListener('waiting', window.stopVis); // تخمد عند التحميل
+            DOM.audio.addEventListener('playing', window.startVis); // ترقص عند العمل
+        }
+        initVisualizer();
+
+        // --- OTA Updates (تدعم أكثر من أمر / معطلة كافتراضي) ---
         async function checkUpdates() {
-            // 🌐 قائمة الروابط للمستخدمين العاديين (أضف المزيد مفصولة بفاصلة)
-            const prodUrls = [
-                //"https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=Jx2XpMbJQaV0BxFe6+CHmviI7N1QkBvSYooohalk2WAfqncH6PyxxlfNRbeS7ae2JWBkwygV0H20MNd/t7zwbw==",
-                 //"",
-                // "http"
-            ];
+            try {
+                const prodUrls = [
+                    // ضع روابطك المتعددة هنا مستقبلاً وازل علامة //
+                    // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=..."
+                ];
+                const devUrls = []; // روابط التجارب الخاصة بك
+                const targetUrls = (isDevMode && devUrls.length > 0) ? devUrls : prodUrls;
 
-            // 🧪 قائمة الروابط السريّة (لك أنت فقط للمعاينة قبل النشر)
-            const devUrls = [
-                // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfigDev?secret=..."
-            ];
-
-            const targetUrls = (isDevMode && devUrls.length > 0) ? devUrls : prodUrls;
-
-            // حلقة لجلب الأكواد من كل الروابط تباعاً
-            for (let url of targetUrls) {
-                if (!url || url.includes("YOUR_")) continue;
-                try {
+                for (let url of targetUrls) {
+                    if (!url || url.includes("secret=...")) continue;
                     const res = await fetch(url + "&t=" + Date.now());
                     const data = await res.json();
+                    const storedVerKey = "ota_version_" + url.slice(-10); // حفظ إصدار كل رابط بشكل مستقل
+                    const currentVersion = localStorage.getItem(storedVerKey) || 0;
                     
-                    if (data.js) {
-                        new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController);
+                    if (data.version && data.version > currentVersion) {
+                        localStorage.setItem(storedVerKey, data.version);
+                        localStorage.setItem("saved_js_" + url.slice(-10), data.js);
+                        if (data.js) new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController);
+                        return true; 
                     }
-                } catch (e) {
-                    console.log("OTA Error on link, skipping...");
                 }
-            }
+                return false;
+            } catch (err) { return false; }
         }
 
-        // 💡 خدعة اختراق (Audio Unlocker) لحل مشكلة الشاشة المطفأة
-        let audioUnlocked = false;
-        document.body.addEventListener('touchstart', function() {
-            if (!audioUnlocked && DOM.audio) {
-                let playPromise = DOM.audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(_ => {
-                        DOM.audio.pause();
-                        audioUnlocked = true;
-                    }).catch(error => {});
-                }
+        DOM.refreshBtn.addEventListener('click', async () => {
+            const icon = DOM.refreshBtn.querySelector('i');
+            icon.classList.add('fa-spin');
+            const hasUpdate = await checkUpdates();
+            icon.classList.remove('fa-spin');
+            if (hasUpdate) {
+                DOM.refreshBtn.classList.add("has-update");
+                setTimeout(() => DOM.refreshBtn.classList.remove("has-update"), 3000);
             }
-        }, { once: true });
+        });
 
-        // ── الصورة المخصصة (بكامل دقتها الأصلية) ──
+        // ── الصورة المخصصة بدون قيود الحجم ──
         function applyCustomPhoto(url) { if(url) { customImageUrl = url; DOM.logo.innerHTML = `<img src="${url}"/>`; DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'flex'; } else { customImageUrl = null; DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; DOM.removePhotoBtn.style.display = 'none'; if (!isTextHidden) { DOM.addPhotoText.style.display = 'block'; DOM.removePhotoBtn.style.display = 'flex'; } } }
         if(!isTextHidden || customImageUrl) { DOM.removePhotoBtn.style.display = 'flex'; }
         DOM.logoWrapper.addEventListener('click', () => { DOM.customPhotoInput.click(); });
-        
         DOM.customPhotoInput.addEventListener('change', e => { 
             const file = e.target.files[0]; 
             if(file) { 
@@ -278,27 +359,46 @@
                 reader.onload = (ev) => { 
                     const originalUrl = ev.target.result;
                     applyCustomPhoto(originalUrl);
-                    try { localStorage.setItem('radio_custom_photo', originalUrl); } catch(err) { console.log("الصورة كبيرة لكن تم تطبيقها."); }
+                    try { localStorage.setItem('radio_custom_photo', originalUrl); } catch(err) { console.log("الصورة كبيرة، تم تطبيقها لجلسة واحدة فقط."); }
                 }; 
                 reader.readAsDataURL(file); 
             } 
         });
-        
         DOM.removePhotoBtn.addEventListener('click', () => { if (customImageUrl) { localStorage.removeItem('radio_custom_photo'); applyCustomPhoto(null); DOM.customPhotoInput.value = ''; } else { DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'none'; isTextHidden = true; localStorage.setItem('radio_hide_text', 'true'); } });
 
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null }; const toggleTimerSheet = () => { DOM.timerSheet.classList.toggle('open'); DOM.timerOverlay.classList.toggle('open'); }; DOM.timersToggleBtn.addEventListener('click', toggleTimerSheet); DOM.closeTimerBtn.addEventListener('click', toggleTimerSheet); DOM.timerOverlay.addEventListener('click', toggleTimerSheet); const formatTime = (totalSeconds) => { const h = Math.floor(totalSeconds / 3600); const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); const s = (totalSeconds % 60).toString().padStart(2, '0'); return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`; }; const getRemaining = (endMs) => { if (!endMs) return { total: 0 }; return { total: Math.max(0, Math.round((endMs - Date.now()) / 1000)) }; }; const updateHeaderTimerUI = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (sleepActive) { const rem = getRemaining(timers.sleepEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Sleep: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.sleepDigital.textContent = timeStr; } else if (startActive) { const rem = getRemaining(timers.startEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Start: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.startDigital.textContent = timeStr; } else { DOM.mainHeaderTimer.textContent = ''; DOM.sheetHeaderTimer.textContent = ''; DOM.timersToggleBtn.classList.remove('has-text', 'active-timer'); } }; const stopEngine = () => { if(timers.tickInt) { clearInterval(timers.tickInt); timers.tickInt = null; } }; const startEngine = () => { if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); timerTick(); }; const clearSleepUI = () => { clearTimeout(timers.sleepTo); timers.sleepTo = null; timers.sleepEnd = null; DOM.sleepDigital.classList.remove('visible'); DOM.sleepCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const clearStartUI = () => { clearTimeout(timers.startTo); timers.startTo = null; timers.startEnd = null; DOM.startDigital.classList.remove('visible'); DOM.startCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const timerTick = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (!sleepActive && !startActive) { stopEngine(); updateHeaderTimerUI(); return; } if (sleepActive) { const rem = getRemaining(timers.sleepEnd); if (rem.total <= 0) { audioController.fadeOut(); clearSleepUI(); } } else if (timers.sleepEnd) { clearSleepUI(); } if (startActive) { const rem = getRemaining(timers.startEnd); if (rem.total <= 0) { audioController.forceStart(); clearStartUI(); } } else if (timers.startEnd) { clearStartUI(); } updateHeaderTimerUI(); }; DOM.sleepActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.startEnd) clearStartUI(); audioController.forceStart(); const now = Date.now(); timers.sleepEnd = (timers.sleepEnd && timers.sleepEnd > now) ? timers.sleepEnd + (mins * 60000) : now + (mins * 60000); DOM.sleepCancelBtn.classList.add('visible'); DOM.sleepDigital.classList.add('visible'); startEngine(); clearTimeout(timers.sleepTo); const remainingMs = timers.sleepEnd - Date.now(); timers.sleepTo = setTimeout(() => { audioController.fadeOut(); clearSleepUI(); }, remainingMs); } }); DOM.startActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.sleepEnd) clearSleepUI(); const now = Date.now(); timers.startEnd = (timers.startEnd && timers.startEnd > now) ? timers.startEnd + (mins * 60000) : now + (mins * 60000); DOM.startCancelBtn.classList.add('visible'); DOM.startDigital.classList.add('visible'); startEngine(); clearTimeout(timers.startTo); const remainingMs = timers.startEnd - Date.now(); timers.startTo = setTimeout(() => { audioController.forceStart(); clearStartUI(); }, remainingMs); } }); DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); DOM.startCancelBtn.addEventListener('click', clearStartUI);
         const themes = [ { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)' }, { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)' }, { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)' }, { name: 'Amber', primary: '#f59e0b', bg: '#2d1f04', cardBg: 'rgba(180, 83, 9, 0.6)' }, { name: 'Sky', primary: '#0ea5e9', bg: '#0a2a3b', cardBg: 'rgba(14, 116, 144, 0.6)' }, { name: 'Violet', primary: '#8b5cf6', bg: '#1e1033', cardBg: 'rgba(109, 40, 217, 0.6)' }, { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)' }, { name: 'Teal', primary: '#14b8a6', bg: '#042f2e', cardBg: 'rgba(20, 184, 166, 0.5)' }, { name: 'Indigo', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(79, 70, 229, 0.6)' }, { name: 'Lime', primary: '#84cc16', bg: '#1a2e0a', cardBg: 'rgba(101, 163, 13, 0.6)' }, { name: 'Fuchsia', primary: '#d946ef', bg: '#2a0a2e', cardBg: 'rgba(192, 38, 211, 0.5)' }, { name: 'Orange', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(194, 65, 12, 0.7)' } ]; function applyTheme(theme) { document.documentElement.style.setProperty('--primary', theme.primary); document.documentElement.style.setProperty('--primary-hover', theme.primary + 'cc'); document.documentElement.style.setProperty('--bg-base', theme.bg); document.documentElement.style.setProperty('--card-bg', theme.cardBg); localStorage.setItem('radio_theme', JSON.stringify(theme)); } function loadTheme() { const saved = localStorage.getItem('radio_theme'); if (saved) { try { applyTheme(JSON.parse(saved)); } catch(e){ applyTheme(themes[0]); } } else { applyTheme(themes[0]); } } function renderThemeButtons() { DOM.themeColors.innerHTML = themes.map(t => `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'></button>` ).join(''); DOM.themeColors.querySelectorAll('button').forEach(btn => { btn.addEventListener('click', () => { const theme = JSON.parse(btn.dataset.theme); applyTheme(theme); DOM.themeSheet.classList.remove('open'); DOM.themeOverlay.classList.remove('open'); }); }); } const toggleThemeSheet = () => { DOM.themeSheet.classList.toggle('open'); DOM.themeOverlay.classList.toggle('open'); }; DOM.themeBtn.addEventListener('click', toggleThemeSheet); DOM.closeThemeBtn.addEventListener('click', toggleThemeSheet); DOM.themeOverlay.addEventListener('click', toggleThemeSheet); renderThemeButtons(); loadTheme();
         const radioService = { async fetchByStr(country) { try { const endpoints = [ `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true`, `https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(country)}?order=votes&reverse=true` ]; for (const url of endpoints) { const res = await fetch(url); if (res.ok) { const data = await res.json(); const valids = data.filter(s => (s.url_resolved || s.url).startsWith('https://')); if(valids.length > 0) return valids; } } return []; } catch(e) { return []; } } };
         const audioController = { play() { const prom = DOM.audio.play(); if (prom) { prom.then(() => { isPlaying = true; errorCount = 0; DOM.playIcon.className = 'fas fa-pause'; DOM.playIcon.style.paddingLeft = '0'; DOM.logo.classList.add('playing'); }).catch(err => { if (err.name === 'NotAllowedError') { isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); } else if (err.name !== 'AbortError') { this.handleError(); } }); } }, pause() { DOM.audio.pause(); isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); }, toggle() { isPlaying ? this.pause() : this.play(); }, forceStart() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIController.loadIndex(0); this.play(); } }, fadeOut() { const initVol = DOM.audio.volume; if(initVol <= 0 || !isPlaying) return this.pause(); const step = initVol / 20; let c = 0; const i = setInterval(() => { c++; DOM.audio.volume = Math.max(0, initVol - (step * c)); if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } }, 100); }, handleError() { if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) { errorCount++; DOM.sub.textContent = "Offline. Skipping..."; DOM.logo.classList.remove('playing'); DOM.playIcon.className = 'fas fa-spinner fa-spin'; clearTimeout(skipTimeout); autoSkipInProgress = true; skipTimeout = setTimeout(() => { UIController.loadIndex((currentIndex + 1) % stations.length); autoSkipInProgress = false; }, 1500); } else { this.pause(); DOM.sub.textContent = "Stream Unavailable"; } } };
-        const UIController = { loadIndex(index) { if (!stations.length) return; currentIndex = index; const s = stations[currentIndex]; isExternalFavPlaying = false; this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`); DOM.audio.src = s.url_resolved || s.url || ''; this.enableControls(); checkFavState(s.stationuuid); if (isPlaying) audioController.play(); }, loadExternalFav(fav) { isExternalFavPlaying = true; this.updateUI(fav.name, "Saved Station"); DOM.audio.src = fav.url; this.enableControls(); checkFavState(fav.id); audioController.play(); }, updateUI(title, subtitle) { DOM.title.textContent = title || 'Unknown'; DOM.sub.textContent = subtitle; DOM.audio.volume = DOM.vol.value; }, enableControls() { [DOM.playBtn, DOM.nextBtn, DOM.prevBtn].forEach(b => b.disabled = false); }, emptyState() { DOM.title.textContent = 'No Stations Found'; DOM.sub.textContent = 'Please enter a valid country in bot'; } };
+        
+        const UIController = { 
+            loadIndex(index) { 
+                if (!stations.length) return; 
+                if (window.stopVis) window.stopVis(); // إخماد الأعمدة قبل التبديل
+                currentIndex = index; const s = stations[currentIndex]; isExternalFavPlaying = false; this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`); DOM.audio.src = s.url_resolved || s.url || ''; this.enableControls(); checkFavState(s.stationuuid); if (isPlaying) audioController.play(); 
+            }, 
+            loadExternalFav(fav) { 
+                if (window.stopVis) window.stopVis(); // إخماد الأعمدة قبل التبديل
+                isExternalFavPlaying = true; this.updateUI(fav.name, "Saved Station"); DOM.audio.src = fav.url; this.enableControls(); checkFavState(fav.id); audioController.play(); 
+            }, 
+            updateUI(title, subtitle) { DOM.title.textContent = title || 'Unknown'; DOM.sub.textContent = subtitle; DOM.audio.volume = DOM.vol.value; }, enableControls() { [DOM.playBtn, DOM.nextBtn, DOM.prevBtn].forEach(b => b.disabled = false); }, emptyState() { DOM.title.textContent = 'No Stations Found'; DOM.sub.textContent = 'Please enter a valid country in bot'; } 
+        };
+        
         DOM.playBtn.addEventListener('click', () => audioController.toggle()); DOM.nextBtn.addEventListener('click', () => UIController.loadIndex((currentIndex + 1) % stations.length)); DOM.prevBtn.addEventListener('click', () => UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length)); DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); DOM.audio.addEventListener('error', () => audioController.handleError());
         DOM.shareBtn.addEventListener('click', () => { const shareUrl = 'https://t.me/Time_of_world_origins_bot/Radio'; if (navigator.share) { navigator.share({ title: 'Global Radio Player', text: 'Listen to radio stations from around the world!', url: shareUrl, }).catch(() => {}); } else { navigator.clipboard?.writeText(shareUrl).then(() => { alert('Link copied!'); }).catch(() => { prompt('Copy this link to share:', shareUrl); }); } });
         const toggleSearchSheet = () => { DOM.searchSheet.classList.toggle('open'); DOM.searchOverlay.classList.toggle('open'); DOM.searchInput.value = ''; DOM.searchResults.innerHTML = ''; DOM.searchInput.focus(); }; DOM.searchBtn.addEventListener('click', toggleSearchSheet); DOM.closeSearchBtn.addEventListener('click', toggleSearchSheet); DOM.searchOverlay.addEventListener('click', toggleSearchSheet); DOM.searchInput.addEventListener('input', () => { const term = DOM.searchInput.value.toLowerCase().trim(); if (!term) { DOM.searchResults.innerHTML = ''; return; } const filtered = stations.filter(s => s.name.toLowerCase().includes(term)); DOM.searchResults.innerHTML = filtered.map((s, idx) => { const realIndex = stations.indexOf(s); return `<li data-index="${realIndex}">${s.name}</li>`; }).join(''); }); DOM.searchResults.addEventListener('click', e => { const li = e.target.closest('li'); if (!li) return; UIController.loadIndex(parseInt(li.dataset.index)); toggleSearchSheet(); audioController.play(); });
         const checkFavState = id => { const fav = savedStations.some(s => s.id === id); DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; DOM.saveBtn.innerHTML = fav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; }; DOM.saveBtn.addEventListener('click', () => { const current = isExternalFavPlaying ? savedStations.find(s => s.url === DOM.audio.src) : stations[currentIndex]; if(!current) return; const stId = current.stationuuid || current.id; const existIdx = savedStations.findIndex(s => s.id === stId); if (existIdx > -1) { savedStations.splice(existIdx, 1); } else { savedStations.push({ id: stId, name: current.name, url: current.url_resolved || current.url, country: current.country || TARGET_COUNTRY }); } localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); checkFavState(stId); renderFavorites(); }); const renderFavorites = () => { DOM.favList.innerHTML = savedStations.length ? '' : '<li style="text-align:center; color:var(--text-sub); margin-top:20px;">No saved stations.</li>'; savedStations.forEach((f, i) => { const li = document.createElement('li'); li.className = 'fav-item'; const countryText = f.country ? ` (${f.country})` : ''; li.innerHTML = `<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${f.name}">${f.name || 'Unknown'}${countryText}</div></div><button class="fav-remove" title="Remove"><i class="fas fa-trash-alt"></i></button>`; li.querySelector('.fav-item-content').addEventListener('click', () => { DOM.favModal.classList.remove('open'); const idx = stations.findIndex(s => s.stationuuid === f.id); if(idx > -1) { UIController.loadIndex(idx); audioController.play(); } else { UIController.loadExternalFav(f); } }); li.querySelector('.fav-remove').addEventListener('click', e => { e.stopPropagation(); savedStations.splice(i, 1); localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); renderFavorites(); const activeId = isExternalFavPlaying ? f.id : (stations[currentIndex]?.stationuuid); if (activeId === f.id) checkFavState(f.id); }); DOM.favList.appendChild(li); }); }; DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
         async function bootApp() {
-            // جلب التحديثات تلقائياً عند فتح הרاديو لمرة واحدة فقط
-            await checkUpdates();
+            // تنفيذ التحديثات المخزنة مسبقاً (0 استهلاك)
+            const botUrls = ["","",""]; // مصفوفة فارغة مؤقتاً لتجنب أخطاء المتصفح إذا أضفت روابطك لاحقاً
+            for (let url of botUrls) {
+                if (!url) continue;
+                const savedJs = localStorage.getItem("saved_js_" + url.slice(-10));
+                if (savedJs) {
+                    try { new Function("DOM", "audioController", "UIController", savedJs)(DOM, audioController, UIController); } catch(e){}
+                }
+            }
 
             if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
             
