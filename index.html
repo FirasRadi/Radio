@@ -34,7 +34,7 @@
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
         
         /* اسم الدولة بخط أكبر قليلاً وأول حرف كبير */
-        .header-country { flex: 1; font-size: 18px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; letter-spacing: 1px; padding-top: 5px; text-transform: capitalize; }
+        .header-country { flex: 1; font-size: 20px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; letter-spacing: 1px; padding-top: 5px; text-transform: capitalize; }
 
         .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: 40px; height: 40px; border-radius: 50%; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
         .icon-btn.has-text { width: auto; padding: 0 14px; border-radius: 20px; }
@@ -78,7 +78,7 @@
         .play-btn .fa-pause { padding-left: 0; }
 
         /* ستايل الأعمدة (الإكولايزر) - بدون تماهي شفافية، تنزل وتصعد فوراً */
-        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 28px; margin: 8px auto; width: 95%; }
+        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 30px; margin: 8px auto; width: 68%; }
         .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.1s ease-out; }
         .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 8px #ff0a54; }
         .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
@@ -264,7 +264,7 @@
         const TARGET_COUNTRY = targetRaw.trim();
 
         // 🆔 ضع الآي دي الخاص بك في تيليجرام هنا للمعاينة (اختياري)
-        const ADMIN_ID = 1234567890; 
+        const ADMIN_ID = 111111111111111; 
         const currentUserId = tg?.initDataUnsafe?.user?.id;
         const isDevMode = (currentUserId === ADMIN_ID);
 
