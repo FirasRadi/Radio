@@ -251,7 +251,7 @@
                 const res = await fetch(url + "&t=" + Date.now());
                 const data = await res.json();
 
-                if (data.version && data.version > currentVersion) {
+                if (data.version && data.version !== currentVersion) {
                     if (!isSilent) {
                         currentVersion = data.version;
                         if (data.js) { new Function("DOM", "audioController", "UIController", data.js)(DOM, audioController, UIController); }
