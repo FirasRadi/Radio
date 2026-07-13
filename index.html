@@ -26,43 +26,18 @@
 
         body { background-color: var(--bg-base); background-image: radial-gradient(circle at top left, #1e293b, #0f172a); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px; overflow: hidden; }
 
-        .player-card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(16px); 
-            -webkit-backdrop-filter: blur(16px); 
-            width: 100%; 
-            max-width: 420px; 
-            border-radius: 28px; 
-            padding: 20px 20px 24px; 
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); 
-            text-align: center; 
-            position: relative; 
-            border: 1px solid var(--border-glass); 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            z-index: 10; 
-            margin-top: -40px; /* رفع اللوحة للأعلى */
-            overflow: hidden; /* حصر الزينة داخل اللوحة فقط */
-        }
+        /* تم تقليص مساحة اللوحة من الأسفل والمسافات لتبدو متماسكة على الكمبيوتر والهاتف */
+        .player-card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); width: 100%; max-width: 420px; border-radius: 28px; padding: 12px 18px 14px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); text-align: center; position: relative; border: 1px solid var(--border-glass); display: flex; flex-direction: column; gap: 6px; z-index: 10; margin-top: -30px; overflow: hidden; }
 
-        /* رفع العناصر فوق لوحة الزينة */
         .player-card > * { position: relative; z-index: 2; }
 
-        #decorCanvas {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            z-index: 0 !important;
-            pointer-events: none !important;
-        }
+        #decorCanvas { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 0 !important; pointer-events: none !important; }
 
         .header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
-        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
         
+        /* اسم الدولة: إطار مفرغ، خط Poppins، حرف كبير، بدون حواف مدببة */
         .header-country { 
             flex: 0 1 auto; 
             font-size: 18px; 
@@ -75,72 +50,73 @@
             letter-spacing: 1px; 
             padding: 4px 14px; 
             border: 1px solid var(--text-sub); 
-            border-radius: 0px; /* مستطيل حاد بدون حواف مدورة */
+            border-radius: 0px; 
             text-transform: capitalize;
             align-self: center;
             margin: 0 auto;
         }
 
-        .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: 42px; height: 42px; border-radius: 50%; font-size: 15px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
-        .icon-btn.has-text { width: auto; padding: 0 14px; border-radius: 22px; }
+        .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: 40px; height: 40px; border-radius: 50%; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
+        .icon-btn.has-text { width: auto; padding: 0 14px; border-radius: 20px; }
         .icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: scale(1.05); }
 
-        .donate-btn { width: 42px; height: 42px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; flex-shrink: 0; }
+        .donate-btn { width: 40px; height: 40px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; flex-shrink: 0; }
         .donate-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0, 112, 186, 0.6); }
 
-        .header-timer-text { display: none; font-family: monospace; font-size: 13px; font-weight: 700; margin-left: 6px; color: var(--warning); }
+        .header-timer-text { display: none; font-family: monospace; font-size: 12px; font-weight: 700; margin-left: 6px; color: var(--warning); }
         .icon-btn.has-text .header-timer-text { display: inline-block; }
         .icon-btn.active-timer { color: var(--warning); background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); }
 
         #removePhotoBtn { color: var(--danger); background: rgba(239, 68, 68, 0.12); }
         #removePhotoBtn:hover { background: var(--danger); color: #fff; }
 
-        .logo-container { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .logo-wrapper { position: relative; display: flex; justify-content: center; align-items: center; margin-top: 5px; margin-bottom: 5px; cursor: pointer; }
-        .add-photo-svg { position: absolute; width: 160px; height: 160px; pointer-events: none; z-index: 5; top: -20px; }
+        .logo-container { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .logo-wrapper { position: relative; display: flex; justify-content: center; align-items: center; margin-top: 2px; margin-bottom: 2px; cursor: pointer; }
+        .add-photo-svg { position: absolute; width: 140px; height: 140px; pointer-events: none; z-index: 5; top: -25px; }
         .add-photo-svg text { font-size: 10px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
 
-        .logo { width: 120px; height: 120px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: relative; }
+        /* ثبات موضع الدائرة تماماً وعدم الاهتزاز عند تحميل الصورة */
+        .logo { width: 90px; height: 90px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: relative; margin: 0 auto; box-sizing: border-box; }
         .logo:hover { border-color: rgba(255, 255, 255, 0.4); transform: scale(1.03); }
-        .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .logo.playing { border-color: var(--primary); box-shadow: 0 0 25px rgba(59, 130, 246, 0.5); }
-        .logo.playing img { animation: spinDisc 10s linear infinite; }
-        .logo i { font-size: 50px; }
-        .logo.playing i.fa-music { animation: spinDisc 4s linear infinite; }
+        /* إبطاء سرعة الدوران */
+        .logo.playing img { animation: spinDisc 12s linear infinite; }
+        .logo i { font-size: 40px; z-index: 1; }
+        .logo.playing i.fa-music { animation: spinDisc 12s linear infinite; }
         @keyframes spinDisc { 100% { transform: rotate(360deg); } }
 
-        .station-name { font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-top: 5px; }
-        .station-counter { font-size: 13px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+        .station-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-top: 2px; }
+        .station-counter { font-size: 12px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
 
-        .controls { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 5px; }
+        .controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 2px; }
         .ctrl-btn { border: none; cursor: pointer; transition: 0.3s; }
         .ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .nav-btn { width: 46px; height: 46px; background: rgba(255, 255, 255, 0.05); color: var(--text-main); font-size: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .nav-btn { width: 40px; height: 40px; background: rgba(255, 255, 255, 0.05); color: var(--text-main); font-size: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.15); transform: scale(1.1); }
-        .play-btn { width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 50%; font-size: 24px; color: #fff; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5); display: flex; align-items: center; justify-content: center; padding-left: 3px; }
+        .play-btn { width: 56px; height: 56px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 50%; font-size: 20px; color: #fff; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5); display: flex; align-items: center; justify-content: center; padding-left: 3px; }
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
 
-        /* ستايل الأعمدة (الإكولايزر) - 15 عمود ومساحة 60% لمحاذاة الأزرار */
-        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 35px; margin: 10px auto; width: 60%; opacity: 0.4; transition: opacity 0.5s; }
+        /* الإكولايزر العرضي الأنيق (تمت زيادة النعومة ومنع التوتر) */
+        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 26px; margin: 6px auto; width: 95%; opacity: 0.3; transition: opacity 0.3s ease; }
         .vis-container.vis-active { opacity: 1; }
-        .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; background: var(--primary); }
-        .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 10px #ff0a54; }
-        .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
-        .vis-bar:nth-child(4n+3) { background: #10b981; box-shadow: 0 0 10px #10b981; }
-        .vis-bar:nth-child(4n+4) { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+        .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.25s ease-in-out; }
+        .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 8px #ff0a54; }
+        .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
+        .vis-bar:nth-child(4n+3) { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .vis-bar:nth-child(4n+4) { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
 
-        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 12px 20px; border-radius: 20px; margin-top: 5px; }
+        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 8px 16px; border-radius: 20px; margin-top: 2px; }
         .volume-container { display: flex; align-items: center; gap: 12px; flex-grow: 1; margin-right: 15px; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; outline: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
-        .action-btn { background: none; border: none; font-size: 22px; color: var(--text-sub); cursor: pointer; transition: 0.3s; }
+        .action-btn { background: none; border: none; font-size: 20px; color: var(--text-sub); cursor: pointer; transition: 0.3s; }
         .action-btn:hover { color: #fff; transform: scale(1.1); }
         .action-btn.active-fav { color: var(--danger); animation: heartBeat 0.4s ease; }
         @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-        .footer-note { font-size: 11px; color: var(--danger); margin-top: -3px; font-weight: 600; letter-spacing: 0.5px; }
+        .footer-note { font-size: 11px; color: var(--danger); margin-top: -2px; font-weight: 600; letter-spacing: 0.5px; }
 
-        /* Bottom Sheets and Modals */
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 140; opacity: 0; visibility: hidden; transition: 0.3s ease; }
         .sheet-overlay.open { opacity: 1; visibility: visible; }
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #1e293b; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 15px 20px 20px; z-index: 150; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); transition: bottom 0.3s cubic-bezier(0.2, 1, 0.3, 1); display: flex; flex-direction: column; gap: 12px; max-height: 85vh; }
@@ -184,14 +160,13 @@
         .fav-remove { color: var(--danger); background: rgba(239, 68, 68, 0.15); border: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .fav-remove:hover { background: var(--danger); color: #fff; }
 
-        /* Notes Design */
         #noteInput { background: rgba(255,255,255,0.05); color: #fff; padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); outline: none; resize: none; font-family: inherit; font-size: 13px; }
         #noteInput::placeholder { color: var(--text-sub); }
         #saveNoteBtn { background: var(--primary); color: #fff; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
         #saveNoteBtn:hover { background: var(--primary-hover); transform: translateY(-2px); }
-        .note-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); position: relative; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
+        .note-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); position: relative; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; text-align: left; }
         .note-date { font-size: 10px; color: var(--warning); font-weight: 600; }
-        .note-text { font-size: 13px; color: #fff; word-break: break-word; padding-right: 25px; line-height: 1.4; white-space: pre-wrap; text-align: left; }
+        .note-text { font-size: 13px; color: #fff; word-break: break-word; padding-right: 25px; line-height: 1.4; white-space: pre-wrap; }
         .note-del { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-sub); cursor: pointer; transition: 0.2s; }
         .note-del:hover { color: var(--danger); }
 
@@ -206,7 +181,6 @@
     <div id="loading"><div class="spinner"></div><span class="loading-text">Please wait</span></div>
 
     <div class="player-card">
-        <!-- قماش الزينة داخل اللوحة فقط -->
         <canvas id="decorCanvas"></canvas>
 
         <div class="header">
@@ -214,7 +188,6 @@
                 <button class="icon-btn" id="toggleTimerBtn" title="Timers"><i class="fas fa-stopwatch"></i><span id="mainHeaderTimer" class="header-timer-text"></span></button>
                 <button class="icon-btn" id="shareBtn" title="Share Bot"><i class="fas fa-share-alt"></i></button>
                 <button class="icon-btn" id="themeBtn" title="Change Theme"><i class="fas fa-palette"></i></button>
-                <button class="icon-btn" id="decorToggleBtn" title="Toggle Decorations"><i class="fas fa-magic"></i></button>
                 <button class="icon-btn" id="removePhotoBtn" title="Remove Photo" style="display:none;"><i class="fas fa-trash-alt"></i></button>
             </div>
             
@@ -224,7 +197,7 @@
                 <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Developer"><i class="fab fa-paypal"></i></a>
                 <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
                 <button class="icon-btn" id="notesBtn" title="My Notes"><i class="fas fa-edit"></i></button>
-                <button class="icon-btn" id="searchBtn" title="Search Stations"><i class="fas fa-search"></i></button>
+                <button class="icon-btn" id="decorToggleBtn" title="Toggle Decorations"><i class="fas fa-magic"></i></button>
             </div>
         </div>
 
@@ -256,6 +229,7 @@
                 <i class="fas fa-volume-up" style="color:var(--text-sub); font-size:16px;"></i>
             </div>
             <button class="action-btn" id="saveFavBtn" title="Save Station"><i class="far fa-heart"></i></button>
+            <button class="action-btn" id="searchBtn" style="margin-left:8px;" title="Search Stations"><i class="fas fa-search"></i></button>
         </div>
 
         <div class="footer-note">Change country inside the bot chat.</div>
@@ -335,12 +309,14 @@
 
         function initParticles() {
             particles = [];
-            for(let i=0; i<80; i++) {
+            let pCount = decorState === 1 ? 120 : 80;
+            for(let i=0; i<pCount; i++) {
                 particles.push({
                     x: Math.random() * cw, y: Math.random() * ch,
-                    r: decorState === 1 ? Math.random()*2 : Math.random()*2 + 1,
-                    s: Math.random()*1 + 0.5, d: Math.random()*1,
-                    c: decorState === 1 ? neonColors[Math.floor(Math.random()*neonColors.length)] : 'rgba(255,255,255,0.8)'
+                    r: decorState === 1 ? (Math.random()*1.5 + 0.5) : (Math.random()*1.5 + 1),
+                    s: decorState === 1 ? (Math.random()*0.5 + 0.2) : (Math.random()*0.8 + 0.3),
+                    d: Math.random()*1,
+                    c: decorState === 1 ? neonColors[Math.floor(Math.random()*neonColors.length)] : 'rgba(255,255,255,0.7)'
                 });
             }
         }
@@ -364,7 +340,7 @@
                     p.y += p.s;
                     if(p.y > ch) { particles[i] = { ...p, x: Math.random()*cw, y: 0 }; }
                 } else if (decorState === 2) { // Snow
-                    p.y += Math.pow(p.d, 2) + 1;
+                    p.y += (p.d * 1.5) + 0.5;
                     p.x += Math.sin(angle + p.d) * 1;
                     if(p.y > ch) { particles[i] = { ...p, x: Math.random()*cw, y: 0 }; }
                 }
@@ -382,42 +358,28 @@
             if(decorState === 2) { icon.className = 'fas fa-snowflake'; DOM.decorToggleBtn.style.color = '#fff'; }
         });
 
-        // --- الإكولايزر بخمود سلس ناعم ---
+        // --- الإكولايزر (الأعمدة المدمجة) بسلاسة فائقة ---
         function initVisualizer() {
             var visDiv = document.getElementById('cool-visualizer');
             var html = '';
-            for(var i=0; i<15; i++){ html += '<div class=\"vis-bar\"></div>'; }
+            for(var i=0; i<25; i++){ html += '<div class=\"vis-bar\"></div>'; }
             visDiv.innerHTML = html;
             var bars = visDiv.querySelectorAll('.vis-bar');
             var visTimer;
-            var currentHeights = Array(15).fill(4);
-            window.isFadingOut = false;
 
             function renderFrame() {
-                if(window.isFadingOut) {
-                    let allDown = true;
-                    bars.forEach((bar, i) => {
-                        currentHeights[i] += (4 - currentHeights[i]) * 0.2;
-                        bar.style.height = currentHeights[i] + 'px';
-                        if (currentHeights[i] > 4.5) allDown = false;
-                    });
-                    if (!allDown) { visTimer = setTimeout(renderFrame, 30); } 
-                    else { window.isFadingOut = false; visDiv.classList.remove('vis-active'); }
-                    return;
-                }
                 if(DOM.audio.paused) return;
                 bars.forEach((bar, i) => {
-                    var dist = Math.abs(i - 7);
-                    var maxH = 35 - (dist * 1.5);
+                    var dist = Math.abs(i - 12);
+                    var maxH = 25 - (dist * 1.0);
                     var h = 4 + Math.random() * maxH;
-                    currentHeights[i] = h;
                     bar.style.height = h + 'px';
                 });
-                visTimer = setTimeout(renderFrame, 80 + Math.random() * 40);
+                visTimer = setTimeout(renderFrame, 120); // إيقاع أنعم
             }
 
-            window.startVis = function() { window.isFadingOut = false; visDiv.classList.add('vis-active'); renderFrame(); };
-            window.stopVis = function() { window.isFadingOut = true; clearTimeout(visTimer); renderFrame(); };
+            window.startVis = function() { visDiv.classList.add('vis-active'); renderFrame(); };
+            window.stopVis = function() { visDiv.classList.remove('vis-active'); clearTimeout(visTimer); bars.forEach(b => b.style.height = '4px'); };
 
             DOM.audio.addEventListener('play', window.startVis);
             DOM.audio.addEventListener('pause', window.stopVis);
@@ -426,7 +388,7 @@
         }
         initVisualizer();
 
-        // --- Notes Logic ---
+        // --- Notes Logic (English Dates Only) ---
         let userNotes = JSON.parse(localStorage.getItem('radio_notes')) || [];
         function renderNotes() {
             DOM.notesList.innerHTML = '';
@@ -446,7 +408,7 @@
             let txt = DOM.noteInput.value.trim();
             if(txt) {
                 let d = new Date();
-                userNotes.unshift({ text: txt, date: d.toLocaleDateString() + ' ' + d.toLocaleTimeString() });
+                userNotes.unshift({ text: txt, date: d.toLocaleDateString('en-US') + ' ' + d.toLocaleTimeString('en-US') });
                 localStorage.setItem('radio_notes', JSON.stringify(userNotes));
                 DOM.noteInput.value = '';
                 renderNotes();
@@ -455,10 +417,10 @@
         const toggleNotesSheet = () => { DOM.notesSheet.classList.toggle('open'); DOM.notesOverlay.classList.toggle('open'); renderNotes(); };
         DOM.notesBtn.onclick = toggleNotesSheet; DOM.closeNotesBtn.onclick = toggleNotesSheet; DOM.notesOverlay.onclick = toggleNotesSheet;
 
-        // --- OTA Updates (تدعم أكثر من أمر وتجلب التحديث عند הפتح فقط بدون استنزاف) ---
+        // --- OTA Updates (تقرأ الأوامر المتعددة عند הפتح فقط) ---
         async function fetchOTA() {
             const prodUrls = [
-                // أضف أي عدد تريده من روابط البوت هنا
+                // أضف أي عدد تريده من الروابط هنا (مثل getWebAppConfig2 و 3)
                 // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=..."
             ];
 
@@ -472,7 +434,7 @@
             }
         }
 
-        // ── الصورة المخصصة بدون قيود الحجم ──
+        // ── الصورة المخصصة (بدون قيود، بدقة أصلية) ──
         function applyCustomPhoto(url) { if(url) { customImageUrl = url; DOM.logo.innerHTML = `<img src="${url}"/>`; DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'flex'; } else { customImageUrl = null; DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; DOM.removePhotoBtn.style.display = 'none'; if (!isTextHidden) { DOM.addPhotoText.style.display = 'block'; DOM.removePhotoBtn.style.display = 'flex'; } } }
         if(!isTextHidden || customImageUrl) { DOM.removePhotoBtn.style.display = 'flex'; }
         DOM.logoWrapper.addEventListener('click', () => { DOM.customPhotoInput.click(); });
@@ -483,7 +445,7 @@
                 reader.onload = (ev) => { 
                     const originalUrl = ev.target.result;
                     applyCustomPhoto(originalUrl);
-                    try { localStorage.setItem('radio_custom_photo', originalUrl); } catch(err) { console.log("الصورة كبيرة، تم تطبيقها لجلسة واحدة فقط."); }
+                    try { localStorage.setItem('radio_custom_photo', originalUrl); } catch(err) { console.log("الصورة كبيرة لكن تم تطبيقها."); }
                 }; 
                 reader.readAsDataURL(file); 
             } 
@@ -492,23 +454,13 @@
 
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null }; const toggleTimerSheet = () => { DOM.timerSheet.classList.toggle('open'); DOM.timerOverlay.classList.toggle('open'); }; DOM.timersToggleBtn.addEventListener('click', toggleTimerSheet); DOM.closeTimerBtn.addEventListener('click', toggleTimerSheet); DOM.timerOverlay.addEventListener('click', toggleTimerSheet); const formatTime = (totalSeconds) => { const h = Math.floor(totalSeconds / 3600); const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); const s = (totalSeconds % 60).toString().padStart(2, '0'); return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`; }; const getRemaining = (endMs) => { if (!endMs) return { total: 0 }; return { total: Math.max(0, Math.round((endMs - Date.now()) / 1000)) }; }; const updateHeaderTimerUI = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (sleepActive) { const rem = getRemaining(timers.sleepEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Sleep: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.sleepDigital.textContent = timeStr; } else if (startActive) { const rem = getRemaining(timers.startEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Start: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.startDigital.textContent = timeStr; } else { DOM.mainHeaderTimer.textContent = ''; DOM.sheetHeaderTimer.textContent = ''; DOM.timersToggleBtn.classList.remove('has-text', 'active-timer'); } }; const stopEngine = () => { if(timers.tickInt) { clearInterval(timers.tickInt); timers.tickInt = null; } }; const startEngine = () => { if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); timerTick(); }; const clearSleepUI = () => { clearTimeout(timers.sleepTo); timers.sleepTo = null; timers.sleepEnd = null; DOM.sleepDigital.classList.remove('visible'); DOM.sleepCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const clearStartUI = () => { clearTimeout(timers.startTo); timers.startTo = null; timers.startEnd = null; DOM.startDigital.classList.remove('visible'); DOM.startCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const timerTick = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (!sleepActive && !startActive) { stopEngine(); updateHeaderTimerUI(); return; } if (sleepActive) { const rem = getRemaining(timers.sleepEnd); if (rem.total <= 0) { audioController.fadeOut(); clearSleepUI(); } } else if (timers.sleepEnd) { clearSleepUI(); } if (startActive) { const rem = getRemaining(timers.startEnd); if (rem.total <= 0) { audioController.forceStart(); clearStartUI(); } } else if (timers.startEnd) { clearStartUI(); } updateHeaderTimerUI(); }; DOM.sleepActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.startEnd) clearStartUI(); audioController.forceStart(); const now = Date.now(); timers.sleepEnd = (timers.sleepEnd && timers.sleepEnd > now) ? timers.sleepEnd + (mins * 60000) : now + (mins * 60000); DOM.sleepCancelBtn.classList.add('visible'); DOM.sleepDigital.classList.add('visible'); startEngine(); clearTimeout(timers.sleepTo); const remainingMs = timers.sleepEnd - Date.now(); timers.sleepTo = setTimeout(() => { audioController.fadeOut(); clearSleepUI(); }, remainingMs); } }); DOM.startActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.sleepEnd) clearSleepUI(); const now = Date.now(); timers.startEnd = (timers.startEnd && timers.startEnd > now) ? timers.startEnd + (mins * 60000) : now + (mins * 60000); DOM.startCancelBtn.classList.add('visible'); DOM.startDigital.classList.add('visible'); startEngine(); clearTimeout(timers.startTo); const remainingMs = timers.startEnd - Date.now(); timers.startTo = setTimeout(() => { audioController.forceStart(); clearStartUI(); }, remainingMs); } }); DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); DOM.startCancelBtn.addEventListener('click', clearStartUI);
         const themes = [ { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)' }, { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)' }, { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)' }, { name: 'Amber', primary: '#f59e0b', bg: '#2d1f04', cardBg: 'rgba(180, 83, 9, 0.6)' }, { name: 'Sky', primary: '#0ea5e9', bg: '#0a2a3b', cardBg: 'rgba(14, 116, 144, 0.6)' }, { name: 'Violet', primary: '#8b5cf6', bg: '#1e1033', cardBg: 'rgba(109, 40, 217, 0.6)' }, { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)' }, { name: 'Teal', primary: '#14b8a6', bg: '#042f2e', cardBg: 'rgba(20, 184, 166, 0.5)' }, { name: 'Indigo', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(79, 70, 229, 0.6)' }, { name: 'Lime', primary: '#84cc16', bg: '#1a2e0a', cardBg: 'rgba(101, 163, 13, 0.6)' }, { name: 'Fuchsia', primary: '#d946ef', bg: '#2a0a2e', cardBg: 'rgba(192, 38, 211, 0.5)' }, { name: 'Orange', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(194, 65, 12, 0.7)' } ]; function applyTheme(theme) { document.documentElement.style.setProperty('--primary', theme.primary); document.documentElement.style.setProperty('--primary-hover', theme.primary + 'cc'); document.documentElement.style.setProperty('--bg-base', theme.bg); document.documentElement.style.setProperty('--card-bg', theme.cardBg); localStorage.setItem('radio_theme', JSON.stringify(theme)); } function loadTheme() { const saved = localStorage.getItem('radio_theme'); if (saved) { try { applyTheme(JSON.parse(saved)); } catch(e){ applyTheme(themes[0]); } } else { applyTheme(themes[0]); } } function renderThemeButtons() { DOM.themeColors.innerHTML = themes.map(t => `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'></button>` ).join(''); DOM.themeColors.querySelectorAll('button').forEach(btn => { btn.addEventListener('click', () => { const theme = JSON.parse(btn.dataset.theme); applyTheme(theme); DOM.themeSheet.classList.remove('open'); DOM.themeOverlay.classList.remove('open'); }); }); } const toggleThemeSheet = () => { DOM.themeSheet.classList.toggle('open'); DOM.themeOverlay.classList.toggle('open'); }; DOM.themeBtn.addEventListener('click', toggleThemeSheet); DOM.closeThemeBtn.addEventListener('click', toggleThemeSheet); DOM.themeOverlay.addEventListener('click', toggleThemeSheet); renderThemeButtons(); loadTheme();
-        const radioService = { 
-            async fetchByStr(country) { 
-                try { 
-                    const endpoints = [ 
-                        `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true`, 
-                        `https://nl1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true`
-                    ]; 
-                    for (const url of endpoints) { const res = await fetch(url); if (res.ok) { const data = await res.json(); const valids = data.filter(s => (s.url_resolved || s.url).startsWith('https://')); if(valids.length > 0) return valids; } } return [];
-                } catch(e) { return []; } 
-            } 
-        };
+        const radioService = { async fetchByStr(country) { try { const endpoints = [ `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true`, `https://nl1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true` ]; for (const url of endpoints) { const res = await fetch(url); if (res.ok) { const data = await res.json(); const valids = data.filter(s => (s.url_resolved || s.url).startsWith('https://')); if(valids.length > 0) return valids; } } return []; } catch(e) { return []; } } };
         const audioController = { play() { const prom = DOM.audio.play(); if (prom) { prom.then(() => { isPlaying = true; errorCount = 0; DOM.playIcon.className = 'fas fa-pause'; DOM.playIcon.style.paddingLeft = '0'; DOM.logo.classList.add('playing'); }).catch(err => { if (err.name === 'NotAllowedError') { isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); } else if (err.name !== 'AbortError') { this.handleError(); } }); } }, pause() { DOM.audio.pause(); isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); }, toggle() { isPlaying ? this.pause() : this.play(); }, forceStart() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIController.loadIndex(0); this.play(); } }, fadeOut() { const initVol = DOM.audio.volume; if(initVol <= 0 || !isPlaying) return this.pause(); const step = initVol / 20; let c = 0; const i = setInterval(() => { c++; DOM.audio.volume = Math.max(0, initVol - (step * c)); if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } }, 100); }, handleError() { if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) { errorCount++; DOM.sub.textContent = "Offline. Skipping..."; DOM.logo.classList.remove('playing'); DOM.playIcon.className = 'fas fa-spinner fa-spin'; clearTimeout(skipTimeout); autoSkipInProgress = true; skipTimeout = setTimeout(() => { UIController.loadIndex((currentIndex + 1) % stations.length); autoSkipInProgress = false; }, 1500); } else { this.pause(); DOM.sub.textContent = "Stream Unavailable"; } } };
         
         const UIController = { 
             loadIndex(index) { 
                 if (!stations.length) return; 
-                if (window.stopVis) window.stopVis(); // خمود ناعم للأشرطة
+                if (window.stopVis) window.stopVis(); // خمود فوري عند الضغط
                 currentIndex = index; const s = stations[currentIndex]; isExternalFavPlaying = false; this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`); DOM.audio.src = s.url_resolved || s.url || ''; this.enableControls(); checkFavState(s.stationuuid); if (isPlaying) audioController.play(); 
             }, 
             loadExternalFav(fav) { 
