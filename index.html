@@ -26,60 +26,17 @@
 
         body { background-color: var(--bg-base); background-image: radial-gradient(circle at top left, #1e293b, #0f172a); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px; overflow: hidden; }
 
-        /* تقليص اللوحة من الأسفل عبر تقليل الحشوة السفلية */
-        .player-card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(16px); 
-            -webkit-backdrop-filter: blur(16px); 
-            width: 100%; 
-            max-width: 420px; 
-            border-radius: 28px; 
-            padding: 14px 20px 10px; /* تم التصغير من الأسفل هنا */
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); 
-            text-align: center; 
-            position: relative; 
-            border: 1px solid var(--border-glass); 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            z-index: 10; 
-            margin-top: -40px; 
-            overflow: hidden; 
-        }
+        .player-card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); width: 100%; max-width: 420px; border-radius: 28px; padding: 14px 20px 10px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); text-align: center; position: relative; border: 1px solid var(--border-glass); display: flex; flex-direction: column; gap: 8px; z-index: 10; margin-top: -40px; overflow: hidden; }
 
         .player-card > * { position: relative; z-index: 2; }
 
-        #decorCanvas {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            z-index: 0 !important;
-            pointer-events: none !important;
-        }
+        #decorCanvas { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 0 !important; pointer-events: none !important; }
 
         .header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
         .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
         
-        .header-country { 
-            flex: 0 1 auto; 
-            font-size: 18px; 
-            font-weight: 600; 
-            color: var(--text-main); 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            text-align: center; 
-            letter-spacing: 1px; 
-            padding: 4px 14px; 
-            border: 1px solid var(--text-sub); 
-            border-radius: 0px; 
-            text-transform: capitalize;
-            align-self: center;
-            margin: 0 auto;
-        }
+        .header-country { flex: 0 1 auto; font-size: 18px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; letter-spacing: 1px; padding: 4px 14px; border: 1px solid var(--text-sub); border-radius: 0px; text-transform: capitalize; align-self: center; margin: -5px auto 0; }
 
         .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: 40px; height: 40px; border-radius: 50%; font-size: 15px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
         .icon-btn.has-text { width: auto; padding: 0 14px; border-radius: 20px; }
@@ -92,27 +49,25 @@
         .icon-btn.has-text .header-timer-text { display: inline-block; }
         .icon-btn.active-timer { color: var(--warning); background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); }
 
-        #removePhotoBtn { color: var(--danger); background: rgba(239, 68, 68, 0.12); }
+        #removePhotoBtn { opacity: 0; pointer-events: none; transition: 0.3s; display: flex !important; color: var(--danger); background: rgba(239, 68, 68, 0.12); }
+        #removePhotoBtn.visible { opacity: 1; pointer-events: auto; }
         #removePhotoBtn:hover { background: var(--danger); color: #fff; }
 
         .logo-container { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        /* تثبيت أبعاد الحاوية لمنع الرجفة عند تحميل الصورة */
-        .logo-wrapper { width: 95px; height: 95px; position: relative; display: flex; justify-content: center; align-items: center; margin-top: 2px; margin-bottom: 2px; cursor: pointer; }
-        .add-photo-svg { position: absolute; width: 140px; height: 140px; pointer-events: none; z-index: 5; top: -22px; }
+        .logo-wrapper { width: 130px; height: 130px; position: relative; display: flex; justify-content: center; align-items: center; margin-top: 2px; margin-bottom: 2px; cursor: pointer; }
+        .add-photo-svg { position: absolute; width: 170px; height: 170px; pointer-events: none; z-index: 5; top: -20px; }
         .add-photo-svg text { font-size: 10px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
 
-        .logo { width: 95px; height: 95px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: absolute; }
+        .logo { width: 130px; height: 130px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: absolute; }
         .logo:hover { border-color: rgba(255, 255, 255, 0.4); transform: scale(1.03); }
         .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-        
-        /* إبطاء سرعة دوران الصورة */
         .logo.playing { border-color: var(--primary); box-shadow: 0 0 25px rgba(59, 130, 246, 0.5); }
-        .logo.playing img { animation: spinDisc 20s linear infinite; } 
-        .logo i { font-size: 40px; }
-        .logo.playing i.fa-music { animation: spinDisc 4s linear infinite; }
+        .logo.playing img { animation: spinDisc 15s linear infinite; }
+        .logo i { font-size: 50px; }
+        .logo.playing i.fa-music { animation: spinDisc 15s linear infinite; }
         @keyframes spinDisc { 100% { transform: rotate(360deg); } }
 
-        .station-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .station-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-top: 5px; }
         .station-counter { font-size: 12px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
 
         .controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 2px; }
@@ -124,9 +79,8 @@
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
 
-        /* ستايل الأعمدة (الإكولايزر) - بدون تماهي وبحركة ناعمة */
-        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 30px; min-height: 30px; margin: 6px auto; width: 60%; }
-        .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.2s ease-in-out; }
+        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 30px; min-height: 30px; margin: 6px auto; width: 95%; }
+        .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.3s ease-out; }
         .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 10px #ff0a54; }
         .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
         .vis-bar:nth-child(4n+3) { background: #10b981; box-shadow: 0 0 10px #10b981; }
@@ -185,7 +139,6 @@
         .fav-remove { color: var(--danger); background: rgba(239, 68, 68, 0.15); border: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .fav-remove:hover { background: var(--danger); color: #fff; }
 
-        /* Notes Design */
         #noteInput { background: rgba(255,255,255,0.05); color: #fff; padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); outline: none; resize: none; font-family: inherit; font-size: 13px; }
         #noteInput::placeholder { color: var(--text-sub); }
         #saveNoteBtn { background: var(--primary); color: #fff; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
@@ -207,7 +160,6 @@
     <div id="loading"><div class="spinner"></div><span class="loading-text">Please wait</span></div>
 
     <div class="player-card">
-        <!-- قماش الزينة داخل اللوحة فقط -->
         <canvas id="decorCanvas"></canvas>
 
         <div class="header">
@@ -216,7 +168,7 @@
                 <button class="icon-btn" id="shareBtn" title="Share Bot"><i class="fas fa-share-alt"></i></button>
                 <button class="icon-btn" id="themeBtn" title="Change Theme"><i class="fas fa-palette"></i></button>
                 <button class="icon-btn" id="decorToggleBtn" title="Toggle Decorations"><i class="fas fa-magic"></i></button>
-                <button class="icon-btn" id="removePhotoBtn" title="Remove Photo" style="display:none;"><i class="fas fa-trash-alt"></i></button>
+                <button class="icon-btn" id="removePhotoBtn" title="Remove Photo"><i class="fas fa-trash-alt"></i></button>
             </div>
             
             <div class="header-country" id="headerCountry">Global Radio</div>
@@ -307,7 +259,7 @@
         let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
         const TARGET_COUNTRY = targetRaw.trim();
 
-        // 💡 Audio Unlocker: خدعة السماح للصوت بالعمل والشاشة مطفأة عند المؤقت
+        // 💡 Audio Unlocker: خدعة السماح للصوت بالعمل والشاشة مطفأة
         let audioUnlocked = false;
         document.body.addEventListener('touchstart', function() {
             if (!audioUnlocked && DOM.audio) {
@@ -318,8 +270,8 @@
             }
         }, { once: true });
 
-        // --- زينة النجوم والثلج داخل اللوحة فقط ---
-        let decorState = 0; // 0: Off, 1: Mixed Stars, 2: Snow
+        // --- زينة النجوم والثلج بـ 5 حالات ---
+        let decorState = 0; // 0: Off, 1: Color Inside, 2: Color Back, 3: Snow Inside, 4: Snow Back
         let decorCanvas = document.getElementById('decorCanvas');
         let ctx = decorCanvas.getContext('2d');
         let cw, ch;
@@ -327,22 +279,26 @@
         const neonColors = ['#ff0a54', '#3b82f6', '#10b981', '#fbbf24', '#8b5cf6', '#06b6d4'];
 
         function resizeCanvas() {
-            const card = document.querySelector('.player-card');
-            cw = decorCanvas.width = card.offsetWidth;
-            ch = decorCanvas.height = card.offsetHeight;
+            if (decorState === 2 || decorState === 4) {
+                cw = decorCanvas.width = window.innerWidth;
+                ch = decorCanvas.height = window.innerHeight;
+            } else {
+                const card = document.querySelector('.player-card');
+                cw = decorCanvas.width = card.offsetWidth;
+                ch = decorCanvas.height = card.offsetHeight;
+            }
         }
         window.addEventListener('resize', resizeCanvas);
-        setTimeout(resizeCanvas, 100);
 
         function initParticles() {
             particles = [];
-            for(let i=0; i<80; i++) {
+            for(let i=0; i<90; i++) {
                 particles.push({
                     x: Math.random() * cw, y: Math.random() * ch,
-                    r: decorState === 1 ? Math.random()*2 + 1 : Math.random()*1.5 + 0.5,
-                    s: decorState === 1 ? Math.random()*0.5 + 0.2 : 0, 
-                    d: Math.random()*1,
-                    c: decorState === 1 ? neonColors[Math.floor(Math.random()*neonColors.length)] : 'rgba(255,255,255,0.7)'
+                    r: (decorState === 1 || decorState === 2) ? Math.random()*2 + 1 : Math.random()*2.5 + 1.5,
+                    s: (decorState === 1 || decorState === 2) ? Math.random()*0.5 + 0.2 : 0, 
+                    d: Math.random()*0.8,
+                    c: (decorState === 1 || decorState === 2) ? neonColors[Math.floor(Math.random()*neonColors.length)] : 'rgba(255,255,255,0.9)'
                 });
             }
         }
@@ -362,34 +318,43 @@
             ctx.fill();
             for(let i=0; i<particles.length; i++) {
                 let p = particles[i];
-                if (decorState === 1) { // Mixed Neon Stars
+                if (decorState === 1 || decorState === 2) {
                     p.y += p.s;
                     p.x += Math.sin(angle + p.d) * 0.5;
-                    if(p.y > ch) { particles[i] = { ...p, x: Math.random()*cw, y: -5 }; }
-                } else if (decorState === 2) { // Snow (Slowed down)
-                    p.y += Math.pow(p.d, 2) * 0.5 + 0.5; 
-                    p.x += Math.sin(angle + p.d) * 0.5;
-                    if(p.y > ch) { particles[i] = { ...p, x: Math.random()*cw, y: -5 }; }
+                } else if (decorState === 3 || decorState === 4) {
+                    p.y += Math.pow(p.d, 2) * 0.5 + 0.3; 
+                    p.x += Math.sin(angle + p.d) * 0.3;
                 }
+                if(p.y > ch) { particles[i] = { ...p, x: Math.random()*cw, y: -5 }; }
             }
         }
         setInterval(animateDecor, 30);
 
         DOM.decorToggleBtn.addEventListener('click', () => {
-            decorState = (decorState + 1) % 3;
+            decorState = (decorState + 1) % 5;
+            
+            if (decorState === 1 || decorState === 3) {
+                document.querySelector('.player-card').insertBefore(decorCanvas, document.querySelector('.player-card').firstChild);
+            } else if (decorState === 2 || decorState === 4) {
+                document.body.prepend(decorCanvas);
+            }
+
             resizeCanvas();
             if (decorState > 0) initParticles();
+            
             let icon = DOM.decorToggleBtn.querySelector('i');
             if(decorState === 0) { icon.className = 'fas fa-magic'; DOM.decorToggleBtn.style.color = 'var(--text-sub)'; }
             if(decorState === 1) { icon.className = 'fas fa-star'; DOM.decorToggleBtn.style.color = 'var(--warning)'; }
-            if(decorState === 2) { icon.className = 'fas fa-snowflake'; DOM.decorToggleBtn.style.color = '#fff'; }
+            if(decorState === 2) { icon.className = 'fas fa-star'; DOM.decorToggleBtn.style.color = 'var(--primary)'; }
+            if(decorState === 3) { icon.className = 'fas fa-snowflake'; DOM.decorToggleBtn.style.color = '#fff'; }
+            if(decorState === 4) { icon.className = 'fas fa-snowflake'; DOM.decorToggleBtn.style.color = '#cbd5e1'; }
         });
 
-        // --- الإكولايزر (إيقاف تام وفوري عند تبديل المحطة) ---
+        // --- الإكولايزر بخمود سلس ناعم ---
         function initVisualizer() {
             var visDiv = document.getElementById('cool-visualizer');
             var html = '';
-            for(var i=0; i<35; i++){ html += '<div class=\"vis-bar\"></div>'; }
+            for(var i=0; i<25; i++){ html += '<div class=\"vis-bar\"></div>'; }
             visDiv.innerHTML = html;
             var bars = visDiv.querySelectorAll('.vis-bar');
             var visTimer;
@@ -398,22 +363,24 @@
                 if(DOM.audio.paused) return;
                 bars.forEach((bar, i) => {
                     var dist = Math.abs(i - 12);
-                    var maxH = 26 - (dist * 1.2);
+                    var maxH = 26 - (dist * 1.0);
                     var h = 4 + Math.random() * maxH;
                     bar.style.height = h + 'px';
                 });
-                visTimer = setTimeout(renderFrame, 120 + Math.random() * 20); // حركة أنعم
+                visTimer = setTimeout(renderFrame, 80 + Math.random() * 40);
             }
 
-            window.startVis = function() { renderFrame(); };
-            window.stopVis = function() { clearTimeout(visTimer); bars.forEach(b => b.style.height = '4px'); };
+            window.startVis = function() { visDiv.classList.add('vis-active'); renderFrame(); };
+            window.stopVis = function() { visDiv.classList.remove('vis-active'); clearTimeout(visTimer); bars.forEach(b => b.style.height = '4px'); };
 
             DOM.audio.addEventListener('play', window.startVis);
             DOM.audio.addEventListener('pause', window.stopVis);
+            DOM.audio.addEventListener('waiting', window.stopVis);
+            DOM.audio.addEventListener('playing', window.startVis);
         }
         initVisualizer();
 
-        // --- Notes Logic (بدون لغة عربية/ميلادي) ---
+        // --- Notes Logic ---
         let userNotes = JSON.parse(localStorage.getItem('radio_notes')) || [];
         function renderNotes() {
             DOM.notesList.innerHTML = '';
@@ -433,7 +400,6 @@
             let txt = DOM.noteInput.value.trim();
             if(txt) {
                 let d = new Date();
-                // إجبار التاريخ والوقت على النمط الإنجليزي (en-US)
                 userNotes.unshift({ text: txt, date: d.toLocaleDateString('en-US') + ' ' + d.toLocaleTimeString('en-US') });
                 localStorage.setItem('radio_notes', JSON.stringify(userNotes));
                 DOM.noteInput.value = '';
@@ -443,10 +409,10 @@
         const toggleNotesSheet = () => { DOM.notesSheet.classList.toggle('open'); DOM.notesOverlay.classList.toggle('open'); renderNotes(); };
         DOM.notesBtn.onclick = toggleNotesSheet; DOM.closeNotesBtn.onclick = toggleNotesSheet; DOM.notesOverlay.onclick = toggleNotesSheet;
 
-        // --- OTA Updates (جلب التحديثات عند الفتح فقط لدعم أكثر من رابط) ---
+        // --- OTA Updates (جلب التحديثات عند הפتح فقط لدعم أكثر من رابط) ---
         async function fetchOTA() {
             const prodUrls = [
-                // يمكنك وضع روابط متعددة هنا مفصولة بفاصلة
+                // أضف أي روابط تحديثات هنا مفصولة بفاصلة
                 // "https://api.bots.business/v2/bots/971317/web-app/getWebAppConfig?secret=..."
             ];
 
@@ -460,10 +426,27 @@
             }
         }
 
-        // ── الصورة المخصصة بدون قيود الحجم أو تصغير ──
-        function applyCustomPhoto(url) { if(url) { customImageUrl = url; DOM.logo.innerHTML = `<img src="${url}"/>`; DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'flex'; } else { customImageUrl = null; DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; DOM.removePhotoBtn.style.display = 'none'; if (!isTextHidden) { DOM.addPhotoText.style.display = 'block'; DOM.removePhotoBtn.style.display = 'flex'; } } }
-        if(!isTextHidden || customImageUrl) { DOM.removePhotoBtn.style.display = 'flex'; }
+        // ── الصورة المخصصة بدون قيود החجم ──
+        function applyCustomPhoto(url) { 
+            if(url) { 
+                customImageUrl = url; 
+                DOM.logo.innerHTML = `<img src="${url}"/>`; 
+                DOM.addPhotoText.style.display = 'none'; 
+                DOM.removePhotoBtn.classList.add('visible');
+            } else { 
+                customImageUrl = null; 
+                DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; 
+                DOM.removePhotoBtn.classList.remove('visible');
+                if (!isTextHidden) { 
+                    DOM.addPhotoText.style.display = 'block'; 
+                    DOM.removePhotoBtn.classList.add('visible');
+                } 
+            } 
+        }
+        
+        if(!isTextHidden || customImageUrl) { DOM.removePhotoBtn.classList.add('visible'); }
         DOM.logoWrapper.addEventListener('click', () => { DOM.customPhotoInput.click(); });
+        
         DOM.customPhotoInput.addEventListener('change', e => { 
             const file = e.target.files[0]; 
             if(file) { 
@@ -476,7 +459,8 @@
                 reader.readAsDataURL(file); 
             } 
         });
-        DOM.removePhotoBtn.addEventListener('click', () => { if (customImageUrl) { localStorage.removeItem('radio_custom_photo'); applyCustomPhoto(null); DOM.customPhotoInput.value = ''; } else { DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.style.display = 'none'; isTextHidden = true; localStorage.setItem('radio_hide_text', 'true'); } });
+        
+        DOM.removePhotoBtn.addEventListener('click', () => { if (customImageUrl) { localStorage.removeItem('radio_custom_photo'); applyCustomPhoto(null); DOM.customPhotoInput.value = ''; } else { DOM.addPhotoText.style.display = 'none'; DOM.removePhotoBtn.classList.remove('visible'); isTextHidden = true; localStorage.setItem('radio_hide_text', 'true'); } });
 
         let timers = { sleepEnd: null, startEnd: null, tickInt: null, sleepTo: null, startTo: null }; const toggleTimerSheet = () => { DOM.timerSheet.classList.toggle('open'); DOM.timerOverlay.classList.toggle('open'); }; DOM.timersToggleBtn.addEventListener('click', toggleTimerSheet); DOM.closeTimerBtn.addEventListener('click', toggleTimerSheet); DOM.timerOverlay.addEventListener('click', toggleTimerSheet); const formatTime = (totalSeconds) => { const h = Math.floor(totalSeconds / 3600); const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); const s = (totalSeconds % 60).toString().padStart(2, '0'); return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`; }; const getRemaining = (endMs) => { if (!endMs) return { total: 0 }; return { total: Math.max(0, Math.round((endMs - Date.now()) / 1000)) }; }; const updateHeaderTimerUI = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (sleepActive) { const rem = getRemaining(timers.sleepEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Sleep: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.sleepDigital.textContent = timeStr; } else if (startActive) { const rem = getRemaining(timers.startEnd); const timeStr = formatTime(rem.total); DOM.mainHeaderTimer.textContent = timeStr; DOM.sheetHeaderTimer.textContent = `(Start: ${timeStr})`; DOM.timersToggleBtn.classList.add('has-text', 'active-timer'); DOM.startDigital.textContent = timeStr; } else { DOM.mainHeaderTimer.textContent = ''; DOM.sheetHeaderTimer.textContent = ''; DOM.timersToggleBtn.classList.remove('has-text', 'active-timer'); } }; const stopEngine = () => { if(timers.tickInt) { clearInterval(timers.tickInt); timers.tickInt = null; } }; const startEngine = () => { if (!timers.tickInt) timers.tickInt = setInterval(timerTick, 1000); timerTick(); }; const clearSleepUI = () => { clearTimeout(timers.sleepTo); timers.sleepTo = null; timers.sleepEnd = null; DOM.sleepDigital.classList.remove('visible'); DOM.sleepCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const clearStartUI = () => { clearTimeout(timers.startTo); timers.startTo = null; timers.startEnd = null; DOM.startDigital.classList.remove('visible'); DOM.startCancelBtn.classList.remove('visible'); updateHeaderTimerUI(); }; const timerTick = () => { const sleepActive = timers.sleepEnd && Date.now() < timers.sleepEnd; const startActive = timers.startEnd && Date.now() < timers.startEnd; if (!sleepActive && !startActive) { stopEngine(); updateHeaderTimerUI(); return; } if (sleepActive) { const rem = getRemaining(timers.sleepEnd); if (rem.total <= 0) { audioController.fadeOut(); clearSleepUI(); } } else if (timers.sleepEnd) { clearSleepUI(); } if (startActive) { const rem = getRemaining(timers.startEnd); if (rem.total <= 0) { audioController.forceStart(); clearStartUI(); } } else if (timers.startEnd) { clearStartUI(); } updateHeaderTimerUI(); }; DOM.sleepActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.startEnd) clearStartUI(); audioController.forceStart(); const now = Date.now(); timers.sleepEnd = (timers.sleepEnd && timers.sleepEnd > now) ? timers.sleepEnd + (mins * 60000) : now + (mins * 60000); DOM.sleepCancelBtn.classList.add('visible'); DOM.sleepDigital.classList.add('visible'); startEngine(); clearTimeout(timers.sleepTo); const remainingMs = timers.sleepEnd - Date.now(); timers.sleepTo = setTimeout(() => { audioController.fadeOut(); clearSleepUI(); }, remainingMs); } }); DOM.startActions.addEventListener('click', e => { if(e.target.tagName !== 'BUTTON') return; const mins = parseInt(e.target.dataset.min); if (mins) { if(timers.sleepEnd) clearSleepUI(); const now = Date.now(); timers.startEnd = (timers.startEnd && timers.startEnd > now) ? timers.startEnd + (mins * 60000) : now + (mins * 60000); DOM.startCancelBtn.classList.add('visible'); DOM.startDigital.classList.add('visible'); startEngine(); clearTimeout(timers.startTo); const remainingMs = timers.startEnd - Date.now(); timers.startTo = setTimeout(() => { audioController.forceStart(); clearStartUI(); }, remainingMs); } }); DOM.sleepCancelBtn.addEventListener('click', clearSleepUI); DOM.startCancelBtn.addEventListener('click', clearStartUI);
         const themes = [ { name: 'Royal Blue', primary: '#3b82f6', bg: '#0f172a', cardBg: 'rgba(30, 41, 59, 0.7)' }, { name: 'Emerald', primary: '#10b981', bg: '#022c22', cardBg: 'rgba(6, 78, 59, 0.7)' }, { name: 'Crimson', primary: '#ef4444', bg: '#2d0a0a', cardBg: 'rgba(127, 29, 29, 0.7)' }, { name: 'Amber', primary: '#f59e0b', bg: '#2d1f04', cardBg: 'rgba(180, 83, 9, 0.6)' }, { name: 'Sky', primary: '#0ea5e9', bg: '#0a2a3b', cardBg: 'rgba(14, 116, 144, 0.6)' }, { name: 'Violet', primary: '#8b5cf6', bg: '#1e1033', cardBg: 'rgba(109, 40, 217, 0.6)' }, { name: 'Rose', primary: '#f43f5e', bg: '#2d0a14', cardBg: 'rgba(159, 18, 57, 0.7)' }, { name: 'Teal', primary: '#14b8a6', bg: '#042f2e', cardBg: 'rgba(20, 184, 166, 0.5)' }, { name: 'Indigo', primary: '#6366f1', bg: '#0f0f23', cardBg: 'rgba(79, 70, 229, 0.6)' }, { name: 'Lime', primary: '#84cc16', bg: '#1a2e0a', cardBg: 'rgba(101, 163, 13, 0.6)' }, { name: 'Fuchsia', primary: '#d946ef', bg: '#2a0a2e', cardBg: 'rgba(192, 38, 211, 0.5)' }, { name: 'Orange', primary: '#f97316', bg: '#2d1a05', cardBg: 'rgba(194, 65, 12, 0.7)' } ]; function applyTheme(theme) { document.documentElement.style.setProperty('--primary', theme.primary); document.documentElement.style.setProperty('--primary-hover', theme.primary + 'cc'); document.documentElement.style.setProperty('--bg-base', theme.bg); document.documentElement.style.setProperty('--card-bg', theme.cardBg); localStorage.setItem('radio_theme', JSON.stringify(theme)); } function loadTheme() { const saved = localStorage.getItem('radio_theme'); if (saved) { try { applyTheme(JSON.parse(saved)); } catch(e){ applyTheme(themes[0]); } } else { applyTheme(themes[0]); } } function renderThemeButtons() { DOM.themeColors.innerHTML = themes.map(t => `<button class="theme-color-btn" style="background:${t.primary};" title="${t.name}" data-theme='${JSON.stringify(t)}'></button>` ).join(''); DOM.themeColors.querySelectorAll('button').forEach(btn => { btn.addEventListener('click', () => { const theme = JSON.parse(btn.dataset.theme); applyTheme(theme); DOM.themeSheet.classList.remove('open'); DOM.themeOverlay.classList.remove('open'); }); }); } const toggleThemeSheet = () => { DOM.themeSheet.classList.toggle('open'); DOM.themeOverlay.classList.toggle('open'); }; DOM.themeBtn.addEventListener('click', toggleThemeSheet); DOM.closeThemeBtn.addEventListener('click', toggleThemeSheet); DOM.themeOverlay.addEventListener('click', toggleThemeSheet); renderThemeButtons(); loadTheme();
@@ -484,12 +468,10 @@
             async fetchByStr(country) { 
                 try { 
                     const endpoints = [ 
-                        `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?limit=150&order=votes&reverse=true`, 
-                        `https://nl1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?limit=150&order=votes&reverse=true`
+                        `https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true`, 
+                        `https://nl1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(country)}?order=votes&reverse=true`
                     ]; 
-                    const res = await Promise.any(endpoints.map(url => fetch(url).then(r => { if(!r.ok) throw new Error(); return r.json();} )));
-                    const valids = res.filter(s => (s.url_resolved || s.url).startsWith('https://')); 
-                    return valids;
+                    for (const url of endpoints) { const res = await fetch(url); if (res.ok) { const data = await res.json(); const valids = data.filter(s => (s.url_resolved || s.url).startsWith('https://')); if(valids.length > 0) return valids; } } return [];
                 } catch(e) { return []; } 
             } 
         };
@@ -498,11 +480,11 @@
         const UIController = { 
             loadIndex(index) { 
                 if (!stations.length) return; 
-                if (window.stopVis) window.stopVis(); // خمود فوري للأشرطة
+                if (window.stopVis) window.stopVis(); // خمود الأشرطة عند التبديل
                 currentIndex = index; const s = stations[currentIndex]; isExternalFavPlaying = false; this.updateUI(s.name, `Station ${currentIndex + 1} / ${stations.length}`); DOM.audio.src = s.url_resolved || s.url || ''; this.enableControls(); checkFavState(s.stationuuid); if (isPlaying) audioController.play(); 
             }, 
             loadExternalFav(fav) { 
-                if (window.stopVis) window.stopVis(); // خمود فوري للأشرطة
+                if (window.stopVis) window.stopVis(); // خمود الأشرطة عند التبديل
                 isExternalFavPlaying = true; this.updateUI(fav.name, "Saved Station"); DOM.audio.src = fav.url; this.enableControls(); checkFavState(fav.id); audioController.play(); 
             }, 
             updateUI(title, subtitle) { DOM.title.textContent = title || 'Unknown'; DOM.sub.textContent = subtitle; DOM.audio.volume = DOM.vol.value; }, enableControls() { [DOM.playBtn, DOM.nextBtn, DOM.prevBtn].forEach(b => b.disabled = false); }, emptyState() { DOM.title.textContent = 'No Stations Found'; DOM.sub.textContent = 'Please enter a valid country in bot'; } 
@@ -513,7 +495,7 @@
         const checkFavState = id => { const fav = savedStations.some(s => s.id === id); DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; DOM.saveBtn.innerHTML = fav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; }; DOM.saveBtn.addEventListener('click', () => { const current = isExternalFavPlaying ? savedStations.find(s => s.url === DOM.audio.src) : stations[currentIndex]; if(!current) return; const stId = current.stationuuid || current.id; const existIdx = savedStations.findIndex(s => s.id === stId); if (existIdx > -1) { savedStations.splice(existIdx, 1); } else { savedStations.push({ id: stId, name: current.name, url: current.url_resolved || current.url, country: current.country || TARGET_COUNTRY }); } localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); checkFavState(stId); renderFavorites(); }); const renderFavorites = () => { DOM.favList.innerHTML = savedStations.length ? '' : '<li style="text-align:center; color:var(--text-sub); margin-top:20px;">No saved stations.</li>'; savedStations.forEach((f, i) => { const li = document.createElement('li'); li.className = 'fav-item'; const countryText = f.country ? ` (${f.country})` : ''; li.innerHTML = `<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${f.name}">${f.name || 'Unknown'}${countryText}</div></div><button class="fav-remove" title="Remove"><i class="fas fa-trash-alt"></i></button>`; li.querySelector('.fav-item-content').addEventListener('click', () => { DOM.favModal.classList.remove('open'); const idx = stations.findIndex(s => s.stationuuid === f.id); if(idx > -1) { UIController.loadIndex(idx); audioController.play(); } else { UIController.loadExternalFav(f); } }); li.querySelector('.fav-remove').addEventListener('click', e => { e.stopPropagation(); savedStations.splice(i, 1); localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); renderFavorites(); const activeId = isExternalFavPlaying ? f.id : (stations[currentIndex]?.stationuuid); if (activeId === f.id) checkFavState(f.id); }); DOM.favList.appendChild(li); }); }; DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
         async function bootApp() {
-            await fetchOTA(); // גلب التحديثات عند הפتح فقط
+            await fetchOTA(); // جلب التحديثات عند הפتح فقط
             
             if (customImageUrl) { applyCustomPhoto(customImageUrl); } else if (isTextHidden) { DOM.addPhotoText.style.display = 'none'; }
             
