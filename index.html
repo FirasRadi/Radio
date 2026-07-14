@@ -79,7 +79,7 @@
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
 
-        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 30px; min-height: 30px; margin: 6px auto; width: 95%; }
+        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 30px; min-height: 30px; margin: 6px auto; width: 60%; }
         .vis-bar { flex: 1; margin: 0 2px; border-radius: 3px; height: 4px; transition: height 0.3s ease-out; }
         .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 10px #ff0a54; }
         .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
@@ -354,7 +354,7 @@
         function initVisualizer() {
             var visDiv = document.getElementById('cool-visualizer');
             var html = '';
-            for(var i=0; i<25; i++){ html += '<div class=\"vis-bar\"></div>'; }
+            for(var i=0; i<35; i++){ html += '<div class=\"vis-bar\"></div>'; }
             visDiv.innerHTML = html;
             var bars = visDiv.querySelectorAll('.vis-bar');
             var visTimer;
