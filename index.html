@@ -510,18 +510,17 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         bootApp();
 
 
-
-// --- نظام السحب الميكانيكي المتقدم (صوت + اهتزاز) ---
+// --- نظام التكتكة والاهتزاز المتوافق مع سحب تيليجرام الأصلي ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // دالة توليد صوت "تكتكة" ميكانيكية بدون الحاجة لملفات صوتية
+        // توليد صوت تكتكة حاد وعالي جداً
         function playMechanicalTick(pitch) {
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'triangle'; // نوع موجة يعطي صوت "نقرة" صلبة
+            osc.type = 'square'; // موجة مربعة تعطي صوت نقرة ميكانيكية حادة
             osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.setValueAtTime(2.0, audioCtx.currentTime); // رفع قوة الصوت للحد الأقصى
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
@@ -529,82 +528,39 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             osc.stop(audioCtx.currentTime + 0.05);
         }
 
-        let dragStartY = 0;
-        let dragCurrentY = 0;
-        let isAppDragging = false;
+        let startY = 0;
         let lastTickY = 0;
-        const playerCard = document.querySelector('.player-card');
 
+        // مراقبة لمس الشاشة من الأعلى فقط (حيث يحدث السحب للأسفل)
         document.addEventListener('touchstart', (e) => {
-            // السماح بتشغيل الصوت عند أول لمسة
             if(audioCtx.state === 'suspended') audioCtx.resume();
-            
-            // تجاهل السحب إذا كان المستخدم داخل القوائم أو يغير مستوى الصوت
-            if (e.target.closest('.bottom-sheet') || e.target.closest('.modal') || e.target.type === 'range') return;
-            
-            dragStartY = e.touches[0].clientY;
-            isAppDragging = true;
-            lastTickY = dragStartY;
-            playerCard.style.transition = 'none'; // إلغاء الترانزيشن ليتبع حركة الإصبع بدقة
+            if (window.scrollY <= 0) {
+                startY = e.touches[0].clientY;
+                lastTickY = startY;
+            }
         }, { passive: true });
 
+        // تشغيل الاهتزاز والصوت أثناء سحب برداية تيليجرام الأصلية
         document.addEventListener('touchmove', (e) => {
-            if (!isAppDragging) return;
-            dragCurrentY = e.touches[0].clientY;
-            let diff = dragCurrentY - dragStartY;
-
-            // إذا كان يسحب للأسفل (للإغلاق)
-            if (diff > 0) {
-                // إضافة مقاومة (يتحرك أبطأ من الإصبع ليعطي شعور الثقل)
-                let moveY = diff * 0.45;
-                playerCard.style.transform = `translateY(${moveY}px)`;
-
-                // إصدار نبضة (اهتزاز + صوت) كل 25 بكسل يسحبها
-                if (dragCurrentY - lastTickY > 25) {
+            if (window.scrollY <= 0 && startY > 0) {
+                let currentY = e.touches[0].clientY;
+                let diff = currentY - startY;
+                
+                // إذا كان يسحب للأسفل بمقدار 20 بكسل
+                if (diff > 0 && currentY - lastTickY > 20) {
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                     
-                    // 1. تشغيل هزاز تيليجرام الخفيف
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.selectionChanged();
-                    }
-                    
-                    // 2. تشغيل صوت "تكتكة" (يصبح الصوت أعمق كلما سحبت أكثر ليعطي إحساساً بالشد)
-                    let pitch = Math.max(100, 400 - (diff * 0.8));
+                    // تغيير نبرة الصوت لتبدو كشد زنبرك
+                    let pitch = Math.max(150, 600 - (diff * 2));
                     playMechanicalTick(pitch);
                     
-                    lastTickY = dragCurrentY;
+                    lastTickY = currentY;
                 }
             }
         }, { passive: true });
 
         document.addEventListener('touchend', () => {
-            if (!isAppDragging) return;
-            isAppDragging = false;
-            let diff = dragCurrentY - dragStartY;
-
-            // إعادة الترانزيشن لحركة الارتداد الناعمة
-            playerCard.style.transition = 'transform 0.4s cubic-bezier(0.2, 1, 0.3, 1)';
-
-            if (diff > 140) {
-                // سحب لمسافة كافية -> إغلاق التطبيق!
-                if (tg && tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('heavy'); // هزاز قوي للإغلاق
-                }
-                playMechanicalTick(100); // صوت عميق أخير
-                
-                playerCard.style.transform = `translateY(100vh)`; // إنزال البطاقة لأسفل الشاشة
-                
-                // إغلاق البوت بعد انتهاء الحركة
-                setTimeout(() => {
-                    if(tg) tg.close();
-                }, 300);
-            } else {
-                // سحب غير كافٍ -> ارتداد الشاشة لمكانها الأصلي
-                if (diff > 30) {
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                    playMechanicalTick(500); // صوت رفيع للارتداد
-                }
-                playerCard.style.transform = 'translateY(0)';
-            }
+            startY = 0;
         });
         
         
