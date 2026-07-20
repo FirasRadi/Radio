@@ -171,12 +171,6 @@
 
 
 
-
-
-/* تصميم عداد وقت الاستماع */
-        .listening-timer { font-size: 10px; color: var(--text-sub); margin-top: 5px; text-align: center; line-height: 1.5; }
-        .listening-timer span { font-family: monospace; font-size: 11px; color: var(--warning); font-weight: 700; letter-spacing: 1px; }
-
         
     </style>
 </head>
@@ -241,11 +235,10 @@
         <div class="footer-note">Change country inside the bot chat.</div>
 
 
-<!-- عداد الاستماع -->
-        <div class="listening-timer">
-            Time spent listening:<br>
-            <span id="listenTimeDisplay">00 : 00 : 00 : 00 : 00 : 00</span>
-        </div>
+
+<div class="footer-note">Change country inside the bot chat.<br><span id="listenTimeDisplay" style="font-size: 9px; color: var(--warning); font-family: monospace; letter-spacing: 2px;">00 : 00 : 00 : 00 : 00 : 00</span></div>
+
+        
         
         
         <audio id="audioPlayer" preload="metadata"></audio>
@@ -559,13 +552,11 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
 
         
-
-// --- ⏱️ نظام حساب وقت الاستماع التراكمي ---
+// --- ⏱️ نظام حساب وقت الاستماع التراكمي (أصفار فقط) ---
         let totalListenSeconds = parseInt(localStorage.getItem('radio_listen_time')) || 0;
         let listenTimerInterval = null;
         const listenTimeDisplay = document.getElementById('listenTimeDisplay');
 
-        // دالة تحويل الثواني إلى (سنة:شهر:يوم:ساعة:دقيقة:ثانية)
         function formatListenTime(secs) {
             let y = Math.floor(secs / 31536000);
             let mo = Math.floor((secs % 31536000) / 2592000);
@@ -575,10 +566,10 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             let s = Math.floor(secs % 60);
             
             const pad = num => num.toString().padStart(2, '0');
-            return `${pad(y)}Y : ${pad(mo)}M : ${pad(d)}D : ${pad(h)}H : ${pad(m)}M : ${pad(s)}S`;
+            // أصفار فقط مفصولة بنقطتين
+            return `${pad(y)} : ${pad(mo)} : ${pad(d)} : ${pad(h)} : ${pad(m)} : ${pad(s)}`;
         }
 
-        // عرض الوقت المحفوظ فور فتح التطبيق
         if(listenTimeDisplay) listenTimeDisplay.innerText = formatListenTime(totalListenSeconds);
 
         function startListeningTimer() {
@@ -586,11 +577,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             listenTimerInterval = setInterval(() => {
                 totalListenSeconds++;
                 if(listenTimeDisplay) listenTimeDisplay.innerText = formatListenTime(totalListenSeconds);
-                
-                // حفظ الوقت في ذاكرة الهاتف كل 5 ثواني لتقليل الضغط
-                if (totalListenSeconds % 5 === 0) {
-                    localStorage.setItem('radio_listen_time', totalListenSeconds);
-                }
+                if (totalListenSeconds % 5 === 0) localStorage.setItem('radio_listen_time', totalListenSeconds);
             }, 1000);
         }
 
@@ -598,15 +585,17 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             if (listenTimerInterval) {
                 clearInterval(listenTimerInterval);
                 listenTimerInterval = null;
-                localStorage.setItem('radio_listen_time', totalListenSeconds); // حفظ فوري عند الإيقاف
+                localStorage.setItem('radio_listen_time', totalListenSeconds);
             }
         }
 
-        // ربط العداد بالصوت الحقيقي (لا يعد إلا إذا كان الصوت يخرج فعلاً)
-        DOM.audio.addEventListener('playing', startListeningTimer); // يبدأ عند تشغيل الصوت
-        DOM.audio.addEventListener('pause', stopListeningTimer); // يتوقف عند الإيقاف المؤقت
-        DOM.audio.addEventListener('waiting', stopListeningTimer); // يتوقف مؤقتاً إذا كان الراديو يُحمل (يقطع)
+        DOM.audio.addEventListener('playing', startListeningTimer);
+        DOM.audio.addEventListener('pause', stopListeningTimer);
+        DOM.audio.addEventListener('waiting', stopListeningTimer);
 
+
+
+        
 
         
         bootApp();
