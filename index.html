@@ -737,36 +737,57 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                         window.Telegram.WebApp.HapticFeedback.impactOccurred('soft');
                     }
                 }
+function endGame() {
+                    if (!gameActive) return;
 
-                function endGame() {
                     gameActive = false;
                     cancelAnimationFrame(gameLoop);
 
-                    // --- الإصلاح الرئيسي لسحب بيانات اللاعب ---
-                    let uId = Math.floor(Math.random() * 1000000); 
-                    let uName = "Guest";
                     const tWeb = window.Telegram ? window.Telegram.WebApp : null;
-                    
+
+                    let userId = null;
+                    let userName = "Guest";
+
                     if (tWeb && tWeb.initDataUnsafe && tWeb.initDataUnsafe.user) {
-                        uId = tWeb.initDataUnsafe.user.id;
-                        uName = tWeb.initDataUnsafe.user.first_name;
+                        userId = tWeb.initDataUnsafe.user.id;
+                        userName = tWeb.initDataUnsafe.user.first_name || "User";
                     }
 
-                    // إرسال النتيجة إلى السيرفر
-                    fetch(WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            user_id: uId,
-                            first_name: uName,
+                    // لا ترسل بدون ID حقيقي
+                    if (!userId) {
+                        console.log("No Telegram user found");
+                    } else {
+                        // إذا وجدنا ID، نقوم بإرسال الطلب للسيرفر
+                        console.log({
+                            user_id: userId,
+                            first_name: userName,
                             score: score
-                        })
-                    }).catch(err => console.log(err));
+                        });
 
-                    if (tWeb && tWeb.HapticFeedback) tWeb.HapticFeedback.notificationOccurred('error'); 
-                    gameOverUI.style.display = 'block';
+                        fetch(WEBHOOK_URL, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                first_name: userName,
+                                score: score
+                            })
+                        })
+                        .then(res => res.text())
+                        .then(data => console.log("Server:", data))
+                        .catch(err => console.log("Fetch error:", err));
+                    }
+
+                    if (tWeb && tWeb.HapticFeedback) {
+                        tWeb.HapticFeedback.notificationOccurred('error');
+                    }
+
+                    gameOverUI.style.display = "block";
                     gameScoreEl.textContent = score;
                 }
+                
 
                 function resetGame() {
                     player.y = gameCanvas.height / 2;
