@@ -541,12 +541,10 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
 
 
-            
 
 
 
-
-// --- 🎮 محرك لعبة Flappy Note (مدمج ومحمي + متصل بالسيرفر) ---
+// --- 🎮 محرك لعبة Flappy Note (مدمج ومحمي + متصل بالسيرفر + أزرار كبيرة) ---
         (function initGameModule() {
             try {
                 const gameToggleBtn = document.getElementById('gameToggleBtn');
@@ -566,40 +564,50 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 const pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
                 const WEBHOOK_URL = "https://api.bots.business/v2/bots/971317/web-app/%2FscoreR?secret=kkKJj9HamoeIFNSs8nDURDi5B/AqMpIUPhmusHcLs97JA2E6ZstG8iG77jfnfcobhL0wsC9nRGkXPVn6RjBDLA==";
 
-                // 1. توليد زر الإيقاف المؤقت
+                // 1. زر الخروج من اللعبة (❌) العُلوي
+                const closeGameBtn = document.createElement('button');
+                closeGameBtn.innerHTML = '<i class="fas fa-times"></i>';
+                closeGameBtn.style.cssText = 'position: absolute; top: 20px; right: 20px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); width: 50px; height: 50px; border-radius: 50%; font-size: 24px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.2s;';
+                gameContainer.appendChild(closeGameBtn);
+
+                // 2. زر الإيقاف المؤقت (بحجم كبير جداً)
                 const pauseBtn = document.createElement('button');
                 pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                pauseBtn.style.cssText = 'position: absolute; right: 20px; bottom: 25%; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 45px; height: 45px; border-radius: 50%; font-size: 18px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
+                pauseBtn.style.cssText = 'position: absolute; right: 20px; bottom: 20%; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 65px; height: 65px; border-radius: 50%; font-size: 26px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
                 gameContainer.appendChild(pauseBtn);
 
-                // 2. توليد زر الكأس (أفضل اللاعبين)
+                // 3. زر الكأس (بحجم كبير جداً فوق زر الإيقاف)
                 const hsBtn = document.createElement('button');
                 hsBtn.innerHTML = '<i class="fas fa-trophy"></i>';
-                hsBtn.style.cssText = 'position: absolute; right: 20px; bottom: calc(25% + 55px); background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); width: 45px; height: 45px; border-radius: 50%; font-size: 18px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
+                hsBtn.style.cssText = 'position: absolute; right: 20px; bottom: calc(20% + 80px); background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.5); width: 65px; height: 65px; border-radius: 50%; font-size: 26px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
                 gameContainer.appendChild(hsBtn);
 
-                // 3. توليد لوحة الشرف (Leaderboard UI) ديناميكياً
+                // 4. لوحة الشرف
                 const lbUI = document.createElement('div');
-                lbUI.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15,23,42,0.95); padding: 25px 20px; border-radius: 20px; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #fbbf24; width: 80%; z-index: 105; flex-direction: column; align-items: center; backdrop-filter: blur(10px);';
+                lbUI.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15,23,42,0.95); padding: 25px 20px; border-radius: 20px; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #fbbf24; width: 85%; z-index: 105; flex-direction: column; align-items: center; backdrop-filter: blur(10px);';
                 lbUI.innerHTML = `
-                    <h2 style="color: #fbbf24; margin-bottom: 15px; font-size: 20px;"><i class="fas fa-crown"></i> Top 3 Global</h2>
-                    <ul id="lbList" style="list-style: none; padding: 0; width: 100%; margin-bottom: 20px; font-size: 15px; text-align: left;"></ul>
-                    <button id="closeLbBtn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 10px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%;">Close</button>
+                    <h2 style="color: #fbbf24; margin-bottom: 15px; font-size: 22px;"><i class="fas fa-crown"></i> Top 3 Global</h2>
+                    <ul id="lbList" style="list-style: none; padding: 0; width: 100%; margin-bottom: 20px; font-size: 16px; text-align: left;"></ul>
+                    <button id="closeLbBtn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 12px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px;">Close</button>
                 `;
                 gameContainer.appendChild(lbUI);
 
                 const lbList = lbUI.querySelector('#lbList');
                 const closeLbBtn = lbUI.querySelector('#closeLbBtn');
 
-                // منع التداخل بين الأزرار وقفز اللاعب
+                // منع الأزرار من إحداث قفزة للاعب
                 const stopProp = (e) => e.stopPropagation();
-                [pauseBtn, hsBtn, lbUI].forEach(el => {
+                [closeGameBtn, pauseBtn, hsBtn, lbUI].forEach(el => {
                     el.addEventListener('mousedown', stopProp);
                     el.addEventListener('touchstart', stopProp, { passive: false });
                 });
 
-                closeLbBtn.addEventListener('click', () => {
-                    lbUI.style.display = 'none';
+                closeLbBtn.addEventListener('click', () => { lbUI.style.display = 'none'; });
+
+                // وظيفة زر ❌ للخروج من اللعبة تماماً
+                closeGameBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    gameToggleBtn.click(); // يحاكي الضغط على زر اللعبة الأصلي للإغلاق
                 });
 
                 pauseBtn.addEventListener('click', () => {
@@ -610,7 +618,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                         updateGame(); 
                     } else {
                         isPaused = true;
-                        pauseBtn.innerHTML = '<i class="fas fa-play" style="padding-left:3px;"></i>';
+                        pauseBtn.innerHTML = '<i class="fas fa-play" style="padding-left:4px;"></i>';
                         cancelAnimationFrame(gameLoop);
                         ctxGame.fillStyle = 'rgba(0, 0, 0, 0.6)';
                         ctxGame.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
@@ -621,13 +629,10 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 });
 
                 hsBtn.addEventListener('click', () => {
-                    // إيقاف اللعبة لعرض القائمة
                     if (gameActive && !isPaused) { pauseBtn.click(); }
-
                     lbUI.style.display = 'flex';
                     lbList.innerHTML = '<li style="text-align:center; color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Fetching...</li>';
 
-                    // جلب قائمة أفضل 3 لاعبين من السيرفر
                     fetch(WEBHOOK_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -638,9 +643,9 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                         if(data && data.top3 && data.top3.length > 0) {
                             const medals = ['🥇', '🥈', '🥉'];
                             lbList.innerHTML = data.top3.map((u, i) => `
-                                <li style="background: rgba(255,255,255,0.05); padding: 10px 15px; margin-bottom: 8px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
+                                <li style="background: rgba(255,255,255,0.05); padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
                                     <span>${medals[i] || '🏅'} <b style="color:#fff; margin-left:5px;">${u.name}</b></span>
-                                    <span style="color:#fbbf24; font-weight:bold;">${u.score}</span>
+                                    <span style="color:#fbbf24; font-weight:bold; font-size:18px;">${u.score}</span>
                                 </li>
                             `).join('');
                         } else {
@@ -676,7 +681,6 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                         let pipeY = Math.random() * (gameCanvas.height - pipesObj.gap - 100) + 50;
                         pipesObj.array.push({ x: gameCanvas.width, y: pipeY, passed: false });
                     }
-                    
                     for (let i = 0; i < pipesObj.array.length; i++) {
                         let p = pipesObj.array[i];
                         p.x -= pipesObj.dx;
@@ -696,7 +700,6 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                             score++; 
                             if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light'); 
                         }
-                        
                         if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
                     }
                 }
@@ -734,19 +737,24 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                     gameActive = false;
                     cancelAnimationFrame(gameLoop);
 
-                    // إرسال النتيجة إلى السيرفر فور الخسارة
-                    if (score > 0 && window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
-                        const userData = window.tg.initDataUnsafe.user;
-                        fetch(WEBHOOK_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                user_id: userData.id,
-                                first_name: userData.first_name,
-                                score: score
-                            })
-                        }).catch(err => console.log(err));
+                    // ضمان وجود بيانات (حتى لو تيليجرام فشل، يسجلك كـ Guest)
+                    let uId = Math.floor(Math.random() * 1000000); 
+                    let uName = "Guest";
+                    if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+                        uId = window.tg.initDataUnsafe.user.id;
+                        uName = window.tg.initDataUnsafe.user.first_name;
                     }
+
+                    // إرسال النتيجة إلى السيرفر (الآن يرسل النتيجة حتى لو كانت 0 لتجربتها)
+                    fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: uId,
+                            first_name: uName,
+                            score: score
+                        })
+                    }).catch(err => console.log(err));
 
                     if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error'); 
                     gameOverUI.style.display = 'block';
@@ -788,13 +796,13 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 gameCanvas.addEventListener('touchstart', jump, { passive: false });
                 retryBtn.addEventListener('click', resetGame);
                 
-            } catch (error) {
-                console.error("Game Error: ", error);
-            }
+            } catch (error) { console.error("Game Error: ", error); }
         })();
 
 
 
+
+        
 
         
 
