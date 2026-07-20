@@ -544,6 +544,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
 
 
+
 // --- 🎮 محرك لعبة Flappy Note (مدمج ومحمي + متصل بالسيرفر + أزرار كبيرة) ---
         (function initGameModule() {
             try {
@@ -564,19 +565,19 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 const pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
                 const WEBHOOK_URL = "https://api.bots.business/v2/bots/971317/web-app/%2FscoreR?secret=kkKJj9HamoeIFNSs8nDURDi5B/AqMpIUPhmusHcLs97JA2E6ZstG8iG77jfnfcobhL0wsC9nRGkXPVn6RjBDLA==";
 
-                // 1. زر الخروج من اللعبة (❌) العُلوي
+                // 1. زر الخروج من اللعبة (❌) العُلوي (الآن في الجهة اليسرى)
                 const closeGameBtn = document.createElement('button');
                 closeGameBtn.innerHTML = '<i class="fas fa-times"></i>';
-                closeGameBtn.style.cssText = 'position: absolute; top: 20px; right: 20px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); width: 50px; height: 50px; border-radius: 50%; font-size: 24px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.2s;';
+                closeGameBtn.style.cssText = 'position: absolute; top: 20px; left: 20px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); width: 50px; height: 50px; border-radius: 50%; font-size: 24px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.2s;';
                 gameContainer.appendChild(closeGameBtn);
 
-                // 2. زر الإيقاف المؤقت (بحجم كبير جداً)
+                // 2. زر الإيقاف المؤقت (يمين أسفل)
                 const pauseBtn = document.createElement('button');
                 pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
                 pauseBtn.style.cssText = 'position: absolute; right: 20px; bottom: 20%; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 65px; height: 65px; border-radius: 50%; font-size: 26px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
                 gameContainer.appendChild(pauseBtn);
 
-                // 3. زر الكأس (بحجم كبير جداً فوق زر الإيقاف)
+                // 3. زر الكأس (يمين أسفل، فوق الإيقاف)
                 const hsBtn = document.createElement('button');
                 hsBtn.innerHTML = '<i class="fas fa-trophy"></i>';
                 hsBtn.style.cssText = 'position: absolute; right: 20px; bottom: calc(20% + 80px); background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.5); width: 65px; height: 65px; border-radius: 50%; font-size: 26px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
@@ -604,10 +605,10 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
                 closeLbBtn.addEventListener('click', () => { lbUI.style.display = 'none'; });
 
-                // وظيفة زر ❌ للخروج من اللعبة تماماً
+                // الخروج من اللعبة للراديو
                 closeGameBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    gameToggleBtn.click(); // يحاكي الضغط على زر اللعبة الأصلي للإغلاق
+                    gameToggleBtn.click();
                 });
 
                 pauseBtn.addEventListener('click', () => {
@@ -698,7 +699,9 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                         if (!p.passed && player.x > p.x + pipesObj.width) {
                             p.passed = true;
                             score++; 
-                            if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light'); 
+                            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                                window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                            }
                         }
                         if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
                     }
@@ -730,22 +733,26 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                     if(e) e.preventDefault();
                     if (!gameActive || isPaused) return;
                     player.velocity = player.jump;
-                    if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('soft');
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                        window.Telegram.WebApp.HapticFeedback.impactOccurred('soft');
+                    }
                 }
 
                 function endGame() {
                     gameActive = false;
                     cancelAnimationFrame(gameLoop);
 
-                    // ضمان وجود بيانات (حتى لو تيليجرام فشل، يسجلك كـ Guest)
+                    // --- الإصلاح الرئيسي لسحب بيانات اللاعب ---
                     let uId = Math.floor(Math.random() * 1000000); 
                     let uName = "Guest";
-                    if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
-                        uId = window.tg.initDataUnsafe.user.id;
-                        uName = window.tg.initDataUnsafe.user.first_name;
+                    const tWeb = window.Telegram ? window.Telegram.WebApp : null;
+                    
+                    if (tWeb && tWeb.initDataUnsafe && tWeb.initDataUnsafe.user) {
+                        uId = tWeb.initDataUnsafe.user.id;
+                        uName = tWeb.initDataUnsafe.user.first_name;
                     }
 
-                    // إرسال النتيجة إلى السيرفر (الآن يرسل النتيجة حتى لو كانت 0 لتجربتها)
+                    // إرسال النتيجة إلى السيرفر
                     fetch(WEBHOOK_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -756,7 +763,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                         })
                     }).catch(err => console.log(err));
 
-                    if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error'); 
+                    if (tWeb && tWeb.HapticFeedback) tWeb.HapticFeedback.notificationOccurred('error'); 
                     gameOverUI.style.display = 'block';
                     gameScoreEl.textContent = score;
                 }
@@ -799,8 +806,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             } catch (error) { console.error("Game Error: ", error); }
         })();
 
-
-
+        
 
         
 
