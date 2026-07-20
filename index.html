@@ -747,19 +747,42 @@
                     ctxGame.fillText('🎵', player.x - 7, player.y + 5);
                 }
 
-                function handlePipes() {
+
+
+
+
+
+
+function handlePipes() {
                     if (frames % 90 === 0) {
                         let pipeY = Math.random() * (gameCanvas.height - pipesObj.gap - 100) + 50;
-                        pipesObj.array.push({ x: gameCanvas.width, y: pipeY, passed: false });
+                        // نختار علم عشوائي لكل أنبوب جديد
+                        let randomFlag = countryFlags[Math.floor(Math.random() * countryFlags.length)];
+                        pipesObj.array.push({ x: gameCanvas.width, y: pipeY, passed: false, flag: randomFlag });
                     }
+                    
                     for (let i = 0; i < pipesObj.array.length; i++) {
                         let p = pipesObj.array[i];
                         p.x -= pipesObj.dx;
                         
-                        ctxGame.fillStyle = '#3b82f6';
+                        // رسم الأنبوب (خلفية شفافة قليلاً)
+                        ctxGame.fillStyle = 'rgba(59, 130, 246, 0.5)';
+                        
+                        // الأنبوب العلوي
                         ctxGame.fillRect(p.x, 0, pipesObj.width, p.y); 
+                        // الأنبوب السفلي
                         ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap); 
 
+                        // رسم العلم في منتصف الأنبوب العلوي والسفلي
+                        ctxGame.font = '24px Arial';
+                        ctxGame.textAlign = 'center';
+                        
+                        // علم في الأنبوب العلوي
+                        ctxGame.fillText(p.flag, p.x + pipesObj.width / 2, p.y - 20);
+                        // علم في الأنبوب السفلي
+                        ctxGame.fillText(p.flag, p.x + pipesObj.width / 2, p.y + pipesObj.gap + 35);
+
+                        // كشف التصادم
                         if (player.x + player.radius > p.x && player.x - player.radius < p.x + pipesObj.width) {
                             if (player.y - player.radius < p.y || player.y + player.radius > p.y + pipesObj.gap) {
                                 endGame();
@@ -777,6 +800,12 @@
                     }
                 }
 
+
+
+
+
+
+    
 
                 
                 // رسم النتيجة الحالية وأفضل نتيجة في اللعبة
