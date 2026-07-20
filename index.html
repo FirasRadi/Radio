@@ -542,9 +542,12 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
 
 
+        
 
 
-// --- 🎮 محرك لعبة Flappy Note (مدمج) ---
+
+
+// --- 🎮 محرك لعبة Flappy Note (الإصدار المحسن والنهائي) ---
         const gameToggleBtn = document.getElementById('gameToggleBtn');
         const gameContainer = document.getElementById('gameContainer');
         const gameCanvas = document.getElementById('gameCanvas');
@@ -555,60 +558,66 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
         let gameActive = false; let gameLoop; let frames = 0; let score = 0;
         
-        // إعدادات اللاعب (النوتة الموسيقية) والأنابيب
-        const player = { x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.3, jump: -6 };
-        const pipesObj = { array: [], width: 45, gap: 130, dx: 3 };
+        // إعدادات اللاعب (النوتة الموسيقية) والأنابيب (حسّنا الجاذبية والسرعة)
+        const player = { x: 50, y: 150, radius: 14, velocity: 0, gravity: 0.3, jump: -6 };
+        const pipesObj = { array: [], width: 45, gap: 140, dx: 2.5 }; // وسعنا الفراغ قليلاً لسهولة اللعب
 
         function resizeGame() {
-            gameCanvas.width = gameContainer.clientWidth;
-            gameCanvas.height = gameContainer.clientHeight;
+            // أخذ مقاسات الشاشة بشكل دقيق
+            gameCanvas.width = gameContainer.clientWidth || window.innerWidth;
+            gameCanvas.height = gameContainer.clientHeight || 400;
         }
 
         function drawPlayer() {
             ctxGame.beginPath();
             ctxGame.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-            ctxGame.fillStyle = '#fbbf24'; // لون ذهبي
+            ctxGame.fillStyle = '#fbbf24'; // لون النوتة الذهبي
             ctxGame.fill();
-            ctxGame.shadowBlur = 10;
+            ctxGame.shadowBlur = 15;
             ctxGame.shadowColor = '#fbbf24';
             ctxGame.closePath();
             
             // رسم رمز النوتة 🎵 بالداخل
             ctxGame.shadowBlur = 0;
             ctxGame.fillStyle = '#000';
-            ctxGame.font = '14px Arial';
-            ctxGame.fillText('🎵', player.x - 7, player.y + 5);
+            ctxGame.font = '16px Arial';
+            ctxGame.fillText('🎵', player.x - 8, player.y + 6);
         }
 
         function handlePipes() {
-            // إضافة أنبوب جديد كل 80 إطار
-            if (frames % 80 === 0) {
+            // إضافة أنبوب جديد كل 90 إطار
+            if (frames % 90 === 0) {
                 let pipeY = Math.random() * (gameCanvas.height - pipesObj.gap - 100) + 50;
-                pipesObj.array.push({ x: gameCanvas.width, y: pipeY });
+                // إضافة المتغير passed لنعرف هل تجاوزناه أم لا
+                pipesObj.array.push({ x: gameCanvas.width, y: pipeY, passed: false });
             }
             
             for (let i = 0; i < pipesObj.array.length; i++) {
                 let p = pipesObj.array[i];
                 p.x -= pipesObj.dx;
                 
-                // رسم الأنابيب كأنها أعمدة Equalizer (موجات صوت)
+                // رسم الأنابيب (الموجات الصوتية)
                 ctxGame.fillStyle = '#3b82f6';
-                ctxGame.fillRect(p.x, 0, pipesObj.width, p.y); // العلوي
-                ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap); // السفلي
+                ctxGame.fillRect(p.x, 0, pipesObj.width, p.y); 
+                ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap); 
 
-                // كشف التصادم
+                // كشف التصادم الدقيق
                 if (player.x + player.radius > p.x && player.x - player.radius < p.x + pipesObj.width) {
                     if (player.y - player.radius < p.y || player.y + player.radius > p.y + pipesObj.gap) {
                         endGame();
                     }
                 }
-                // تسجيل النقاط
-                if (p.x === player.x) { 
-                    score++; 
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); 
+                
+                // تسجيل النقاط (تم إصلاح المشكلة هنا!)
+                // إذا لم نحسب الأنبوب بعد، والنقطة تجاوزت الأنبوب، احسب نقطة
+                if (!p.passed && p.x + pipesObj.width < player.x - player.radius) {
+                    score++;
+                    p.passed = true;
+                    // اهتزاز ممتع مع كل نقطة تسجلها
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium'); 
                 }
                 
-                // حذف الأنابيب الخارجة عن الشاشة
+                // حذف الأنابيب الخارجة عن الشاشة لتخفيف الكود
                 if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
             }
         }
@@ -628,10 +637,11 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             drawPlayer();
             handlePipes();
             
-            // رسم النتيجة الحالية
+            // رسم العداد (النتيجة) أعلى الشاشة بخط كبير وواضح
             ctxGame.fillStyle = '#fff';
-            ctxGame.font = 'bold 30px Poppins';
-            ctxGame.fillText(score, gameCanvas.width / 2 - 10, 40);
+            ctxGame.font = 'bold 35px Poppins';
+            ctxGame.textAlign = 'center';
+            ctxGame.fillText(score, gameCanvas.width / 2, 50);
             
             frames++;
             gameLoop = requestAnimationFrame(updateGame);
@@ -644,9 +654,10 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         }
 
         function endGame() {
+            if (!gameActive) return; // لمنع التكرار
             gameActive = false;
             cancelAnimationFrame(gameLoop);
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); // اهتزاز الخسارة
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); // رشفة خسارة
             gameOverUI.style.display = 'block';
             gameScoreEl.textContent = score;
         }
@@ -666,30 +677,32 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         gameToggleBtn.addEventListener('click', () => {
             const isGameOpen = gameContainer.classList.contains('active');
             if (isGameOpen) {
+                // إغلاق اللعبة والعودة للراديو
                 gameContainer.classList.remove('active');
                 gameActive = false;
                 cancelAnimationFrame(gameLoop);
                 gameToggleBtn.innerHTML = '<i class="fas fa-gamepad"></i>';
                 gameToggleBtn.style.color = 'var(--warning)';
             } else {
+                // فتح اللعبة
                 gameContainer.classList.add('active');
                 resizeGame();
                 gameToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
-                gameToggleBtn.style.color = '#ef4444'; // أحمر عند الإغلاق
-                resetGame();
+                gameToggleBtn.style.color = '#ef4444'; // زر أحمر للخروج
+                // تأخير بسيط لبدء اللعبة حتى تنفتح الشاشة بشفافية
+                setTimeout(resetGame, 300); 
             }
         });
 
-        // ربط اللمس والضغط بالقفز
+        // ربط اللمس والضغط بالقفز (يمنع أيضاً النزول للأسفل عن طريق الخطأ)
         gameCanvas.addEventListener('mousedown', jump);
-        gameCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+        gameCanvas.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); // يمنع شاشة تيليجرام من الاهتزاز أو السحب أثناء اللعب
+            jump(); 
+        }, { passive: false });
+        
         retryBtn.addEventListener('click', resetGame);
-
-
-
-
-
-
+        // ----------------------------------------------------
 
 
 
