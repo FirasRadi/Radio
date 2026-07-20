@@ -153,6 +153,23 @@
         .spinner { width: 45px; height: 45px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         .loading-text::after { content: ''; animation: dots 1.5s infinite steps(1); }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
+
+
+
+
+
+/* --- تصميم اللعبة المدمجة --- */
+        .game-container { position: absolute; top: 55px; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); z-index: 100; border-radius: 0 0 28px 28px; display: flex; flex-direction: column; opacity: 0; visibility: hidden; transition: 0.4s ease; overflow: hidden; }
+        .game-container.active { opacity: 1; visibility: visible; }
+        #gameCanvas { width: 100%; height: 100%; cursor: pointer; }
+        .game-over-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(0,0,0,0.8); padding: 25px; border-radius: 20px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--primary); width: 80%; }
+        .game-over-ui h2 { color: #fff; margin-bottom: 5px; font-size: 22px; }
+        .game-over-ui p { color: var(--warning); font-size: 18px; margin-bottom: 20px; font-weight: bold; }
+        .game-over-ui button { background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: #fff; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; transition: 0.3s; }
+        .game-over-ui button:hover { transform: scale(1.05); }
+
+
+        
     </style>
 </head>
 <body>
@@ -169,6 +186,8 @@
                 <button class="icon-btn" id="themeBtn" title="Change Theme"><i class="fas fa-palette"></i></button>
                 <button class="icon-btn" id="decorToggleBtn" title="Toggle Decorations"><i class="fas fa-magic"></i></button>
                 <button class="icon-btn" id="removePhotoBtn" title="Remove Photo"><i class="fas fa-trash-alt"></i></button>
+                <!-- زر اللعبة الذي أضفناه -->
+                <button class="icon-btn" id="gameToggleBtn" title="Play Game" style="color: var(--warning);"><i class="fas fa-gamepad"></i></button>
             </div>
             
             <div class="header-country" id="headerCountry">Global Radio</div>
@@ -213,7 +232,18 @@
 
         <div class="footer-note">Change country inside the bot chat.</div>
         <audio id="audioPlayer" preload="metadata"></audio>
+
+   <!-- واجهة اللعبة التي أضفناها -->
+        <div class="game-container" id="gameContainer">
+            <canvas id="gameCanvas"></canvas>
+            <div class="game-over-ui" id="gameOverUI">
+                <h2>Game Over!</h2>
+                <p>Score: <span id="gameScore">0</span></p>
+                <button id="retryBtn"><i class="fas fa-redo"></i> Play Again</button>
+            </div>
+        </div>
     </div>
+    
 
     <!-- Modals -->
     <div class="sheet-overlay" id="timerOverlay"></div>
@@ -508,6 +538,167 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         }
         
         bootApp();
+
+
+
+
+
+
+// --- 🎮 محرك لعبة Flappy Note (مدمج) ---
+        const gameToggleBtn = document.getElementById('gameToggleBtn');
+        const gameContainer = document.getElementById('gameContainer');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const ctxGame = gameCanvas.getContext('2d');
+        const gameOverUI = document.getElementById('gameOverUI');
+        const gameScoreEl = document.getElementById('gameScore');
+        const retryBtn = document.getElementById('retryBtn');
+
+        let gameActive = false; let gameLoop; let frames = 0; let score = 0;
+        
+        // إعدادات اللاعب (النوتة الموسيقية) والأنابيب
+        const player = { x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.3, jump: -6 };
+        const pipesObj = { array: [], width: 45, gap: 130, dx: 3 };
+
+        function resizeGame() {
+            gameCanvas.width = gameContainer.clientWidth;
+            gameCanvas.height = gameContainer.clientHeight;
+        }
+
+        function drawPlayer() {
+            ctxGame.beginPath();
+            ctxGame.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctxGame.fillStyle = '#fbbf24'; // لون ذهبي
+            ctxGame.fill();
+            ctxGame.shadowBlur = 10;
+            ctxGame.shadowColor = '#fbbf24';
+            ctxGame.closePath();
+            
+            // رسم رمز النوتة 🎵 بالداخل
+            ctxGame.shadowBlur = 0;
+            ctxGame.fillStyle = '#000';
+            ctxGame.font = '14px Arial';
+            ctxGame.fillText('🎵', player.x - 7, player.y + 5);
+        }
+
+        function handlePipes() {
+            // إضافة أنبوب جديد كل 80 إطار
+            if (frames % 80 === 0) {
+                let pipeY = Math.random() * (gameCanvas.height - pipesObj.gap - 100) + 50;
+                pipesObj.array.push({ x: gameCanvas.width, y: pipeY });
+            }
+            
+            for (let i = 0; i < pipesObj.array.length; i++) {
+                let p = pipesObj.array[i];
+                p.x -= pipesObj.dx;
+                
+                // رسم الأنابيب كأنها أعمدة Equalizer (موجات صوت)
+                ctxGame.fillStyle = '#3b82f6';
+                ctxGame.fillRect(p.x, 0, pipesObj.width, p.y); // العلوي
+                ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap); // السفلي
+
+                // كشف التصادم
+                if (player.x + player.radius > p.x && player.x - player.radius < p.x + pipesObj.width) {
+                    if (player.y - player.radius < p.y || player.y + player.radius > p.y + pipesObj.gap) {
+                        endGame();
+                    }
+                }
+                // تسجيل النقاط
+                if (p.x === player.x) { 
+                    score++; 
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); 
+                }
+                
+                // حذف الأنابيب الخارجة عن الشاشة
+                if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
+            }
+        }
+
+        function updateGame() {
+            if (!gameActive) return;
+            ctxGame.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+            
+            player.velocity += player.gravity;
+            player.y += player.velocity;
+            
+            // تصادم مع الأرض أو السقف
+            if (player.y + player.radius >= gameCanvas.height || player.y - player.radius <= 0) {
+                endGame();
+            }
+            
+            drawPlayer();
+            handlePipes();
+            
+            // رسم النتيجة الحالية
+            ctxGame.fillStyle = '#fff';
+            ctxGame.font = 'bold 30px Poppins';
+            ctxGame.fillText(score, gameCanvas.width / 2 - 10, 40);
+            
+            frames++;
+            gameLoop = requestAnimationFrame(updateGame);
+        }
+
+        function jump() {
+            if (!gameActive) return;
+            player.velocity = player.jump;
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');
+        }
+
+        function endGame() {
+            gameActive = false;
+            cancelAnimationFrame(gameLoop);
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); // اهتزاز الخسارة
+            gameOverUI.style.display = 'block';
+            gameScoreEl.textContent = score;
+        }
+
+        function resetGame() {
+            player.y = gameCanvas.height / 2;
+            player.velocity = 0;
+            pipesObj.array = [];
+            score = 0;
+            frames = 0;
+            gameOverUI.style.display = 'none';
+            gameActive = true;
+            updateGame();
+        }
+
+        // فتح وإغلاق اللعبة
+        gameToggleBtn.addEventListener('click', () => {
+            const isGameOpen = gameContainer.classList.contains('active');
+            if (isGameOpen) {
+                gameContainer.classList.remove('active');
+                gameActive = false;
+                cancelAnimationFrame(gameLoop);
+                gameToggleBtn.innerHTML = '<i class="fas fa-gamepad"></i>';
+                gameToggleBtn.style.color = 'var(--warning)';
+            } else {
+                gameContainer.classList.add('active');
+                resizeGame();
+                gameToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+                gameToggleBtn.style.color = '#ef4444'; // أحمر عند الإغلاق
+                resetGame();
+            }
+        });
+
+        // ربط اللمس والضغط بالقفز
+        gameCanvas.addEventListener('mousedown', jump);
+        gameCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+        retryBtn.addEventListener('click', resetGame);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
 // تفعيل الاهتزاز الحسي بقوة أعلى
         document.body.addEventListener('click', (e) => {
