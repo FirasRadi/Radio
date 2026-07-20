@@ -510,92 +510,102 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         bootApp();
 
 
-// --- نظام السحب الملموس (Haptic Pull-to-Close) للبرداية ---
-        const draggableSheets = document.querySelectorAll('.bottom-sheet, .modal');
+
+// --- نظام السحب الميكانيكي المتقدم (صوت + اهتزاز) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        draggableSheets.forEach(sheet => {
-            let startY = 0;
-            let currentY = 0;
-            let isDragging = false;
-            let lastHapticDist = 0;
+        // دالة توليد صوت "تكتكة" ميكانيكية بدون الحاجة لملفات صوتية
+        function playMechanicalTick(pitch) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle'; // نوع موجة يعطي صوت "نقرة" صلبة
+            osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
 
-            sheet.addEventListener('touchstart', (e) => {
-                // منع السحب إذا كان المستخدم يحرك شريط الصوت أو يبحث في القوائم الداخلية
-                const isScrollable = e.target.closest('ul') || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
-                if (isScrollable && e.target.closest('ul')?.scrollTop > 0) return; 
+        let dragStartY = 0;
+        let dragCurrentY = 0;
+        let isAppDragging = false;
+        let lastTickY = 0;
+        const playerCard = document.querySelector('.player-card');
 
-                startY = e.touches[0].clientY;
-                isDragging = true;
-                lastHapticDist = 0;
-                sheet.style.transition = 'none'; // إلغاء التأخير لكي تلتصق البرداية بالإصبع
-            }, { passive: true });
+        document.addEventListener('touchstart', (e) => {
+            // السماح بتشغيل الصوت عند أول لمسة
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // تجاهل السحب إذا كان المستخدم داخل القوائم أو يغير مستوى الصوت
+            if (e.target.closest('.bottom-sheet') || e.target.closest('.modal') || e.target.type === 'range') return;
+            
+            dragStartY = e.touches[0].clientY;
+            isAppDragging = true;
+            lastTickY = dragStartY;
+            playerCard.style.transition = 'none'; // إلغاء الترانزيشن ليتبع حركة الإصبع بدقة
+        }, { passive: true });
 
-            sheet.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                currentY = e.touches[0].clientY;
-                let diffY = currentY - startY;
+        document.addEventListener('touchmove', (e) => {
+            if (!isAppDragging) return;
+            dragCurrentY = e.touches[0].clientY;
+            let diff = dragCurrentY - dragStartY;
 
-                // السماح بالسحب للأسفل فقط
-                if (diffY > 0) {
-                    sheet.style.transform = `translateY(${diffY}px)`;
+            // إذا كان يسحب للأسفل (للإغلاق)
+            if (diff > 0) {
+                // إضافة مقاومة (يتحرك أبطأ من الإصبع ليعطي شعور الثقل)
+                let moveY = diff * 0.45;
+                playerCard.style.transform = `translateY(${moveY}px)`;
+
+                // إصدار نبضة (اهتزاز + صوت) كل 25 بكسل يسحبها
+                if (dragCurrentY - lastTickY > 25) {
                     
-                    // هنا السحر: إصدار نبضة اهتزاز خفيفة جداً (Tick) كل 20 بكسل من السحب
-                    if (diffY - lastHapticDist > 20) {
-                        if (tg && tg.HapticFeedback) {
-                            tg.HapticFeedback.selectionChanged(); // اهتزاز يشبه التروس
-                        }
-                        lastHapticDist = diffY;
-                    }
-                }
-            }, { passive: true });
-
-            sheet.addEventListener('touchend', (e) => {
-                if (!isDragging) return;
-                isDragging = false;
-                let diffY = currentY - startY;
-                
-                // إعادة تأثير النعومة عند إفلات الإصبع
-                sheet.style.transition = 'transform 0.3s cubic-bezier(0.2, 1, 0.3, 1)';
-                
-                if (diffY > 120) { 
-                    // إذا سحب المستخدم مسافة كافية (120 بكسل): يتم الإغلاق مع اهتزاز قوي (طقّ!)
+                    // 1. تشغيل هزاز تيليجرام الخفيف
                     if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('medium'); 
+                        tg.HapticFeedback.selectionChanged();
                     }
                     
-                    sheet.style.transform = `translateY(100%)`;
+                    // 2. تشغيل صوت "تكتكة" (يصبح الصوت أعمق كلما سحبت أكثر ليعطي إحساساً بالشد)
+                    let pitch = Math.max(100, 400 - (diff * 0.8));
+                    playMechanicalTick(pitch);
                     
-                    setTimeout(() => {
-                        // إزالة الكلاسات المفتوحة وإرجاع البرداية لمكانها الأصلي المخفي
-                        sheet.classList.remove('open');
-                        sheet.style.transform = ''; 
-                        
-                        // إغلاق الخلفية السوداء (الشفافة) المرتبطة بها
-                        const overlayId = sheet.id.replace('Sheet', 'Overlay').replace('Modal', 'Overlay');
-                        const overlay = document.getElementById(overlayId);
-                        if (overlay) overlay.classList.remove('open');
-                    }, 300);
-
-                } else if (diffY > 0) {
-                    // إذا أفلت إصبعه قبل مسافة الإغلاق: تعود البرداية للأعلى مع نبضة تحذيرية خفيفة
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('light');
-                    }
-                    sheet.style.transform = 'translateY(0)';
-                    
-                    // تنظيف الحركة بعد عودتها
-                    setTimeout(() => { sheet.style.transform = ''; }, 300);
+                    lastTickY = dragCurrentY;
                 }
-            });
-        });
+            }
+        }, { passive: true });
 
-        // (إضافة لمسة إضافية): اهتزاز عند النقر على أي زر في الشاشة الرئيسية
-        document.querySelectorAll('.icon-btn, .action-btn, .ctrl-btn, .theme-color-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            });
-        });
+        document.addEventListener('touchend', () => {
+            if (!isAppDragging) return;
+            isAppDragging = false;
+            let diff = dragCurrentY - dragStartY;
 
+            // إعادة الترانزيشن لحركة الارتداد الناعمة
+            playerCard.style.transition = 'transform 0.4s cubic-bezier(0.2, 1, 0.3, 1)';
+
+            if (diff > 140) {
+                // سحب لمسافة كافية -> إغلاق التطبيق!
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('heavy'); // هزاز قوي للإغلاق
+                }
+                playMechanicalTick(100); // صوت عميق أخير
+                
+                playerCard.style.transform = `translateY(100vh)`; // إنزال البطاقة لأسفل الشاشة
+                
+                // إغلاق البوت بعد انتهاء الحركة
+                setTimeout(() => {
+                    if(tg) tg.close();
+                }, 300);
+            } else {
+                // سحب غير كافٍ -> ارتداد الشاشة لمكانها الأصلي
+                if (diff > 30) {
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                    playMechanicalTick(500); // صوت رفيع للارتداد
+                }
+                playerCard.style.transform = 'translateY(0)';
+            }
+        });
         
         
     </script>
