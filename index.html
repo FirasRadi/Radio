@@ -541,148 +541,213 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
 
 
-
-        
-
-// --- 🎮 محرك لعبة Flappy Note (مدمج) ---
-        const gameToggleBtn = document.getElementById('gameToggleBtn');
-        const gameContainer = document.getElementById('gameContainer');
-        const gameCanvas = document.getElementById('gameCanvas');
-        const ctxGame = gameCanvas.getContext('2d');
-        const gameOverUI = document.getElementById('gameOverUI');
-        const gameScoreEl = document.getElementById('gameScore');
-        const retryBtn = document.getElementById('retryBtn');
-
-        let gameActive = false; let gameLoop; let frames = 0; let score = 0;
-        
-        const player = { x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.4, jump: -6.5 };
-        const pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
-
-        function resizeGame() {
-            gameCanvas.width = gameContainer.clientWidth;
-            gameCanvas.height = gameContainer.clientHeight;
-        }
-
-        function drawPlayer() {
-            ctxGame.beginPath();
-            ctxGame.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-            ctxGame.fillStyle = '#fbbf24'; 
-            ctxGame.fill();
-            ctxGame.shadowBlur = 10;
-            ctxGame.shadowColor = '#fbbf24';
-            ctxGame.closePath();
             
-            ctxGame.shadowBlur = 0;
-            ctxGame.fillStyle = '#000';
-            ctxGame.font = '14px Arial';
-            ctxGame.fillText('🎵', player.x - 7, player.y + 5);
-        }
 
-        function handlePipes() {
-            if (frames % 90 === 0) {
-                let pipeY = Math.random() * (gameCanvas.height - pipesObj.gap - 100) + 50;
-                // أضفنا passed لحل مشكلة العداد
-                pipesObj.array.push({ x: gameCanvas.width, y: pipeY, passed: false });
-            }
-            
-            for (let i = 0; i < pipesObj.array.length; i++) {
-                let p = pipesObj.array[i];
-                p.x -= pipesObj.dx;
+
+
+// --- 🎮 محرك لعبة Flappy Note (مدمج ومحمي) ---
+        (function initGameModule() {
+            try {
+                const gameToggleBtn = document.getElementById('gameToggleBtn');
+                const gameContainer = document.getElementById('gameContainer');
+                const gameCanvas = document.getElementById('gameCanvas');
+                const gameOverUI = document.getElementById('gameOverUI');
+                const gameScoreEl = document.getElementById('gameScore');
+                const retryBtn = document.getElementById('retryBtn');
+
+                if (!gameToggleBtn || !gameContainer || !gameCanvas) return;
+
+                const ctxGame = gameCanvas.getContext('2d');
+                let gameActive = false; let gameLoop; let frames = 0; let score = 0;
+                let isPaused = false;
+                let bestScore = parseInt(localStorage.getItem('radio_flappy_best')) || 0;
                 
-                ctxGame.fillStyle = '#3b82f6';
-                ctxGame.fillRect(p.x, 0, pipesObj.width, p.y); 
-                ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap); 
+                const player = { x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.4, jump: -6.5 };
+                const pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
 
-                // كشف التصادم
-                if (player.x + player.radius > p.x && player.x - player.radius < p.x + pipesObj.width) {
-                    if (player.y - player.radius < p.y || player.y + player.radius > p.y + pipesObj.gap) {
-                        endGame();
+                // 1. توليد زر الإيقاف المؤقت ديناميكياً
+                const pauseBtn = document.createElement('button');
+                pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                pauseBtn.style.cssText = 'position: absolute; right: 20px; bottom: 25%; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 45px; height: 45px; border-radius: 50%; font-size: 18px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
+                gameContainer.appendChild(pauseBtn);
+
+                // 2. توليد زر أفضل نتيجة ديناميكياً (فوق زر الإيقاف)
+                const hsBtn = document.createElement('button');
+                hsBtn.innerHTML = '<i class="fas fa-trophy"></i>';
+                hsBtn.style.cssText = 'position: absolute; right: 20px; bottom: calc(25% + 55px); background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); width: 45px; height: 45px; border-radius: 50%; font-size: 18px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
+                gameContainer.appendChild(hsBtn);
+
+                // منع اللمس على الأزرار من التسبب في قفز اللاعب
+                const stopProp = (e) => e.stopPropagation();
+                [pauseBtn, hsBtn].forEach(btn => {
+                    btn.addEventListener('mousedown', stopProp);
+                    btn.addEventListener('touchstart', stopProp, { passive: false });
+                });
+
+                // برمجة زر الإيقاف المؤقت
+                pauseBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!gameActive && !isPaused) return; // إذا كان خاسراً لا تفعل شيئاً
+                    
+                    if (isPaused) {
+                        isPaused = false;
+                        pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                        updateGame(); // استكمال اللعب
+                    } else {
+                        isPaused = true;
+                        pauseBtn.innerHTML = '<i class="fas fa-play" style="padding-left:3px;"></i>';
+                        cancelAnimationFrame(gameLoop);
+                        // رسم شاشة الإيقاف
+                        ctxGame.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                        ctxGame.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+                        ctxGame.fillStyle = '#fff';
+                        ctxGame.font = 'bold 30px Poppins';
+                        ctxGame.fillText('PAUSED', gameCanvas.width / 2 - 55, gameCanvas.height / 2);
+                    }
+                });
+
+                // برمجة زر أفضل نتيجة
+                hsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    alert(`🏆 Best Local Score: ${bestScore}`);
+                });
+
+                function resizeGame() {
+                    gameCanvas.width = gameContainer.clientWidth;
+                    gameCanvas.height = gameContainer.clientHeight;
+                }
+
+                function drawPlayer() {
+                    ctxGame.beginPath();
+                    ctxGame.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+                    ctxGame.fillStyle = '#fbbf24'; 
+                    ctxGame.fill();
+                    ctxGame.shadowBlur = 10;
+                    ctxGame.shadowColor = '#fbbf24';
+                    ctxGame.closePath();
+                    
+                    ctxGame.shadowBlur = 0;
+                    ctxGame.fillStyle = '#000';
+                    ctxGame.font = '14px Arial';
+                    ctxGame.fillText('🎵', player.x - 7, player.y + 5);
+                }
+
+                function handlePipes() {
+                    if (frames % 90 === 0) {
+                        let pipeY = Math.random() * (gameCanvas.height - pipesObj.gap - 100) + 50;
+                        pipesObj.array.push({ x: gameCanvas.width, y: pipeY, passed: false });
+                    }
+                    
+                    for (let i = 0; i < pipesObj.array.length; i++) {
+                        let p = pipesObj.array[i];
+                        p.x -= pipesObj.dx;
+                        
+                        ctxGame.fillStyle = '#3b82f6';
+                        ctxGame.fillRect(p.x, 0, pipesObj.width, p.y); 
+                        ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap); 
+
+                        if (player.x + player.radius > p.x && player.x - player.radius < p.x + pipesObj.width) {
+                            if (player.y - player.radius < p.y || player.y + player.radius > p.y + pipesObj.gap) {
+                                endGame();
+                            }
+                        }
+                        
+                        if (!p.passed && player.x > p.x + pipesObj.width) {
+                            p.passed = true;
+                            score++; 
+                            if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light'); 
+                        }
+                        
+                        if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
                     }
                 }
-                
-                // حساب العداد بشكل صحيح ودقيق
-                if (!p.passed && player.x > p.x + pipesObj.width) {
-                    p.passed = true;
-                    score++; 
-                    if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light'); 
+
+                function updateGame() {
+                    if (!gameActive || isPaused) return;
+                    ctxGame.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+                    
+                    player.velocity += player.gravity;
+                    player.y += player.velocity;
+                    
+                    if (player.y + player.radius >= gameCanvas.height || player.y - player.radius <= 0) {
+                        endGame();
+                    }
+                    
+                    drawPlayer();
+                    handlePipes();
+                    
+                    ctxGame.fillStyle = '#fff';
+                    ctxGame.font = 'bold 35px Poppins';
+                    ctxGame.fillText(score, gameCanvas.width / 2 - 10, 50);
+                    
+                    frames++;
+                    gameLoop = requestAnimationFrame(updateGame);
                 }
+
+                function jump(e) {
+                    if(e) e.preventDefault();
+                    if (!gameActive || isPaused) return;
+                    player.velocity = player.jump;
+                    if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('soft');
+                }
+
+                function endGame() {
+                    gameActive = false;
+                    cancelAnimationFrame(gameLoop);
+                    
+                    // حفظ أفضل نتيجة محلياً
+                    if (score > bestScore) {
+                        bestScore = score;
+                        localStorage.setItem('radio_flappy_best', bestScore);
+                    }
+
+                    if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error'); 
+                    gameOverUI.style.display = 'block';
+                    gameScoreEl.textContent = score;
+                }
+
+                function resetGame() {
+                    player.y = gameCanvas.height / 2;
+                    player.velocity = 0;
+                    pipesObj.array = [];
+                    score = 0;
+                    frames = 0;
+                    isPaused = false;
+                    pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    gameOverUI.style.display = 'none';
+                    gameActive = true;
+                    updateGame();
+                }
+
+                gameToggleBtn.addEventListener('click', () => {
+                    const isGameOpen = gameContainer.classList.contains('active');
+                    if (isGameOpen) {
+                        gameContainer.classList.remove('active');
+                        gameActive = false;
+                        cancelAnimationFrame(gameLoop);
+                        gameToggleBtn.innerHTML = '<i class="fas fa-gamepad"></i>';
+                        gameToggleBtn.style.color = 'var(--warning)';
+                    } else {
+                        gameContainer.classList.add('active');
+                        resizeGame();
+                        gameToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        gameToggleBtn.style.color = '#ef4444'; 
+                        resetGame();
+                    }
+                });
+
+                gameCanvas.addEventListener('mousedown', jump);
+                gameCanvas.addEventListener('touchstart', jump, { passive: false });
+                retryBtn.addEventListener('click', resetGame);
                 
-                if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
+            } catch (error) {
+                console.error("Game Module Error: ", error);
             }
-        }
-
-        function updateGame() {
-            if (!gameActive) return;
-            ctxGame.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-            
-            player.velocity += player.gravity;
-            player.y += player.velocity;
-            
-            if (player.y + player.radius >= gameCanvas.height || player.y - player.radius <= 0) {
-                endGame();
-            }
-            
-            drawPlayer();
-            handlePipes();
-            
-            // رسم العداد
-            ctxGame.fillStyle = '#fff';
-            ctxGame.font = 'bold 35px Poppins';
-            ctxGame.fillText(score, gameCanvas.width / 2 - 10, 50);
-            
-            frames++;
-            gameLoop = requestAnimationFrame(updateGame);
-        }
-
-        function jump(e) {
-            if(e) e.preventDefault();
-            if (!gameActive) return;
-            player.velocity = player.jump;
-            if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('soft');
-        }
-
-        function endGame() {
-            gameActive = false;
-            cancelAnimationFrame(gameLoop);
-            if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error'); 
-            gameOverUI.style.display = 'block';
-            gameScoreEl.textContent = score;
-        }
-
-        function resetGame() {
-            player.y = gameCanvas.height / 2;
-            player.velocity = 0;
-            pipesObj.array = [];
-            score = 0;
-            frames = 0;
-            gameOverUI.style.display = 'none';
-            gameActive = true;
-            updateGame();
-        }
-
-        gameToggleBtn.addEventListener('click', () => {
-            const isGameOpen = gameContainer.classList.contains('active');
-            if (isGameOpen) {
-                gameContainer.classList.remove('active');
-                gameActive = false;
-                cancelAnimationFrame(gameLoop);
-                gameToggleBtn.innerHTML = '<i class="fas fa-gamepad"></i>';
-                gameToggleBtn.style.color = 'var(--warning)';
-            } else {
-                gameContainer.classList.add('active');
-                resizeGame();
-                gameToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
-                gameToggleBtn.style.color = '#ef4444'; 
-                resetGame();
-            }
-        });
-
-        gameCanvas.addEventListener('mousedown', jump);
-        gameCanvas.addEventListener('touchstart', jump, { passive: false });
-        retryBtn.addEventListener('click', resetGame);
+        })();
 
 
 
+        
 
         
 
