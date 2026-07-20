@@ -502,6 +502,7 @@
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
             if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { UIController.emptyState(); DOM.loading.style.display = 'none'; return; }
             stations = await radioService.fetchByStr(TARGET_COUNTRY);
+stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdulsamad"));
             if(stations.length) { UIController.loadIndex(0); } else { UIController.emptyState(); }
             DOM.loading.style.display = 'none';
         }
