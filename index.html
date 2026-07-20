@@ -540,7 +540,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 document.body.style.transform = `translateY(${diffY * 0.4}px)`;
                 
                 // إذا سحب المستخدم مسافة 90 بكسل (حساسية عالية)، يتم إغلاق البوت فوراً
-                if (diffY > 90) {
+                if (diffY > 30) {
                     isSwipingDown = false;
                     if (tg) tg.close(); // أمر إغلاق تطبيق تيليجرام المصغر
                 }
