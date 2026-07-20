@@ -545,7 +545,8 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
 
 
-// --- 🎮 محرك لعبة Flappy Note (مدمج ومحمي + متصل بالسيرفر + أزرار كبيرة) ---
+
+// --- 🎮 محرك لعبة Flappy Note (مدمج، أوفلاين، مع حفظ محلي وقائمة استئناف) ---
         (function initGameModule() {
             try {
                 const gameToggleBtn = document.getElementById('gameToggleBtn');
@@ -558,103 +559,101 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 if (!gameToggleBtn || !gameContainer || !gameCanvas) return;
 
                 const ctxGame = gameCanvas.getContext('2d');
-                let gameActive = false; let gameLoop; let frames = 0; let score = 0;
+                let gameLoop; 
+                let frames = 0; 
+                let score = 0;
+                let isPlaying = false;
                 let isPaused = false;
+                let isGameOver = false;
+                
+                // جلب أفضل نتيجة محلية
+                let bestScore = parseInt(localStorage.getItem('radio_flappy_best')) || 0;
                 
                 const player = { x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.4, jump: -6.5 };
-                const pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
-                const WEBHOOK_URL = "https://api.bots.business/v2/bots/971317/web-app/%2FscoreR?secret=kkKJj9HamoeIFNSs8nDURDi5B/AqMpIUPhmusHcLs97JA2E6ZstG8iG77jfnfcobhL0wsC9nRGkXPVn6RjBDLA==";
+                let pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
 
-                // 1. زر الخروج من اللعبة (❌) العُلوي (الآن في الجهة اليسرى)
+                // تحديث شكل أيقونة اللعبة في واجهة الراديو (إضافة الرقم تحتها)
+                function updateGameIcon(isOpen) {
+                    if (isOpen) {
+                        gameToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        gameToggleBtn.style.color = '#ef4444';
+                    } else {
+                        let scoreHtml = bestScore > 0 ? `<span style="font-size:10px; font-weight:700; font-family:monospace; margin-top:3px;">${bestScore}</span>` : '';
+                        gameToggleBtn.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; line-height:1;"><i class="fas fa-gamepad"></i>${scoreHtml}</div>`;
+                        gameToggleBtn.style.color = 'var(--warning)';
+                    }
+                }
+                
+                // تشغيل التحديث فوراً عند فتح التطبيق
+                updateGameIcon(false);
+
+                // 1. زر الخروج (❌) أعلى اليسار
                 const closeGameBtn = document.createElement('button');
                 closeGameBtn.innerHTML = '<i class="fas fa-times"></i>';
                 closeGameBtn.style.cssText = 'position: absolute; top: 20px; left: 20px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); width: 50px; height: 50px; border-radius: 50%; font-size: 24px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.2s;';
                 gameContainer.appendChild(closeGameBtn);
 
-                // 2. زر الإيقاف المؤقت (يمين أسفل)
+                // 2. زر الإيقاف المؤقت (⏸️) أسفل اليمين
                 const pauseBtn = document.createElement('button');
                 pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
                 pauseBtn.style.cssText = 'position: absolute; right: 20px; bottom: 20%; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 65px; height: 65px; border-radius: 50%; font-size: 26px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
                 gameContainer.appendChild(pauseBtn);
 
-                // 3. زر الكأس (يمين أسفل، فوق الإيقاف)
-                const hsBtn = document.createElement('button');
-                hsBtn.innerHTML = '<i class="fas fa-trophy"></i>';
-                hsBtn.style.cssText = 'position: absolute; right: 20px; bottom: calc(20% + 80px); background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.5); width: 65px; height: 65px; border-radius: 50%; font-size: 26px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
-                gameContainer.appendChild(hsBtn);
-
-                // 4. لوحة الشرف
-                const lbUI = document.createElement('div');
-                lbUI.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15,23,42,0.95); padding: 25px 20px; border-radius: 20px; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #fbbf24; width: 85%; z-index: 105; flex-direction: column; align-items: center; backdrop-filter: blur(10px);';
-                lbUI.innerHTML = `
-                    <h2 style="color: #fbbf24; margin-bottom: 15px; font-size: 22px;"><i class="fas fa-crown"></i> Top 3 Global</h2>
-                    <ul id="lbList" style="list-style: none; padding: 0; width: 100%; margin-bottom: 20px; font-size: 16px; text-align: left;"></ul>
-                    <button id="closeLbBtn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 12px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px;">Close</button>
+                // 3. قائمة الاستئناف (تظهر عند الإيقاف أو الخروج والعودة)
+                const pauseMenuUI = document.createElement('div');
+                pauseMenuUI.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15,23,42,0.95); padding: 30px 25px; border-radius: 20px; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #fbbf24; width: 80%; z-index: 105; flex-direction: column; align-items: center; backdrop-filter: blur(10px);';
+                pauseMenuUI.innerHTML = `
+                    <h2 style="color: #fbbf24; margin-bottom: 25px; font-size: 24px;"><i class="fas fa-pause-circle"></i> Paused</h2>
+                    <button id="resumeGameBtn" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: none; padding: 12px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-bottom: 12px; transition: 0.2s;"><i class="fas fa-play"></i> Resume</button>
+                    <button id="restartGameBtn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 12px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; transition: 0.2s;"><i class="fas fa-redo"></i> Restart</button>
                 `;
-                gameContainer.appendChild(lbUI);
+                gameContainer.appendChild(pauseMenuUI);
 
-                const lbList = lbUI.querySelector('#lbList');
-                const closeLbBtn = lbUI.querySelector('#closeLbBtn');
+                const resumeGameBtn = pauseMenuUI.querySelector('#resumeGameBtn');
+                const restartGameBtn = pauseMenuUI.querySelector('#restartGameBtn');
 
-                // منع الأزرار من إحداث قفزة للاعب
+                // منع اللمس على الأزرار والقوائم من جعل اللاعب يقفز
                 const stopProp = (e) => e.stopPropagation();
-                [closeGameBtn, pauseBtn, hsBtn, lbUI].forEach(el => {
+                [closeGameBtn, pauseBtn, pauseMenuUI, gameOverUI].forEach(el => {
                     el.addEventListener('mousedown', stopProp);
                     el.addEventListener('touchstart', stopProp, { passive: false });
                 });
 
-                closeLbBtn.addEventListener('click', () => { lbUI.style.display = 'none'; });
+                // دوال الإيقاف والاستئناف
+                function pauseGame() {
+                    if (isGameOver || !isPlaying) return;
+                    isPlaying = false;
+                    isPaused = true;
+                    cancelAnimationFrame(gameLoop);
+                    pauseBtn.innerHTML = '<i class="fas fa-play" style="padding-left:4px;"></i>';
+                    pauseMenuUI.style.display = 'flex';
+                }
 
-                // الخروج من اللعبة للراديو
-                closeGameBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    gameToggleBtn.click();
-                });
+                function resumeGame() {
+                    if (isGameOver) return;
+                    isPlaying = true;
+                    isPaused = false;
+                    pauseMenuUI.style.display = 'none';
+                    pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    updateGame();
+                }
 
                 pauseBtn.addEventListener('click', () => {
-                    if (!gameActive && !isPaused) return; 
-                    if (isPaused) {
-                        isPaused = false;
-                        pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                        updateGame(); 
-                    } else {
-                        isPaused = true;
-                        pauseBtn.innerHTML = '<i class="fas fa-play" style="padding-left:4px;"></i>';
-                        cancelAnimationFrame(gameLoop);
-                        ctxGame.fillStyle = 'rgba(0, 0, 0, 0.6)';
-                        ctxGame.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-                        ctxGame.fillStyle = '#fff';
-                        ctxGame.font = 'bold 30px Poppins';
-                        ctxGame.fillText('PAUSED', gameCanvas.width / 2 - 55, gameCanvas.height / 2);
-                    }
+                    if (isPaused) resumeGame();
+                    else pauseGame();
                 });
 
-                hsBtn.addEventListener('click', () => {
-                    if (gameActive && !isPaused) { pauseBtn.click(); }
-                    lbUI.style.display = 'flex';
-                    lbList.innerHTML = '<li style="text-align:center; color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Fetching...</li>';
+                resumeGameBtn.addEventListener('click', resumeGame);
+                restartGameBtn.addEventListener('click', () => {
+                    pauseMenuUI.style.display = 'none';
+                    resetGame();
+                });
 
-                    fetch(WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fetch_only: true })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data && data.top3 && data.top3.length > 0) {
-                            const medals = ['🥇', '🥈', '🥉'];
-                            lbList.innerHTML = data.top3.map((u, i) => `
-                                <li style="background: rgba(255,255,255,0.05); padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
-                                    <span>${medals[i] || '🏅'} <b style="color:#fff; margin-left:5px;">${u.name}</b></span>
-                                    <span style="color:#fbbf24; font-weight:bold; font-size:18px;">${u.score}</span>
-                                </li>
-                            `).join('');
-                        } else {
-                            lbList.innerHTML = '<li style="text-align:center; color:#94a3b8;">No scores yet!</li>';
-                        }
-                    }).catch(err => {
-                        lbList.innerHTML = '<li style="text-align:center; color:#ef4444;">Connection Error</li>';
-                    });
+                // زر الخروج ❌ يقوم بإيقاف اللعبة وإخفائها للعودة للراديو
+                closeGameBtn.addEventListener('click', () => {
+                    if (isPlaying) { pauseGame(); }
+                    gameContainer.classList.remove('active');
+                    updateGameIcon(false);
                 });
 
                 function resizeGame() {
@@ -674,6 +673,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                     ctxGame.shadowBlur = 0;
                     ctxGame.fillStyle = '#000';
                     ctxGame.font = '14px Arial';
+                    ctxGame.textAlign = 'left';
                     ctxGame.fillText('🎵', player.x - 7, player.y + 5);
                 }
 
@@ -707,8 +707,20 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                     }
                 }
 
+                // رسم النتيجة الحالية وأفضل نتيجة في اللعبة
+                function drawScores() {
+                    ctxGame.fillStyle = '#fff';
+                    ctxGame.font = 'bold 45px Poppins';
+                    ctxGame.textAlign = 'center';
+                    ctxGame.fillText(score, gameCanvas.width / 2, 70);
+                    
+                    ctxGame.fillStyle = '#fbbf24';
+                    ctxGame.font = 'bold 16px Poppins';
+                    ctxGame.fillText('BEST: ' + bestScore, gameCanvas.width / 2, 95);
+                }
+
                 function updateGame() {
-                    if (!gameActive || isPaused) return;
+                    if (!isPlaying || isPaused || isGameOver) return;
                     ctxGame.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
                     
                     player.velocity += player.gravity;
@@ -720,10 +732,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                     
                     drawPlayer();
                     handlePipes();
-                    
-                    ctxGame.fillStyle = '#fff';
-                    ctxGame.font = 'bold 35px Poppins';
-                    ctxGame.fillText(score, gameCanvas.width / 2 - 10, 50);
+                    drawScores();
                     
                     frames++;
                     gameLoop = requestAnimationFrame(updateGame);
@@ -731,63 +740,33 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
                 function jump(e) {
                     if(e) e.preventDefault();
-                    if (!gameActive || isPaused) return;
+                    if (!isPlaying || isPaused || isGameOver) return;
                     player.velocity = player.jump;
                     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
                         window.Telegram.WebApp.HapticFeedback.impactOccurred('soft');
                     }
                 }
-function endGame() {
-                    if (!gameActive) return;
 
-                    gameActive = false;
+                function endGame() {
+                    if (isGameOver) return;
+                    isPlaying = false;
+                    isGameOver = true;
                     cancelAnimationFrame(gameLoop);
 
-                    const tWeb = window.Telegram ? window.Telegram.WebApp : null;
-
-                    let userId = null;
-                    let userName = "Guest";
-
-                    if (tWeb && tWeb.initDataUnsafe && tWeb.initDataUnsafe.user) {
-                        userId = tWeb.initDataUnsafe.user.id;
-                        userName = tWeb.initDataUnsafe.user.first_name || "User";
+                    // تحديث أعلى رقم قياسي محلياً
+                    if (score > bestScore) {
+                        bestScore = score;
+                        localStorage.setItem('radio_flappy_best', bestScore);
                     }
 
-                    // لا ترسل بدون ID حقيقي
-                    if (!userId) {
-                        console.log("No Telegram user found");
-                    } else {
-                        // إذا وجدنا ID، نقوم بإرسال الطلب للسيرفر
-                        console.log({
-                            user_id: userId,
-                            first_name: userName,
-                            score: score
-                        });
-
-                        fetch(WEBHOOK_URL, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                user_id: userId,
-                                first_name: userName,
-                                score: score
-                            })
-                        })
-                        .then(res => res.text())
-                        .then(data => console.log("Server:", data))
-                        .catch(err => console.log("Fetch error:", err));
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                        window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
                     }
 
-                    if (tWeb && tWeb.HapticFeedback) {
-                        tWeb.HapticFeedback.notificationOccurred('error');
-                    }
-
-                    gameOverUI.style.display = "block";
+                    pauseMenuUI.style.display = 'none'; // إخفاء قائمة الإيقاف إن وجدت
+                    gameOverUI.style.display = 'block';
                     gameScoreEl.textContent = score;
                 }
-                
 
                 function resetGame() {
                     player.y = gameCanvas.height / 2;
@@ -795,28 +774,31 @@ function endGame() {
                     pipesObj.array = [];
                     score = 0;
                     frames = 0;
+                    isPlaying = true;
                     isPaused = false;
+                    isGameOver = false;
                     pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
                     gameOverUI.style.display = 'none';
-                    lbUI.style.display = 'none';
-                    gameActive = true;
+                    pauseMenuUI.style.display = 'none';
                     updateGame();
                 }
 
+                // فتح اللعبة (استئناف أو جديد)
                 gameToggleBtn.addEventListener('click', () => {
                     const isGameOpen = gameContainer.classList.contains('active');
                     if (isGameOpen) {
-                        gameContainer.classList.remove('active');
-                        gameActive = false;
-                        cancelAnimationFrame(gameLoop);
-                        gameToggleBtn.innerHTML = '<i class="fas fa-gamepad"></i>';
-                        gameToggleBtn.style.color = 'var(--warning)';
+                        closeGameBtn.click(); // إذا كانت مفتوحة وضغطت على الزر الأصلي، تغلق.
                     } else {
                         gameContainer.classList.add('active');
                         resizeGame();
-                        gameToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        gameToggleBtn.style.color = '#ef4444'; 
-                        resetGame();
+                        updateGameIcon(true);
+                        
+                        if (isGameOver || (!isPlaying && !isPaused && frames === 0)) {
+                            resetGame(); // بدء لعبة جديدة
+                        } else if (isPaused) {
+                            // اللعبة كانت متوقفة، نظهر واجهة الاستئناف
+                            pauseMenuUI.style.display = 'flex';
+                        }
                     }
                 });
 
@@ -826,7 +808,6 @@ function endGame() {
                 
             } catch (error) { console.error("Game Error: ", error); }
         })();
-
         
 
         
