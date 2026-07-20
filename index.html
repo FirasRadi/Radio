@@ -544,25 +544,21 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
         
 
-
-// --- 🎮 محرك لعبة Flappy Note (مطور ومصحح) ---
+// --- 🎮 محرك لعبة Flappy Note (مدمج) ---
         const gameToggleBtn = document.getElementById('gameToggleBtn');
         const gameContainer = document.getElementById('gameContainer');
         const gameCanvas = document.getElementById('gameCanvas');
         const ctxGame = gameCanvas.getContext('2d');
         const gameOverUI = document.getElementById('gameOverUI');
         const gameScoreEl = document.getElementById('gameScore');
-        const liveScoreEl = document.getElementById('liveScore');
         const retryBtn = document.getElementById('retryBtn');
 
         let gameActive = false; let gameLoop; let frames = 0; let score = 0;
         
-        // إعدادات اللاعب (نوتة موسيقية)
-        const player = { x: 60, y: 150, radius: 14, velocity: 0, gravity: 0.35, jump: -6.5 };
-        const pipesObj = { array: [], width: 45, gap: 140, dx: 3.5 };
+        const player = { x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.4, jump: -6.5 };
+        const pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
 
         function resizeGame() {
-            // أخذ الأبعاد الحقيقية للشاشة بعد فتحها
             gameCanvas.width = gameContainer.clientWidth;
             gameCanvas.height = gameContainer.clientHeight;
         }
@@ -572,19 +568,20 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             ctxGame.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
             ctxGame.fillStyle = '#fbbf24'; 
             ctxGame.fill();
+            ctxGame.shadowBlur = 10;
+            ctxGame.shadowColor = '#fbbf24';
             ctxGame.closePath();
             
+            ctxGame.shadowBlur = 0;
             ctxGame.fillStyle = '#000';
-            ctxGame.font = '15px Arial';
+            ctxGame.font = '14px Arial';
             ctxGame.fillText('🎵', player.x - 7, player.y + 5);
         }
 
         function handlePipes() {
-            // توليد أنابيب كل مسافة معينة
-            if (frames % 80 === 0) {
-                let minPipeY = 40;
-                let maxPipeY = gameCanvas.height - pipesObj.gap - 40;
-                let pipeY = Math.floor(Math.random() * (maxPipeY - minPipeY + 1)) + minPipeY;
+            if (frames % 90 === 0) {
+                let pipeY = Math.random() * (gameCanvas.height - pipesObj.gap - 100) + 50;
+                // أضفنا passed لحل مشكلة العداد
                 pipesObj.array.push({ x: gameCanvas.width, y: pipeY, passed: false });
             }
             
@@ -592,25 +589,24 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 let p = pipesObj.array[i];
                 p.x -= pipesObj.dx;
                 
-                // رسم الأنابيب العلوية والسفلية
                 ctxGame.fillStyle = '#3b82f6';
-                ctxGame.fillRect(p.x, 0, pipesObj.width, p.y);
-                ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap);
+                ctxGame.fillRect(p.x, 0, pipesObj.width, p.y); 
+                ctxGame.fillRect(p.x, p.y + pipesObj.gap, pipesObj.width, gameCanvas.height - p.y - pipesObj.gap); 
 
-                // كشف التصادم الدقيق
-                let hitX = player.x + player.radius > p.x && player.x - player.radius < p.x + pipesObj.width;
-                let hitY = player.y - player.radius < p.y || player.y + player.radius > p.y + pipesObj.gap;
-                if (hitX && hitY) endGame();
-
-                // تحديث العداد بشكل دقيق (تم حل المشكلة هنا)
-                if (p.x + pipesObj.width < player.x && !p.passed) {
-                    score++;
-                    p.passed = true;
-                    liveScoreEl.textContent = score; // تحديث الرقم الكبير في الخلفية
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                // كشف التصادم
+                if (player.x + player.radius > p.x && player.x - player.radius < p.x + pipesObj.width) {
+                    if (player.y - player.radius < p.y || player.y + player.radius > p.y + pipesObj.gap) {
+                        endGame();
+                    }
                 }
                 
-                // إزالة الأنابيب التي خرجت من الشاشة
+                // حساب العداد بشكل صحيح ودقيق
+                if (!p.passed && player.x > p.x + pipesObj.width) {
+                    p.passed = true;
+                    score++; 
+                    if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light'); 
+                }
+                
                 if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
             }
         }
@@ -622,50 +618,48 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             player.velocity += player.gravity;
             player.y += player.velocity;
             
-            // الاصطدام بالأرض أو السقف
             if (player.y + player.radius >= gameCanvas.height || player.y - player.radius <= 0) {
                 endGame();
             }
             
-            handlePipes();
             drawPlayer();
+            handlePipes();
+            
+            // رسم العداد
+            ctxGame.fillStyle = '#fff';
+            ctxGame.font = 'bold 35px Poppins';
+            ctxGame.fillText(score, gameCanvas.width / 2 - 10, 50);
             
             frames++;
             gameLoop = requestAnimationFrame(updateGame);
         }
 
-        function jump() {
+        function jump(e) {
+            if(e) e.preventDefault();
             if (!gameActive) return;
             player.velocity = player.jump;
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('soft');
         }
 
         function endGame() {
             gameActive = false;
             cancelAnimationFrame(gameLoop);
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            
-            gameCanvas.style.opacity = '0.3'; // تعتيم الشاشة قليلا
-            gameOverUI.classList.add('show');
+            if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error'); 
+            gameOverUI.style.display = 'block';
             gameScoreEl.textContent = score;
         }
 
         function resetGame() {
-            resizeGame();
             player.y = gameCanvas.height / 2;
             player.velocity = 0;
             pipesObj.array = [];
             score = 0;
             frames = 0;
-            liveScoreEl.textContent = score;
-            
-            gameCanvas.style.opacity = '1';
-            gameOverUI.classList.remove('show');
+            gameOverUI.style.display = 'none';
             gameActive = true;
             updateGame();
         }
 
-        // تحكم زر الفتح والإغلاق
         gameToggleBtn.addEventListener('click', () => {
             const isGameOpen = gameContainer.classList.contains('active');
             if (isGameOpen) {
@@ -676,21 +670,21 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 gameToggleBtn.style.color = 'var(--warning)';
             } else {
                 gameContainer.classList.add('active');
+                resizeGame();
                 gameToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
-                gameToggleBtn.style.color = 'var(--danger)';
-                // انتظار خفيف حتى تأخذ الشاشة حجمها الصحيح قبل بدء اللعب
-                setTimeout(() => resetGame(), 300);
+                gameToggleBtn.style.color = '#ef4444'; 
+                resetGame();
             }
         });
 
-        // تشغيل القفز باللمس أو الماوس
         gameCanvas.addEventListener('mousedown', jump);
-        gameCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+        gameCanvas.addEventListener('touchstart', jump, { passive: false });
         retryBtn.addEventListener('click', resetGame);
 
 
 
 
+        
 
 
         
