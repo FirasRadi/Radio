@@ -546,7 +546,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
 
 
 
-        // --- 🎮 محرك لعبة Flappy Note (مدمج ومحمي + متصل بالسيرفر) ---
+// --- 🎮 محرك لعبة Flappy Note (مدمج ومحمي + متصل بالسيرفر) ---
         (function initGameModule() {
             try {
                 const gameToggleBtn = document.getElementById('gameToggleBtn');
@@ -561,33 +561,49 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 const ctxGame = gameCanvas.getContext('2d');
                 let gameActive = false; let gameLoop; let frames = 0; let score = 0;
                 let isPaused = false;
-                let bestScore = parseInt(localStorage.getItem('radio_flappy_best')) || 0;
                 
                 const player = { x: 50, y: 150, radius: 12, velocity: 0, gravity: 0.4, jump: -6.5 };
                 const pipesObj = { array: [], width: 45, gap: 140, dx: 3 };
+                const WEBHOOK_URL = "https://api.bots.business/v2/bots/971317/web-app/%2FscoreR?secret=kkKJj9HamoeIFNSs8nDURDi5B/AqMpIUPhmusHcLs97JA2E6ZstG8iG77jfnfcobhL0wsC9nRGkXPVn6RjBDLA==";
 
-                // زر الإيقاف المؤقت
+                // 1. توليد زر الإيقاف المؤقت
                 const pauseBtn = document.createElement('button');
                 pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
                 pauseBtn.style.cssText = 'position: absolute; right: 20px; bottom: 25%; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 45px; height: 45px; border-radius: 50%; font-size: 18px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
                 gameContainer.appendChild(pauseBtn);
 
-                // زر أفضل نتيجة (محلي)
+                // 2. توليد زر الكأس (أفضل اللاعبين)
                 const hsBtn = document.createElement('button');
                 hsBtn.innerHTML = '<i class="fas fa-trophy"></i>';
                 hsBtn.style.cssText = 'position: absolute; right: 20px; bottom: calc(25% + 55px); background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); width: 45px; height: 45px; border-radius: 50%; font-size: 18px; z-index: 101; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);';
                 gameContainer.appendChild(hsBtn);
 
+                // 3. توليد لوحة الشرف (Leaderboard UI) ديناميكياً
+                const lbUI = document.createElement('div');
+                lbUI.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background: rgba(15,23,42,0.95); padding: 25px 20px; border-radius: 20px; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #fbbf24; width: 80%; z-index: 105; flex-direction: column; align-items: center; backdrop-filter: blur(10px);';
+                lbUI.innerHTML = `
+                    <h2 style="color: #fbbf24; margin-bottom: 15px; font-size: 20px;"><i class="fas fa-crown"></i> Top 3 Global</h2>
+                    <ul id="lbList" style="list-style: none; padding: 0; width: 100%; margin-bottom: 20px; font-size: 15px; text-align: left;"></ul>
+                    <button id="closeLbBtn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 10px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%;">Close</button>
+                `;
+                gameContainer.appendChild(lbUI);
+
+                const lbList = lbUI.querySelector('#lbList');
+                const closeLbBtn = lbUI.querySelector('#closeLbBtn');
+
+                // منع التداخل بين الأزرار وقفز اللاعب
                 const stopProp = (e) => e.stopPropagation();
-                [pauseBtn, hsBtn].forEach(btn => {
-                    btn.addEventListener('mousedown', stopProp);
-                    btn.addEventListener('touchstart', stopProp, { passive: false });
+                [pauseBtn, hsBtn, lbUI].forEach(el => {
+                    el.addEventListener('mousedown', stopProp);
+                    el.addEventListener('touchstart', stopProp, { passive: false });
                 });
 
-                pauseBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                closeLbBtn.addEventListener('click', () => {
+                    lbUI.style.display = 'none';
+                });
+
+                pauseBtn.addEventListener('click', () => {
                     if (!gameActive && !isPaused) return; 
-                    
                     if (isPaused) {
                         isPaused = false;
                         pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -604,9 +620,35 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                     }
                 });
 
-                hsBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    alert(`🏆 Best Local Score: ${bestScore}`);
+                hsBtn.addEventListener('click', () => {
+                    // إيقاف اللعبة لعرض القائمة
+                    if (gameActive && !isPaused) { pauseBtn.click(); }
+
+                    lbUI.style.display = 'flex';
+                    lbList.innerHTML = '<li style="text-align:center; color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Fetching...</li>';
+
+                    // جلب قائمة أفضل 3 لاعبين من السيرفر
+                    fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fetch_only: true })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data && data.top3 && data.top3.length > 0) {
+                            const medals = ['🥇', '🥈', '🥉'];
+                            lbList.innerHTML = data.top3.map((u, i) => `
+                                <li style="background: rgba(255,255,255,0.05); padding: 10px 15px; margin-bottom: 8px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
+                                    <span>${medals[i] || '🏅'} <b style="color:#fff; margin-left:5px;">${u.name}</b></span>
+                                    <span style="color:#fbbf24; font-weight:bold;">${u.score}</span>
+                                </li>
+                            `).join('');
+                        } else {
+                            lbList.innerHTML = '<li style="text-align:center; color:#94a3b8;">No scores yet!</li>';
+                        }
+                    }).catch(err => {
+                        lbList.innerHTML = '<li style="text-align:center; color:#ef4444;">Connection Error</li>';
+                    });
                 });
 
                 function resizeGame() {
@@ -691,21 +733,11 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 function endGame() {
                     gameActive = false;
                     cancelAnimationFrame(gameLoop);
-                    
-                    // حفظ أفضل نتيجة محلياً
-                    let isNewBest = false;
-                    if (score > bestScore) {
-                        bestScore = score;
-                        localStorage.setItem('radio_flappy_best', bestScore);
-                        isNewBest = true;
-                    }
 
-                    // إرسال النتيجة إلى السيرفر (Webhook) إذا كانت النتيجة أكبر من 0
+                    // إرسال النتيجة إلى السيرفر فور الخسارة
                     if (score > 0 && window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
                         const userData = window.tg.initDataUnsafe.user;
-                        const webhookUrl = "https://api.bots.business/v2/bots/971317/web-app/%2FscoreR?secret=kkKJj9HamoeIFNSs8nDURDi5B/AqMpIUPhmusHcLs97JA2E6ZstG8iG77jfnfcobhL0wsC9nRGkXPVn6RjBDLA==";
-                        
-                        fetch(webhookUrl, {
+                        fetch(WEBHOOK_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -713,7 +745,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                                 first_name: userData.first_name,
                                 score: score
                             })
-                        }).catch(err => console.log("Webhook error:", err));
+                        }).catch(err => console.log(err));
                     }
 
                     if (window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error'); 
@@ -730,6 +762,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                     isPaused = false;
                     pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
                     gameOverUI.style.display = 'none';
+                    lbUI.style.display = 'none';
                     gameActive = true;
                     updateGame();
                 }
@@ -756,11 +789,14 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
                 retryBtn.addEventListener('click', resetGame);
                 
             } catch (error) {
-                console.error("Game Module Error: ", error);
+                console.error("Game Error: ", error);
             }
         })();
-        
 
+
+
+
+        
 
         
 
