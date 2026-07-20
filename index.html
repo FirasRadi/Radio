@@ -777,17 +777,34 @@
                     }
                 }
 
+
+                
                 // رسم النتيجة الحالية وأفضل نتيجة في اللعبة
+               // رسم النتيجة الحالية وأفضل نتيجة بجانب بعضهما
                 function drawScores() {
-                    ctxGame.fillStyle = '#fff';
-                    ctxGame.font = 'bold 45px Poppins';
                     ctxGame.textAlign = 'center';
-                    ctxGame.fillText(score, gameCanvas.width / 2, 70);
                     
+                    // عداد السكور الحالي (على اليسار قليلاً)
+                    ctxGame.fillStyle = '#fff';
+                    ctxGame.font = 'bold 40px Poppins';
+                    ctxGame.fillText(score, gameCanvas.width / 2 - 45, 65);
+                    
+                    // فاصل أنيق بينهما
+                    ctxGame.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctxGame.font = '30px Poppins';
+                    ctxGame.fillText('|', gameCanvas.width / 2, 60);
+
+                    // عداد أفضل نتيجة (على اليمين قليلاً)
+                    ctxGame.textAlign = 'left';
                     ctxGame.fillStyle = '#fbbf24';
-                    ctxGame.font = 'bold 16px Poppins';
-                    ctxGame.fillText('BEST: ' + bestScore, gameCanvas.width / 2, 95);
+                    ctxGame.font = 'bold 14px Poppins';
+                    ctxGame.fillText('BEST', gameCanvas.width / 2 + 20, 52);
+                    ctxGame.font = 'bold 20px Poppins';
+                    ctxGame.fillText(bestScore, gameCanvas.width / 2 + 20, 72);
                 }
+
+
+                
 
                 function updateGame() {
                     if (!isPlaying || isPaused || isGameOver) return;
