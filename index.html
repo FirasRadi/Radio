@@ -509,8 +509,7 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         
         bootApp();
 
-
-// تفعيل الاهتزاز الحسي لأزرار التطبيق
+// تفعيل الاهتزاز الحسي بقوة أعلى
         document.body.addEventListener('click', (e) => {
             if (!tg || !tg.HapticFeedback) return;
             
@@ -519,25 +518,27 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
             
             if (btn) {
                 if (btn.classList.contains('play-btn')) {
-                    tg.HapticFeedback.impactOccurred('heavy'); // نبضة قوية لزر التشغيل
+                    // اهتزاز قوي وحاد لزر التشغيل والإيقاف
+                    tg.HapticFeedback.impactOccurred('rigid'); 
                 } else if (btn.classList.contains('nav-btn')) {
-                    tg.HapticFeedback.impactOccurred('medium'); // نبضة متوسطة للتنقل
+                    // اهتزاز النبضة المزدوجة (القوية) عند تغيير المحطة!
+                    tg.HapticFeedback.notificationOccurred('success'); 
                 } else {
-                    tg.HapticFeedback.impactOccurred('light'); // نبضة خفيفة لباقي الأزرار والقوائم
+                    // اهتزاز متوسط (بدل الخفيف) لباقي الأزرار والقوائم
+                    tg.HapticFeedback.impactOccurred('heavy'); 
                 }
             } else if (favItem) {
-                tg.HapticFeedback.impactOccurred('medium'); // نبضة عند اختيار محطة
+                // اهتزاز مزدوج قوي عند اختيار محطة من القائمة
+                tg.HapticFeedback.notificationOccurred('success'); 
             }
         });
 
         DOM.vol.addEventListener('input', () => {
-            if (tg && tg.HapticFeedback && Math.random() > 0.7) {
-                // نبضات خفيفة متقطعة أثناء سحب شريط الصوت ليعطي شعور التروس
-                tg.HapticFeedback.impactOccurred('soft'); 
+            // تقليل الرقم العشوائي من 0.7 إلى 0.4 يجعل الاهتزاز يحدث بشكل متكرر وكثيف أثناء سحب الصوت
+            if (tg && tg.HapticFeedback && Math.random() > 0.4) {
+                tg.HapticFeedback.impactOccurred('medium'); 
             }
         });
-        
-
     </script>
 </body>
 </html>
