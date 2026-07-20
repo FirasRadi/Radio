@@ -510,6 +510,34 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         bootApp();
 
 
+// تفعيل الاهتزاز الحسي لأزرار التطبيق
+        document.body.addEventListener('click', (e) => {
+            if (!tg || !tg.HapticFeedback) return;
+            
+            const btn = e.target.closest('button');
+            const favItem = e.target.closest('.fav-item-content');
+            
+            if (btn) {
+                if (btn.classList.contains('play-btn')) {
+                    tg.HapticFeedback.impactOccurred('heavy'); // نبضة قوية لزر التشغيل
+                } else if (btn.classList.contains('nav-btn')) {
+                    tg.HapticFeedback.impactOccurred('medium'); // نبضة متوسطة للتنقل
+                } else {
+                    tg.HapticFeedback.impactOccurred('light'); // نبضة خفيفة لباقي الأزرار والقوائم
+                }
+            } else if (favItem) {
+                tg.HapticFeedback.impactOccurred('medium'); // نبضة عند اختيار محطة
+            }
+        });
+
+        DOM.vol.addEventListener('input', () => {
+            if (tg && tg.HapticFeedback && Math.random() > 0.7) {
+                // نبضات خفيفة متقطعة أثناء سحب شريط الصوت ليعطي شعور التروس
+                tg.HapticFeedback.impactOccurred('soft'); 
+            }
+        });
+        
+
     </script>
 </body>
 </html>
