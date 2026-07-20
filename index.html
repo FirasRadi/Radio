@@ -508,6 +508,54 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         }
         
         bootApp();
+
+        
+
+        // --- نظام السحب السلس للإغلاق (Pull-to-Close) ---
+        let touchStartY = 0;
+        let touchStartX = 0;
+        let isSwipingDown = false;
+
+        document.addEventListener('touchstart', (e) => {
+            // تجاهل السحب إذا كان المستخدم يعلي الصوت أو يتصفح القوائم (حتى لا ينغلق بالخطأ)
+            if (e.target.closest('.bottom-sheet') || e.target.closest('.modal') || e.target.type === 'range') return;
+            
+            touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
+            isSwipingDown = true;
+            document.body.style.transition = 'none'; // تحريك فوري مع الإصبع
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isSwipingDown) return;
+            
+            let currentY = e.touches[0].clientY;
+            let currentX = e.touches[0].clientX;
+            let diffY = currentY - touchStartY;
+            let diffX = Math.abs(currentX - touchStartX);
+
+            // التأكد أن السحب للأسفل (وليس لليمين أو اليسار)
+            if (diffY > 0 && diffX < 40) {
+                // تحريك الواجهة بأكملها للأسفل مع حركة الإصبع لتعطي شعوراً سلساً واحترافياً
+                document.body.style.transform = `translateY(${diffY * 0.4}px)`;
+                
+                // إذا سحب المستخدم مسافة 90 بكسل (حساسية عالية)، يتم إغلاق البوت فوراً
+                if (diffY > 90) {
+                    isSwipingDown = false;
+                    if (tg) tg.close(); // أمر إغلاق تطبيق تيليجرام المصغر
+                }
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => {
+            if (!isSwipingDown) return;
+            isSwipingDown = false;
+            // إذا رفع المستخدم إصبعه قبل مسافة الإغلاق، ترتد الشاشة لمكانها بنعومة
+            document.body.style.transition = 'transform 0.3s cubic-bezier(0.2, 1, 0.3, 1)';
+            document.body.style.transform = 'translateY(0)';
+        });
+
+        
     </script>
 </body>
 </html>
