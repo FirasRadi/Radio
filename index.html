@@ -510,60 +510,6 @@ stations = stations.filter(s => !s.name.toLowerCase().includes("abdulbasit abdul
         bootApp();
 
 
-// --- نظام التكتكة والاهتزاز المتوافق مع سحب تيليجرام الأصلي ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // توليد صوت تكتكة حاد وعالي جداً
-        function playMechanicalTick(pitch) {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'square'; // موجة مربعة تعطي صوت نقرة ميكانيكية حادة
-            osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
-            gain.gain.setValueAtTime(2.0, audioCtx.currentTime); // رفع قوة الصوت للحد الأقصى
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.05);
-        }
-
-        let startY = 0;
-        let lastTickY = 0;
-
-        // مراقبة لمس الشاشة من الأعلى فقط (حيث يحدث السحب للأسفل)
-        document.addEventListener('touchstart', (e) => {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            if (window.scrollY <= 0) {
-                startY = e.touches[0].clientY;
-                lastTickY = startY;
-            }
-        }, { passive: true });
-
-        // تشغيل الاهتزاز والصوت أثناء سحب برداية تيليجرام الأصلية
-        document.addEventListener('touchmove', (e) => {
-            if (window.scrollY <= 0 && startY > 0) {
-                let currentY = e.touches[0].clientY;
-                let diff = currentY - startY;
-                
-                // إذا كان يسحب للأسفل بمقدار 20 بكسل
-                if (diff > 0 && currentY - lastTickY > 20) {
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                    
-                    // تغيير نبرة الصوت لتبدو كشد زنبرك
-                    let pitch = Math.max(150, 600 - (diff * 2));
-                    playMechanicalTick(pitch);
-                    
-                    lastTickY = currentY;
-                }
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchend', () => {
-            startY = 0;
-        });
-        
-        
     </script>
 </body>
 </html>
