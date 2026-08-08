@@ -24,25 +24,20 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); -webkit-tap-highlight-color: transparent; }
 
-        /* قفل التمرير العمودي وجعل الشاشة ثابتة 100% */
         body { background-color: var(--bg-base); background-image: radial-gradient(circle at top left, #1e293b, #0f172a); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px; overflow: hidden; }
 
-        /* ديناميكية اللوحة بحيث تتكيف مع الشاشات القصيرة دون تشوه */
         .player-card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); width: 100%; max-width: 420px; max-height: 98vh; border-radius: 28px; padding: 14px 20px 10px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); text-align: center; position: relative; border: 1px solid var(--border-glass); display: flex; flex-direction: column; gap: clamp(4px, 1.2vh, 8px); z-index: 10; margin: auto; overflow: hidden; justify-content: center; align-items: center; }
 
         .player-card > * { width: 100%; position: relative; z-index: 2; }
 
         #decorCanvas { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 0 !important; pointer-events: none !important; }
 
-        /* فصل الهيدر لمنع الأزرار من التمدد بشكل غريب */
         .header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; position: relative; min-height: 40px; }
         .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: clamp(4px, 1.2vh, 10px); z-index: 10; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: clamp(4px, 1.2vh, 10px); z-index: 10; }
         
-        /* تثبيت اسم الدولة في المنتصف 100%، لن يتحرك عند فتح أي مؤقت */
         .header-country { position: absolute; left: 50%; transform: translateX(-50%); top: 0; font-size: 18px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; letter-spacing: 1px; padding: 4px 14px; border: 1px solid var(--text-sub); border-radius: 0px; text-transform: capitalize; z-index: 5; max-width: 45%; margin: 0; }
 
-        /* تصغير بسيط ديناميكي للأزرار في الشاشات القصيرة جداً */
         .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: clamp(34px, 6vh, 40px); height: clamp(34px, 6vh, 40px); border-radius: 50%; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
         .icon-btn.has-text { width: auto; padding: 0 14px; border-radius: 20px; }
         .icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: scale(1.05); }
@@ -60,7 +55,6 @@
 
         .logo-container { display: flex; flex-direction: column; align-items: center; gap: 2px; }
         
-        /* جعل الشعار مرناً، يتقلص في الشاشات الصغيرة ويبقى 130 في الكبيرة */
         .logo-wrapper { width: clamp(90px, 20vh, 130px); height: clamp(90px, 20vh, 130px); position: relative; display: flex; justify-content: center; align-items: center; margin-top: 2px; margin-bottom: 2px; cursor: pointer; }
         .add-photo-svg { position: absolute; width: clamp(120px, 26vh, 170px); height: clamp(120px, 26vh, 170px); pointer-events: none; z-index: 5; top: -20px; }
         .add-photo-svg text { font-size: 10px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
@@ -171,6 +165,11 @@
         .game-over-ui button { background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: #fff; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; transition: 0.3s; }
         .game-over-ui button:hover { transform: scale(1.05); }
 
+        /* تصميم خيارات المشاركة */
+        .share-options { display: flex; gap: 12px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+        .share-app-btn { color: #fff; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 20px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .share-app-btn:hover { transform: scale(1.1); }
+
     </style>
 </head>
 <body>
@@ -248,6 +247,19 @@
     </div>
     
     <!-- Modals -->
+    <!-- Share Menu Modal -->
+    <div class="sheet-overlay" id="shareOverlay"></div>
+    <div class="bottom-sheet" id="shareSheet">
+        <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share to App</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
+        <div class="share-options">
+            <button class="share-app-btn" data-app="whatsapp" style="background:#25D366;"><i class="fab fa-whatsapp"></i></button>
+            <button class="share-app-btn" data-app="twitter" style="background:#000;"><i class="fab fa-twitter"></i></button>
+            <button class="share-app-btn" data-app="facebook" style="background:#1877F2;"><i class="fab fa-facebook-f"></i></button>
+            <button class="share-app-btn" data-app="telegram" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></button>
+            <button class="share-app-btn" data-app="copy" style="background:var(--border-glass);"><i class="fas fa-copy"></i></button>
+        </div>
+    </div>
+
     <div class="sheet-overlay" id="timerOverlay"></div>
     <div class="bottom-sheet" id="timerSheet">
         <div class="sheet-header"><div><i class="fas fa-stopwatch" style="color:var(--primary); margin-right:5px;"></i> Auto Timers <span id="sheetHeaderTimer" class="sheet-header-timer"></span></div><button class="close-sheet" id="closeTimerBtn"><i class="fas fa-times"></i></button></div>
@@ -280,7 +292,8 @@
 
         const DOM = {
             loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColors: document.getElementById('themeColors'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText'),
-            decorToggleBtn: document.getElementById('decorToggleBtn'), notesBtn: document.getElementById('notesBtn'), notesOverlay: document.getElementById('notesOverlay'), notesSheet: document.getElementById('notesSheet'), closeNotesBtn: document.getElementById('closeNotesBtn'), noteInput: document.getElementById('noteInput'), saveNoteBtn: document.getElementById('saveNoteBtn'), notesList: document.getElementById('notesList')
+            decorToggleBtn: document.getElementById('decorToggleBtn'), notesBtn: document.getElementById('notesBtn'), notesOverlay: document.getElementById('notesOverlay'), notesSheet: document.getElementById('notesSheet'), closeNotesBtn: document.getElementById('closeNotesBtn'), noteInput: document.getElementById('noteInput'), saveNoteBtn: document.getElementById('saveNoteBtn'), notesList: document.getElementById('notesList'),
+            shareOverlay: document.getElementById('shareOverlay'), shareSheet: document.getElementById('shareSheet'), closeShareBtn: document.getElementById('closeShareBtn')
         };
 
         let stations = []; let currentIndex = 0; let isPlaying = false; let savedStations = []; try { savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || []; } catch (e) { savedStations = []; } let errorCount = 0; let isExternalFavPlaying = false; let autoSkipInProgress = false; let skipTimeout = null;
@@ -518,23 +531,63 @@
         DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
         DOM.audio.addEventListener('error', () => audioController.handleError());
         
-        // --- 1. إصلاح المشاركة: فتح نظام الهاتف الأصلي دائماً ---
+        // --- إصلاح وتخصيص المشاركة لتخطي حظر تيليجرام نهائياً ---
         DOM.shareBtn.addEventListener('click', () => { 
-            const shareUrl = 'https://t.me/Time_of_world_origins_bot?start=object';
-            
-            if (navigator.share) { 
+            if (navigator.share) {
                 navigator.share({ 
                     title: 'Global Radio Player', 
                     text: 'Listen to radio stations from around the world!', 
-                    url: shareUrl 
-                }).catch(() => {}); 
-            } else { 
-                navigator.clipboard?.writeText(shareUrl).then(() => { 
-                    alert('Link copied successfully!'); 
-                }).catch(() => { 
-                    prompt('Copy this link to share:', shareUrl); 
-                }); 
-            } 
+                    url: 'https://t.me/Time_of_world_origins_bot?start=object'
+                }).catch((err) => {
+                    // إذا كان الحظر من النظام أو رفض المستخدم، نقوم بإظهار القائمة المخصصة
+                    if (err.name !== 'AbortError') {
+                        DOM.shareSheet.classList.add('open');
+                        DOM.shareOverlay.classList.add('open');
+                    }
+                });
+            } else {
+                // إذا لم تدعم المنصة المشاركة أصلاً (تُفتح القائمة المخصصة)
+                DOM.shareSheet.classList.add('open');
+                DOM.shareOverlay.classList.add('open');
+            }
+        });
+
+        const toggleShareSheet = () => { DOM.shareSheet.classList.toggle('open'); DOM.shareOverlay.classList.toggle('open'); };
+        DOM.closeShareBtn.addEventListener('click', toggleShareSheet);
+        DOM.shareOverlay.addEventListener('click', toggleShareSheet);
+
+        // أوامر أزرار المشاركة المخصصة لتفتح التطبيقات الخارجية
+        document.querySelectorAll('.share-app-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const app = e.currentTarget.dataset.app;
+                const shareUrl = 'https://t.me/Time_of_world_origins_bot?start=object';
+                const shareText = 'Listen to radio stations from around the world!';
+                const encUrl = encodeURIComponent(shareUrl);
+                const encText = encodeURIComponent(shareText);
+
+                if (app === 'copy') {
+                    navigator.clipboard?.writeText(shareUrl).then(() => {
+                        let icon = e.currentTarget.querySelector('i');
+                        icon.className = 'fas fa-check';
+                        setTimeout(() => icon.className = 'fas fa-copy', 2000);
+                    });
+                    return;
+                }
+
+                let url = '';
+                if(app === 'whatsapp') url = `https://api.whatsapp.com/send?text=${encText}%20${encUrl}`;
+                if(app === 'twitter') url = `https://twitter.com/intent/tweet?text=${encText}&url=${encUrl}`;
+                if(app === 'facebook') url = `https://www.facebook.com/sharer/sharer.php?u=${encUrl}`;
+                if(app === 'telegram') url = `https://t.me/share/url?url=${encUrl}&text=${encText}`;
+
+                // فتح الروابط بالتطبيقات الرسمية عبر دالة تيليجرام المباشرة للروابط الخارجية
+                if(tg && tg.openLink) {
+                    tg.openLink(url);
+                } else {
+                    window.open(url, '_blank');
+                }
+                toggleShareSheet();
+            });
         });
 
         const toggleSearchSheet = () => { DOM.searchSheet.classList.toggle('open'); DOM.searchOverlay.classList.toggle('open'); DOM.searchInput.value = ''; DOM.searchResults.innerHTML = ''; DOM.searchInput.focus(); }; DOM.searchBtn.addEventListener('click', toggleSearchSheet); DOM.closeSearchBtn.addEventListener('click', toggleSearchSheet); DOM.searchOverlay.addEventListener('click', toggleSearchSheet); DOM.searchInput.addEventListener('input', () => { const term = DOM.searchInput.value.toLowerCase().trim(); if (!term) { DOM.searchResults.innerHTML = ''; return; } const filtered = stations.filter(s => s.name.toLowerCase().includes(term)); DOM.searchResults.innerHTML = filtered.map((s, idx) => { const realIndex = stations.indexOf(s); return `<li data-index="${realIndex}">${s.name}</li>`; }).join(''); }); DOM.searchResults.addEventListener('click', e => { const li = e.target.closest('li'); if (!li) return; UIController.loadIndex(parseInt(li.dataset.index)); toggleSearchSheet(); audioController.play(); });
