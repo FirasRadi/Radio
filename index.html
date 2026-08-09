@@ -19,33 +19,65 @@
             --success: #22c55e;
             --danger: #ef4444;
             --warning: #fbbf24;
+            --info: #0ea5e9;
             --font-family: 'Poppins', sans-serif;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); -webkit-tap-highlight-color: transparent; }
 
-        body { background-color: var(--bg-base); background-image: radial-gradient(circle at top left, #1e293b, #0f172a); color: var(--text-main); height: 100vh; display: flex; align-items: center; justify-content: center; padding: 10px; overflow: hidden; }
+        /* قفل الشاشة كلياً وجعلها تتكيف طردياً بدون أي سكرول */
+        body { 
+            background-color: var(--bg-base); 
+            background-image: radial-gradient(circle at top left, #1e293b, #0f172a); 
+            color: var(--text-main); 
+            height: 100dvh; 
+            width: 100vw; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; /* منع السحب والتمرير للأسفل نهائياً */
+            padding: 15px; /* مسافات ثابتة من الجوانب */
+        }
 
-        /* تعديل المسافات الداخلية لمنع أي تمدد أو قص في الشاشات الصغيرة */
-        .player-card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); width: 100%; max-width: 400px; border-radius: 28px; padding: 16px 20px 10px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); text-align: center; position: relative; border: 1px solid var(--border-glass); display: flex; flex-direction: column; gap: 8px; z-index: 10; margin: auto; }
+        #decorCanvas { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 0 !important; pointer-events: none !important; }
 
-        .player-card > * { width: 100%; position: relative; z-index: 2; }
+        /* اللوحة أصبحت مطاطية تنكمش للداخل لتوفير المساحة وتجنب القص */
+        .player-card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px); 
+            width: 100%; 
+            max-width: 380px; /* عرض أنيق */
+            height: auto; /* تتكيف طردياً مع المحتوى */
+            max-height: 96dvh; /* لحمايتها من الخروج عن الشاشة */
+            border-radius: 28px; 
+            padding: clamp(15px, 2.5vh, 25px) 15px; 
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); 
+            text-align: center; 
+            position: relative; 
+            border: 1px solid var(--border-glass); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: clamp(10px, 2vh, 18px); /* فواصل ذكية تتمدد وتتقلص */
+            z-index: 10; 
+            margin: auto; 
+        }
 
-        #decorCanvas { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 0 !important; pointer-events: none !important; }
+        .player-card > * { width: 100%; position: relative; z-index: 2; flex-shrink: 0; }
 
-        .header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; position: relative; min-height: 40px; }
-        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 10; }
-        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; z-index: 10; }
+        /* فصل الأزرار الجانبية وجعلها عائمة لكي لا تضغط على الراديو للأسفل */
+        .header-left { position: absolute; left: 15px; top: 20px; display: flex; flex-direction: column; gap: clamp(8px, 1.5vh, 12px); z-index: 10; width: auto; }
+        .header-right { position: absolute; right: 15px; top: 20px; display: flex; flex-direction: column; gap: clamp(8px, 1.5vh, 12px); z-index: 10; width: auto; }
         
-        /* إنزال اسم الدولة للأسفل لعدم التداخل مع المؤقت */
-        .header-country { position: absolute; left: 50%; transform: translateX(-50%); top: 16px; font-size: 16px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; letter-spacing: 1px; padding: 4px 12px; border: 1px solid var(--text-sub); border-radius: 0px; text-transform: capitalize; z-index: 5; max-width: 45%; margin: 0; background: transparent; }
+        /* اسم الدولة في المنتصف تماماً */
+        .header-country { font-size: clamp(15px, 2.5vh, 18px); font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; letter-spacing: 1px; padding: 4px 14px; border: 1px solid var(--text-sub); border-radius: 0px; text-transform: capitalize; max-width: 50%; margin: 0 auto; z-index: 5; }
 
-        /* تصغير الأزرار لتوفير المساحة ومنع القص بالأسفل */
-        .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: 34px; height: 34px; border-radius: 50%; font-size: 13px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
-        .icon-btn.has-text { width: auto; padding: 0 12px; border-radius: 17px; }
+        .icon-btn { background: var(--border-glass); border: none; color: var(--text-sub); width: clamp(34px, 5.5vh, 40px); height: clamp(34px, 5.5vh, 40px); border-radius: 50%; font-size: clamp(13px, 2vh, 15px); cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+        .icon-btn.has-text { width: auto; padding: 0 12px; border-radius: 20px; }
         .icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: scale(1.05); }
 
-        .donate-btn { width: 34px; height: 34px; background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; flex-shrink: 0; }
+        .donate-btn { width: clamp(34px, 5.5vh, 40px); height: clamp(34px, 5.5vh, 40px); background: #0070ba; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: clamp(14px, 2.5vh, 17px); text-decoration: none; box-shadow: 0 4px 15px rgba(0, 112, 186, 0.4); transition: 0.3s; flex-shrink: 0; }
         .donate-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0, 112, 186, 0.6); }
 
         .header-timer-text { display: none; font-family: monospace; font-size: 12px; font-weight: 700; margin-left: 6px; color: var(--warning); }
@@ -56,43 +88,43 @@
         #removePhotoBtn.visible { opacity: 1; pointer-events: auto; }
         #removePhotoBtn:hover { background: var(--danger); color: #fff; }
 
-        .logo-container { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: -10px; }
+        .logo-container { display: flex; flex-direction: column; align-items: center; gap: clamp(4px, 1vh, 8px); width: 100%; margin-top: 5px; }
         
-        .logo-wrapper { width: 110px; height: 110px; position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .logo-wrapper { width: clamp(100px, 20vh, 140px); height: clamp(100px, 20vh, 140px); aspect-ratio: 1 / 1; position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; }
         
-        /* ضبط مسافة قوس الكتابة لتكون معتدلة وأنيقة فوق الصورة */
-        .add-photo-svg { position: absolute; width: 140px; height: 140px; pointer-events: none; z-index: 5; top: -15px; left: -15px; transition: 0.3s opacity; }
+        /* النص الدائري تم برمجته ليلتف حول الصورة بمسافة مريحة ولا يلتصق */
+        .add-photo-svg { position: absolute; width: 140%; height: 140%; pointer-events: none; z-index: 5; top: -20%; left: -20%; transition: 0.3s opacity; }
         .add-photo-svg text { font-size: 10px; fill: var(--text-sub); font-family: monospace; letter-spacing: 0.5px; font-weight: bold; }
 
-        .logo { width: 110px; height: 110px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: absolute; z-index: 10; }
+        .logo { width: 100%; height: 100%; border-radius: 50%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid var(--border-glass); transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; position: absolute; z-index: 10; }
         .logo:hover { border-color: rgba(255, 255, 255, 0.4); transform: scale(1.03); }
         .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .logo.playing { border-color: var(--primary); box-shadow: 0 0 25px rgba(59, 130, 246, 0.5); }
         .logo.playing img { animation: spinDisc 15s linear infinite; }
-        .logo i { font-size: 40px; }
+        .logo i { font-size: clamp(35px, 8vh, 60px); }
         .logo.playing i.fa-music { animation: spinDisc 15s linear infinite; }
         @keyframes spinDisc { 100% { transform: rotate(360deg); } }
 
-        .station-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-        .station-counter { font-size: 11px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-top: -2px; }
+        .station-name { font-size: clamp(16px, 2.5vh, 19px); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .station-counter { font-size: 11px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-top: -4px; }
 
         .controls { display: flex; justify-content: center; align-items: center; gap: 20px; }
         .ctrl-btn { border: none; cursor: pointer; transition: 0.3s; }
         .ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .nav-btn { width: 40px; height: 40px; background: rgba(255, 255, 255, 0.05); color: var(--text-main); font-size: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .nav-btn { width: clamp(40px, 6vh, 46px); height: clamp(40px, 6vh, 46px); background: rgba(255, 255, 255, 0.05); color: var(--text-main); font-size: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
         .nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.15); transform: scale(1.1); }
-        .play-btn { width: 54px; height: 54px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 50%; font-size: 18px; color: #fff; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5); display: flex; align-items: center; justify-content: center; padding-left: 3px; }
+        .play-btn { width: clamp(54px, 8vh, 64px); height: clamp(54px, 8vh, 64px); background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-radius: 50%; font-size: clamp(18px, 3vh, 22px); color: #fff; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5); display: flex; align-items: center; justify-content: center; padding-left: 3px; flex-shrink: 0;}
         .play-btn:hover:not(:disabled) { transform: scale(1.08) translateY(-2px); }
         .play-btn .fa-pause { padding-left: 0; }
 
-        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: 24px; min-height: 24px; margin: 2px auto; width: 60%; }
+        .vis-container { display: flex; align-items: flex-end; justify-content: space-between; height: clamp(20px, 3vh, 26px); min-height: 20px; margin: 0 auto; width: 60%; }
         .vis-bar { flex: 1; margin: 0 2px; border-radius: 4px; height: 4px; transition: height 0.3s ease-out; }
         .vis-bar:nth-child(4n+1) { background: #ff0a54; box-shadow: 0 0 10px #ff0a54; }
         .vis-bar:nth-child(4n+2) { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
         .vis-bar:nth-child(4n+3) { background: #10b981; box-shadow: 0 0 10px #10b981; }
         .vis-bar:nth-child(4n+4) { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
 
-        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: 8px 16px; border-radius: 20px; }
+        .actions-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 0, 0, 0.25); padding: clamp(8px, 1.5vh, 12px) 16px; border-radius: 20px; width: 85%; margin: 0 auto; }
         .volume-container { display: flex; align-items: center; gap: 12px; flex-grow: 1; margin-right: 15px; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; outline: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
@@ -101,9 +133,8 @@
         .action-btn.active-fav { color: var(--danger); animation: heartBeat 0.4s ease; }
         @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
         
-        /* إرجاع أرقام الوقت للخط الصغير جداً بناءً على طلبك */
-        .footer-note { font-size: 6px; color: var(--danger); margin-top: 0px; font-weight: 600; letter-spacing: 0.5px; }
-        #listenTimeDisplay { font-size: 5px; color: var(--warning); font-family: monospace; letter-spacing: 2px; font-weight: bold; }
+        .footer-note { font-size: 8px; color: var(--danger); font-weight: 600; letter-spacing: 0.5px; line-height: 1.5; margin-top: 2px; }
+        #listenTimeDisplay { font-size: 8px; color: var(--warning); font-family: monospace; letter-spacing: 2px; font-weight: bold; }
 
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 140; opacity: 0; visibility: hidden; transition: 0.3s ease; }
         .sheet-overlay.open { opacity: 1; visibility: visible; }
@@ -196,32 +227,31 @@
     <div class="player-card">
         <canvas id="decorCanvas"></canvas>
 
-        <div class="header">
-            <div class="header-left">
-                <button class="icon-btn" id="toggleTimerBtn" title="Timers"><i class="fas fa-stopwatch"></i><span id="mainHeaderTimer" class="header-timer-text"></span></button>
-                <button class="icon-btn" id="shareBtn" title="Share Bot"><i class="fas fa-share-alt"></i></button>
-                <button class="icon-btn" id="themeBtn" title="Change Theme"><i class="fas fa-palette"></i></button>
-                <button class="icon-btn" id="decorToggleBtn" title="Toggle Decorations"><i class="fas fa-magic"></i></button>
-                <button class="icon-btn" id="removePhotoBtn" title="Remove Photo"><i class="fas fa-trash-alt"></i></button>
-                <button class="icon-btn" id="gameToggleBtn" title="Play Game" style="color: var(--warning);"><i class="fas fa-gamepad"></i></button>
-                <button class="icon-btn" id="studioBtn" title="Photo Studio" style="display: none; color: #a855f7;"><i class="fas fa-images"></i></button>
-            </div>
-            
-            <div class="header-country" id="headerCountry">Global Radio</div>
-            
-            <div class="header-right">
-                <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Developer"><i class="fab fa-paypal"></i></a>
-                <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
-                <button class="icon-btn" id="notesBtn" title="My Notes"><i class="fas fa-edit"></i></button>
-                <button class="icon-btn" id="searchBtn" title="Search Stations"><i class="fas fa-search"></i></button>
-                <!-- نقل زر المطور ليكون في الجهة اليمنى تحت زر البحث -->
-                <button class="icon-btn" id="devChatBtn" title="Developer Contact" style="color: #25D366;"><i class="fab fa-whatsapp"></i></button>
-            </div>
+        <div class="header-left">
+            <button class="icon-btn" id="toggleTimerBtn" title="Timers"><i class="fas fa-stopwatch"></i><span id="mainHeaderTimer" class="header-timer-text"></span></button>
+            <button class="icon-btn" id="shareBtn" title="Share Bot"><i class="fas fa-share-alt"></i></button>
+            <button class="icon-btn" id="themeBtn" title="Change Theme"><i class="fas fa-palette"></i></button>
+            <button class="icon-btn" id="decorToggleBtn" title="Toggle Decorations"><i class="fas fa-magic"></i></button>
+            <button class="icon-btn" id="removePhotoBtn" title="Remove Photo"><i class="fas fa-trash-alt"></i></button>
+            <button class="icon-btn" id="gameToggleBtn" title="Play Game" style="color: var(--warning);"><i class="fas fa-gamepad"></i></button>
+            <button class="icon-btn" id="studioBtn" title="Photo Studio" style="display: none; color: #a855f7;"><i class="fas fa-images"></i></button>
         </div>
+        
+        <div class="header-right">
+            <a href="https://www.paypal.com/qrcodes/p2pqrc/JE8TVPBFXA566" target="_blank" class="donate-btn" title="Support Developer"><i class="fab fa-paypal"></i></a>
+            <button class="icon-btn" id="openFavsBtn" title="Saved Stations"><i class="fas fa-list-ul"></i></button>
+            <button class="icon-btn" id="notesBtn" title="My Notes"><i class="fas fa-edit"></i></button>
+            <button class="icon-btn" id="searchBtn" title="Search Stations"><i class="fas fa-search"></i></button>
+            <button class="icon-btn" id="devChatBtn" title="Developer Contact" style="color: #25D366;"><i class="fab fa-whatsapp"></i></button>
+            <!-- زر شاشة كاملة يحول التطبيق لتجربة غامرة -->
+            <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" style="color: var(--info);"><i class="fas fa-expand"></i></button>
+        </div>
+
+        <div class="header-country" id="headerCountry">Global Radio</div>
 
         <div class="logo-container">
             <div class="logo-wrapper" id="logoWrapper">
-                <!-- SVG مباعد قليلاً لكي يلتف حول الصورة بأناقة واعتدال -->
+                <!-- SVG مبرمج ليلتف حول أي حجم للصورة بنسب مئوية دقيقة وبدون الالتصاق -->
                 <svg class="add-photo-svg" id="addPhotoText" viewBox="0 0 140 140">
                     <path id="logoCurve" d="M 12 70 A 58 58 0 0 1 128 70" fill="transparent" />
                     <text><textPath href="#logoCurve" startOffset="50%" text-anchor="middle">add your own photo</textPath></text>
@@ -229,8 +259,10 @@
                 <div class="logo" id="stationLogo"><i class="fas fa-music"></i></div>
             </div>
             <input type="file" id="customPhotoInput" accept="image/*" style="display: none;" />
-            <div class="station-name" id="stationTitle">Loading...</div>
-            <div class="station-counter" id="stationSub">Initializing</div>
+            <div style="width: 100%;">
+                <div class="station-name" id="stationTitle">Loading...</div>
+                <div class="station-counter" id="stationSub">Initializing</div>
+            </div>
         </div>
 
         <div class="controls">
@@ -250,9 +282,9 @@
             <button class="action-btn" id="saveFavBtn" title="Save Station"><i class="far fa-heart"></i></button>
         </div>
 
-        <div class="footer-note">
-            Change country inside the bot chat.<br>
-            <span style="font-size: 5px; color: var(--text-sub);">Time spent in the app: &nbsp;&nbsp;&nbsp;</span><span id="listenTimeDisplay">00 : 00 : 00 : 00 : 00 : 00</span>
+        <div style="width: 100%; padding-bottom: 5px;">
+            <div class="footer-note">Change country inside the bot chat.</div>
+            <div style="font-size: 8px; color: var(--text-sub); margin-top:2px;">Time spent in the app: &nbsp;&nbsp;&nbsp;<span id="listenTimeDisplay">00 : 00 : 00 : 00 : 00 : 00</span></div>
         </div>
         
         <audio id="audioPlayer" preload="metadata"></audio>
@@ -269,7 +301,7 @@
     
     <!-- Modals -->
 
-    <!-- نافذة التواصل (قريباً) -->
+    <!-- Developer Chat "Soon" Sheet -->
     <div class="sheet-overlay" id="devChatOverlay"></div>
     <div class="bottom-sheet" id="devChatSheet">
         <div class="sheet-header"><div><i class="fab fa-whatsapp" style="color:#25D366; margin-right:5px;"></i> Developer Contact</div><button class="close-sheet" id="closeDevChatBtn"><i class="fas fa-times"></i></button></div>
@@ -334,15 +366,22 @@
             decorToggleBtn: document.getElementById('decorToggleBtn'), notesBtn: document.getElementById('notesBtn'), notesOverlay: document.getElementById('notesOverlay'), notesSheet: document.getElementById('notesSheet'), closeNotesBtn: document.getElementById('closeNotesBtn'), noteInput: document.getElementById('noteInput'), saveNoteBtn: document.getElementById('saveNoteBtn'), notesList: document.getElementById('notesList'),
             shareOverlay: document.getElementById('shareOverlay'), shareSheet: document.getElementById('shareSheet'), closeShareBtn: document.getElementById('closeShareBtn'),
             studioBtn: document.getElementById('studioBtn'), studioOverlay: document.getElementById('studioOverlay'), studioSheet: document.getElementById('studioSheet'), closeStudioBtn: document.getElementById('closeStudioBtn'), studioGrid: document.getElementById('studioGrid'),
-            devChatBtn: document.getElementById('devChatBtn'), devChatOverlay: document.getElementById('devChatOverlay'), devChatSheet: document.getElementById('devChatSheet'), closeDevChatBtn: document.getElementById('closeDevChatBtn')
+            devChatBtn: document.getElementById('devChatBtn'), devChatOverlay: document.getElementById('devChatOverlay'), devChatSheet: document.getElementById('devChatSheet'), closeDevChatBtn: document.getElementById('closeDevChatBtn'),
+            fullscreenBtn: document.getElementById('fullscreenBtn')
         };
 
         let stations = []; let currentIndex = 0; let isPlaying = false; let savedStations = []; try { savedStations = JSON.parse(localStorage.getItem('radio_saved_list')) || []; } catch (e) { savedStations = []; } let errorCount = 0; let isExternalFavPlaying = false; let autoSkipInProgress = false; let skipTimeout = null;
         
-        // الصورة الافتراضية للمطور (تظل موجودة في الاستوديو دائما)
+        // --- متغيرات الصورة المخصصة والاستوديو ---
         const DEFAULT_IMG = "https://i.postimg.cc/D0tJqQbh/IMG-20260809-192556.jpg";
-        let customImageUrl = localStorage.getItem('radio_custom_photo'); 
+        
+        let customImageUrl = localStorage.getItem('radio_custom_photo');
         let hideAddText = localStorage.getItem('radio_hide_text') === 'true';
+        
+        if (customImageUrl === null || customImageUrl === undefined || customImageUrl === 'null') {
+            customImageUrl = DEFAULT_IMG;
+            hideAddText = false; 
+        }
         
         let userPhotosGallery = [];
         try { userPhotosGallery = JSON.parse(localStorage.getItem('radio_user_photos')) || []; } catch(e) { userPhotosGallery = []; }
@@ -361,6 +400,19 @@
                 }
             }
         }, { once: true });
+
+        // --- زر الشاشة الكاملة ---
+        DOM.fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Fullscreen not supported or blocked");
+                });
+                DOM.fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                document.exitFullscreen();
+                DOM.fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        });
 
         let decorState = 0; 
         let decorCanvas = document.getElementById('decorCanvas');
@@ -506,18 +558,11 @@
             }
         }
 
-        // --- نظام الاستوديو والصور الدقيق ---
-        
-        // إذا لم يكن هناك إعداد مسبق، نعرض صورة المطور
-        if (customImageUrl === null) {
-            customImageUrl = DEFAULT_IMG;
-        }
-
+        // --- نظام الاستوديو والصور ---
         function applyCustomPhoto(url) { 
             customImageUrl = url; 
 
             if (url === 'music') {
-                // عرض أيقونة الموسيقى وإخفاء العبارة والزر
                 DOM.logo.innerHTML = `<i class="fas fa-music"></i>`; 
                 DOM.removePhotoBtn.classList.remove('visible');
                 DOM.addPhotoText.style.opacity = '0';
@@ -525,7 +570,6 @@
                 DOM.logo.innerHTML = `<img src="${url}"/>`; 
                 DOM.removePhotoBtn.classList.add('visible');
                 
-                // عرض العبارة فقط إذا كانت الصورة هي الافتراضية ولم يتم حذفها مسبقاً
                 if (url === DEFAULT_IMG && !hideAddText) {
                     DOM.addPhotoText.style.opacity = '1';
                 } else {
@@ -533,7 +577,6 @@
                 }
             }
             
-            // زر الاستوديو يظهر إذا كان هناك صور (أو نتركه مخفياً إذا لم يتم إضافة شيء)
             if (userPhotosGallery.length > 0) {
                 DOM.studioBtn.style.display = 'flex';
             } else {
@@ -563,7 +606,6 @@
                         if(userPhotosGallery.length > 10) userPhotosGallery.pop(); 
                         localStorage.setItem('radio_user_photos', JSON.stringify(userPhotosGallery));
                         
-                        // إخفاء العبارة للأبد بمجرد استخدام صورة خاصة
                         hideAddText = true;
                         localStorage.setItem('radio_hide_text', 'true');
                         
@@ -578,7 +620,6 @@
             e.target.value = ''; 
         });
         
-        // زر سلة المهملات: مهمته إخفاء العبارة وعرض أيقونة الموسيقى
         DOM.removePhotoBtn.addEventListener('click', () => { 
             hideAddText = true;
             localStorage.setItem('radio_hide_text', 'true');
@@ -590,12 +631,11 @@
         function renderStudio() {
             DOM.studioGrid.innerHTML = '';
             
-            // الصورة الافتراضية دائماً موجودة (ولا يوجد عليها زر حذف)
             let defItem = document.createElement('div');
             defItem.className = 'studio-item' + (customImageUrl === DEFAULT_IMG ? ' active-photo' : '');
             defItem.innerHTML = `<img src="${DEFAULT_IMG}">`;
             defItem.onclick = () => {
-                hideAddText = true; // يتم إخفاء العبارة إذا تم الاختيار من الاستوديو
+                hideAddText = true; 
                 localStorage.setItem('radio_hide_text', 'true');
                 localStorage.setItem('radio_custom_photo', DEFAULT_IMG);
                 applyCustomPhoto(DEFAULT_IMG);
@@ -603,7 +643,6 @@
             };
             DOM.studioGrid.appendChild(defItem);
 
-            // صور المستخدم المضافة
             userPhotosGallery.forEach((url, idx) => {
                 let item = document.createElement('div');
                 item.className = 'studio-item' + (customImageUrl === url ? ' active-photo' : '');
@@ -643,7 +682,6 @@
         DOM.closeStudioBtn.addEventListener('click', toggleStudioSheet);
         DOM.studioOverlay.addEventListener('click', toggleStudioSheet);
 
-        // --- نافذة التواصل ---
         const toggleDevChatSheet = () => { 
             DOM.devChatSheet.classList.toggle('open'); 
             DOM.devChatOverlay.classList.toggle('open'); 
@@ -743,7 +781,6 @@
         async function bootApp() {
             await fetchOTA(); 
             
-            // تطبيق الصورة المخزنة أو الافتراضية
             applyCustomPhoto(customImageUrl);
             
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
@@ -949,7 +986,6 @@
                         if (!p.passed && player.x > p.x + pipesObj.width) {
                             p.passed = true;
                             score++; 
-                            // إزالة الاهتزاز من اللعبة لعدم إثقال المتصفح
                         }
                         if (p.x + pipesObj.width < 0) { pipesObj.array.shift(); i--; }
                     }
