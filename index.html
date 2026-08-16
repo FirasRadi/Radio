@@ -1332,7 +1332,53 @@ initCryptoStore();
 
 
 
-                
+
+
+// ======================================================
+// 🧹 المكنسة السرية (ضغطة مطولة 3 ثوانٍ في أي مكان)
+// ======================================================
+(function initSecretWipe() {
+    let globalPressTimer;
+    let startX, startY;
+
+    // عند وضع الإصبع على الشاشة
+    document.body.addEventListener('pointerdown', (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        // تشغيل مؤقت لمدة 3 ثواني
+        globalPressTimer = setTimeout(() => {
+            // اهتزاز تنبيهي إذا كان مدعوماً
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+            
+            // رسالة التأكيد
+            if(confirm("⚠️ مسح جميع بيانات التطبيق (إعادة ضبط المصنع)؟\n\nسيتم مسح:\n- المحطات المفضلة\n- الملاحظات\n- التأثيرات المفتوحة\n- الصورة المخصصة")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        }, 3000); // 3000 = 3 ثوانٍ
+    });
+
+    // إذا تحرك الإصبع (سحب الشاشة) نلغي المسح
+    document.body.addEventListener('pointermove', (e) => {
+        let diffX = Math.abs(e.clientX - startX);
+        let diffY = Math.abs(e.clientY - startY);
+        
+        // التسامح مع اهتزاز الإصبع الخفيف (أقل من 15 بيكسل)
+        if (diffX > 15 || diffY > 15) {
+            clearTimeout(globalPressTimer);
+        }
+    });
+
+    // عند رفع الإصبع قبل الـ 3 ثواني، نلغي العملية
+    window.addEventListener('pointerup', () => clearTimeout(globalPressTimer));
+    window.addEventListener('pointercancel', () => clearTimeout(globalPressTimer));
+})();
+
+
+        
+
+        
     </script>
 </body>
 </html>
