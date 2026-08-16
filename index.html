@@ -1337,7 +1337,7 @@ initCryptoStore();
 // 🧹 المكنسة السرية (10 نقرات متتالية سريعة)
 // ======================================================
 // ======================================================
-// 🧹 Secret Wipe (10 Fast Taps) - Fixed Click & Text
+// 🧹 Secret Wipe (10 Fast Taps) - Game Bug Fixed
 // ======================================================
 (function initSecretTapWipe() {
     let wipeOverlay = document.createElement('div');
@@ -1346,7 +1346,6 @@ initCryptoStore();
     let wipeModal = document.createElement('div');
     wipeModal.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%) scale(0.8); width:85%; max-width:320px; background:#1e293b; border:1px solid #ef4444; border-radius:20px; padding:25px; z-index:99999; opacity:0; visibility:hidden; transition:0.3s; font-family:sans-serif; text-align:left; direction:ltr; box-shadow:0 15px 50px rgba(0,0,0,0.8);';
 
-    // تم تغيير النص ليكون مطمئناً ويوضح أن الحذف يخص الراديو فقط
     wipeModal.innerHTML = `
         <div style="font-size:35px; margin-bottom:10px; color:#ef4444; text-align:center;">⚠️</div>
         <h3 style="color:#fff; margin-bottom:15px; font-size:18px; text-align:center;">Reset Radio Player?</h3>
@@ -1365,7 +1364,7 @@ initCryptoStore();
     document.body.appendChild(wipeOverlay);
     document.body.appendChild(wipeModal);
 
-    let isModalSafeToClose = false; // متغير لمنع الإغلاق الخاطئ
+    let isModalSafeToClose = false;
 
     const hideWipeModal = () => {
         wipeModal.style.opacity = '0'; wipeModal.style.transform = 'translate(-50%, -50%) scale(0.8)';
@@ -1373,7 +1372,6 @@ initCryptoStore();
         setTimeout(() => { wipeModal.style.visibility = 'hidden'; wipeOverlay.style.visibility = 'hidden'; }, 300);
     };
 
-    // الإغلاق عند الضغط على الخلفية (بشرط مرور نصف ثانية على الأقل لمنع النقرة الوهمية)
     wipeOverlay.onclick = (e) => {
         if (isModalSafeToClose && e.target === wipeOverlay) {
             hideWipeModal();
@@ -1391,7 +1389,14 @@ initCryptoStore();
     let lastTapTime = 0;
 
     document.body.addEventListener('pointerdown', (e) => {
-        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.closest('button')) {
+        // ✅ التعديل هنا: قمنا بإضافة استثناء لمنطقة اللعبة (#gameContainer)
+        if (
+            e.target.tagName === 'BUTTON' || 
+            e.target.tagName === 'INPUT' || 
+            e.target.tagName === 'TEXTAREA' || 
+            e.target.closest('button') ||
+            e.target.closest('#gameContainer') // يمنع تشغيل المكنسة أثناء اللعب!
+        ) {
             return;
         }
 
@@ -1409,7 +1414,7 @@ initCryptoStore();
             
             if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             
-            isModalSafeToClose = false; // قفل الإغلاق مؤقتاً
+            isModalSafeToClose = false; 
             
             wipeModal.style.visibility = 'visible';
             wipeModal.style.opacity = '1';
@@ -1417,7 +1422,6 @@ initCryptoStore();
             wipeOverlay.style.visibility = 'visible';
             wipeOverlay.style.opacity = '1';
 
-            // بعد نصف ثانية، نسمح بإغلاق النافذة إذا ضغط المستخدم خارجها
             setTimeout(() => {
                 isModalSafeToClose = true;
             }, 500);
