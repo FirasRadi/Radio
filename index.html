@@ -1333,48 +1333,44 @@ initCryptoStore();
 
 
 
-
 // ======================================================
-// 🧹 المكنسة السرية (ضغطة مطولة 3 ثوانٍ في أي مكان)
+// 🧹 المكنسة السرية (10 نقرات متتالية سريعة)
 // ======================================================
-(function initSecretWipe() {
-    let globalPressTimer;
-    let startX, startY;
+(function initSecretTapWipe() {
+    let tapCount = 0;
+    let lastTapTime = 0;
 
-    // عند وضع الإصبع على الشاشة
     document.body.addEventListener('pointerdown', (e) => {
-        startX = e.clientX;
-        startY = e.clientY;
+        // إذا ضغط المستخدم على زر أو حقل إدخال، لا نحسبها ضمن النقرات السرية
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.closest('button')) {
+            return;
+        }
+
+        let currentTime = new Date().getTime();
         
-        // تشغيل مؤقت لمدة 3 ثواني
-        globalPressTimer = setTimeout(() => {
-            // اهتزاز تنبيهي إذا كان مدعوماً
+        // إذا تأخر المستخدم لأكثر من 800 مللي ثانية (أقل من ثانية)، يتم تصفير العداد
+        if (currentTime - lastTapTime > 800) {
+            tapCount = 0;
+        }
+
+        tapCount++;
+        lastTapTime = currentTime;
+
+        // إذا وصل العداد إلى 10 نقرات متتالية
+        if (tapCount === 10) {
+            tapCount = 0; // تصفير العداد للبدء من جديد
+            
+            // اهتزاز تنبيهي
             if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             
-            // رسالة التأكيد
-            if(confirm("⚠️ مسح جميع بيانات التطبيق (إعادة ضبط المصنع)؟\n\nسيتم مسح:\n- المحطات المفضلة\n- الملاحظات\n- التأثيرات المفتوحة\n- الصورة المخصصة")) {
+            // ظهور رسالة التأكيد
+            if(confirm("⚠️ مسح جميع بيانات التطبيق (إعادة ضبط المصنع)؟\n\nسيتم مسح:\n- المحطات المفضلة\n- الملاحظات\n- التأثيرات المفتوحة\n- الصور المحفوظة")) {
                 localStorage.clear();
                 window.location.reload();
             }
-        }, 3000); // 3000 = 3 ثوانٍ
-    });
-
-    // إذا تحرك الإصبع (سحب الشاشة) نلغي المسح
-    document.body.addEventListener('pointermove', (e) => {
-        let diffX = Math.abs(e.clientX - startX);
-        let diffY = Math.abs(e.clientY - startY);
-        
-        // التسامح مع اهتزاز الإصبع الخفيف (أقل من 15 بيكسل)
-        if (diffX > 15 || diffY > 15) {
-            clearTimeout(globalPressTimer);
         }
     });
-
-    // عند رفع الإصبع قبل الـ 3 ثواني، نلغي العملية
-    window.addEventListener('pointerup', () => clearTimeout(globalPressTimer));
-    window.addEventListener('pointercancel', () => clearTimeout(globalPressTimer));
 })();
-
 
         
 
