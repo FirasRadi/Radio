@@ -1337,66 +1337,66 @@ initCryptoStore();
 // 🧹 المكنسة السرية (10 نقرات متتالية سريعة)
 // ======================================================
 // ======================================================
-// 🧹 Secret Wipe (10 Fast Taps) - English & Left Aligned
+// 🧹 Secret Wipe (10 Fast Taps) - Fixed Click & Text
 // ======================================================
 (function initSecretTapWipe() {
-    // 1. إنشاء نافذة التحذير المخصصة (Custom Modal)
     let wipeOverlay = document.createElement('div');
     wipeOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:99998; opacity:0; visibility:hidden; transition:0.3s;';
 
     let wipeModal = document.createElement('div');
-    // استخدمنا direction: ltr و text-align: left لإجبار النص لليسار بالإنجليزية
     wipeModal.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%) scale(0.8); width:85%; max-width:320px; background:#1e293b; border:1px solid #ef4444; border-radius:20px; padding:25px; z-index:99999; opacity:0; visibility:hidden; transition:0.3s; font-family:sans-serif; text-align:left; direction:ltr; box-shadow:0 15px 50px rgba(0,0,0,0.8);';
 
+    // تم تغيير النص ليكون مطمئناً ويوضح أن الحذف يخص الراديو فقط
     wipeModal.innerHTML = `
         <div style="font-size:35px; margin-bottom:10px; color:#ef4444; text-align:center;">⚠️</div>
-        <h3 style="color:#fff; margin-bottom:15px; font-size:18px; text-align:center;">Factory Reset</h3>
-        <p style="color:#cbd5e1; font-size:14px; margin-bottom:10px; line-height:1.5;">Are you sure you want to clear all app data?</p>
+        <h3 style="color:#fff; margin-bottom:15px; font-size:18px; text-align:center;">Reset Radio Player?</h3>
+        <p style="color:#cbd5e1; font-size:14px; margin-bottom:10px; line-height:1.5;">This will only reset this Radio app to its default state. <b>(Your phone's data is completely safe).</b></p>
         <ul style="color:#94a3b8; font-size:13px; margin-bottom:20px; padding-left:20px; line-height:1.6;">
-            <li>Favorite stations</li>
-            <li>Saved notes</li>
-            <li>Unlocked effects</li>
-            <li>Custom images</li>
+            <li>Saved favorite stations</li>
+            <li>Your personal notes</li>
+            <li>Unlocked animations</li>
         </ul>
         <div style="display:flex; gap:10px;">
             <button id="cancelWipeBtn" style="flex:1; background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:10px; font-weight:bold; cursor:pointer; transition:0.2s;">Cancel</button>
-            <button id="confirmWipeBtn" style="flex:1; background:#ef4444; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer; transition:0.2s;">Clear Data</button>
+            <button id="confirmWipeBtn" style="flex:1; background:#ef4444; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer; transition:0.2s;">Reset Radio</button>
         </div>
     `;
 
     document.body.appendChild(wipeOverlay);
     document.body.appendChild(wipeModal);
 
-    // دالة إخفاء النافذة
+    let isModalSafeToClose = false; // متغير لمنع الإغلاق الخاطئ
+
     const hideWipeModal = () => {
         wipeModal.style.opacity = '0'; wipeModal.style.transform = 'translate(-50%, -50%) scale(0.8)';
         wipeOverlay.style.opacity = '0';
         setTimeout(() => { wipeModal.style.visibility = 'hidden'; wipeOverlay.style.visibility = 'hidden'; }, 300);
     };
 
-    // إغلاق عند الضغط على Cancel أو الخلفية
-    wipeOverlay.onclick = hideWipeModal;
+    // الإغلاق عند الضغط على الخلفية (بشرط مرور نصف ثانية على الأقل لمنع النقرة الوهمية)
+    wipeOverlay.onclick = (e) => {
+        if (isModalSafeToClose && e.target === wipeOverlay) {
+            hideWipeModal();
+        }
+    };
+    
     document.getElementById('cancelWipeBtn').onclick = hideWipeModal;
 
-    // تنفيذ الحذف عند الضغط على Clear Data
     document.getElementById('confirmWipeBtn').onclick = () => {
         localStorage.clear();
         window.location.reload();
     };
 
-    // 2. منطق الـ 10 نقرات السريعة
     let tapCount = 0;
     let lastTapTime = 0;
 
     document.body.addEventListener('pointerdown', (e) => {
-        // تجاهل النقرات إذا كانت فوق زر أو حقل إدخال
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.closest('button')) {
             return;
         }
 
         let currentTime = new Date().getTime();
         
-        // تصفير العداد إذا تأخر أكثر من 800 مللي ثانية
         if (currentTime - lastTapTime > 800) {
             tapCount = 0;
         }
@@ -1404,19 +1404,23 @@ initCryptoStore();
         tapCount++;
         lastTapTime = currentTime;
 
-        // إذا اكتملت 10 نقرات
         if (tapCount === 10) {
-            tapCount = 0; // تصفير العداد
+            tapCount = 0; 
             
-            // اهتزاز تنبيهي
             if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             
-            // إظهار النافذة المخصصة الجديدة
+            isModalSafeToClose = false; // قفل الإغلاق مؤقتاً
+            
             wipeModal.style.visibility = 'visible';
             wipeModal.style.opacity = '1';
             wipeModal.style.transform = 'translate(-50%, -50%) scale(1)';
             wipeOverlay.style.visibility = 'visible';
             wipeOverlay.style.opacity = '1';
+
+            // بعد نصف ثانية، نسمح بإغلاق النافذة إذا ضغط المستخدم خارجها
+            setTimeout(() => {
+                isModalSafeToClose = true;
+            }, 500);
         }
     });
 })();
