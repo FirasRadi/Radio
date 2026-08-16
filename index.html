@@ -1169,10 +1169,14 @@
 // 🛒 متجر الأنميشن الاحترافي (نظام التشفير وحماية الأكواد)
 // ======================================================
 
-const SECRET_SALT = "TIME_WORLD_2026"; // الكلمة السرية للتشفير (هذه بصمتك الخاصة، لا تشاركها مع أحد)
+// ======================================================
+// 🛒 VIP FX Store (Encryption, Custom Modals, English)
+// ======================================================
+
+const SECRET_SALT = "TIME_WORLD_2026"; // Developer secret key
 
 function initCryptoStore() {
-    // 1. توليد معرف المستخدم (User ID)
+    // 1. User ID Generation
     let tgUserId = tg?.initDataUnsafe?.user?.id;
     let myUserId = localStorage.getItem('my_unique_id');
     if (!myUserId) {
@@ -1180,7 +1184,7 @@ function initCryptoStore() {
         localStorage.setItem('my_unique_id', myUserId);
     }
 
-    // خوارزمية التشفير (توليد كود التفعيل)
+    // License Generator Algorithm
     window.generateLicenseKey = (userId, scriptId) => {
         let raw = userId + "|" + scriptId + "|" + SECRET_SALT;
         let hash1 = 5381, hash2 = 52711;
@@ -1194,39 +1198,67 @@ function initCryptoStore() {
         return `VIP-${p1}-${p2}`;
     };
 
-    // 2. إنشاء زر المتجر في الأعلى
+    // 2. Create Store Button
     let headerRight = document.querySelector('.header-right');
     let storeBtn = document.createElement('button');
     storeBtn.className = 'icon-btn';
-    storeBtn.title = 'متجر التأثيرات';
+    storeBtn.title = 'FX Store';
     storeBtn.style.color = '#f59e0b';
     storeBtn.innerHTML = '<i class="fas fa-store"></i>';
     headerRight.appendChild(storeBtn);
 
-    // 3. بناء نافذة المتجر
+    // 3. Store UI Setup
     let overlay = document.createElement('div');
     overlay.className = 'sheet-overlay';
     let sheet = document.createElement('div');
     sheet.className = 'bottom-sheet';
     sheet.innerHTML = `
         <div class="sheet-header">
-            <div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> متجر المؤثرات 🛒</div>
+            <div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> VIP FX Store</div>
             <button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button>
         </div>
         <div class="studio-grid" id="animStoreGrid"></div>
     `;
     document.body.appendChild(overlay);
     document.body.appendChild(sheet);
-
     let grid = sheet.querySelector('#animStoreGrid');
 
-    // 4. دالة عرض المتجر والتجربة
+    // --- Custom Modals System (Elegant UI) ---
+    let customModalOverlay = document.createElement('div');
+    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(5px); transition:0.3s;';
+    
+    let customModalBox = document.createElement('div');
+    customModalBox.style.cssText = 'background:#1e293b; border:1px solid #3b82f6; width:85%; max-width:340px; border-radius:24px; padding:25px; text-align:center; box-shadow:0 15px 40px rgba(0,0,0,0.6); color:#fff;';
+    customModalOverlay.appendChild(customModalBox);
+    document.body.appendChild(customModalOverlay);
+
+    window.showCustomModal = (htmlContent) => {
+        customModalBox.innerHTML = htmlContent;
+        customModalOverlay.style.display = 'flex';
+    };
+    window.hideCustomModal = () => { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; };
+
+    // Copy to Clipboard Function
+    window.copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            let copyBtn = document.getElementById('copyBtnElement');
+            if(copyBtn) {
+                let oldHtml = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                copyBtn.style.background = '#10b981';
+                setTimeout(() => { copyBtn.innerHTML = oldHtml; copyBtn.style.background = '#3b82f6'; }, 2000);
+            }
+        }).catch(e => alert("Copy failed"));
+    };
+
+    // 4. Render Store & Interactions
     window.renderAnimStore = () => {
         grid.innerHTML = '';
         let localAnims = JSON.parse(localStorage.getItem('my_anim_store') || '[]');
         
         if(localAnims.length === 0) {
-            grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; margin:auto; padding:15px;">لا توجد إضافات. أضفها عبر الملاحظات!</div>';
+            grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; margin:auto; padding:15px;">Store is empty. Add effects via Notes!</div>';
             return;
         }
 
@@ -1235,50 +1267,68 @@ function initCryptoStore() {
             
             let item = document.createElement('div');
             item.className = 'studio-item'; 
-            item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.3s; cursor:pointer; ${isUnlocked ? 'border-color:#10b981; box-shadow:0 0 10px #10b981;' : 'filter:grayscale(1); opacity:0.7;'}`;
+            item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.3s; cursor:pointer; flex-shrink:0; ${isUnlocked ? 'border-color:#10b981; box-shadow:0 0 10px #10b981;' : 'filter:grayscale(1); opacity:0.7;'}`;
             item.innerHTML = anim.icon;
             
             if(!isUnlocked) item.innerHTML += `<div style="position:absolute; bottom:0; right:0; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; z-index:5;"><i class="fas fa-lock"></i></div>`;
 
-            // عند الضغط على الدائرة
             item.onclick = () => {
-                // إخفاء المتجر فوراً لمشاهدة التأثير
                 sheet.classList.remove('open');
                 overlay.classList.remove('open');
                 
-                if(window.activeStopScript) new Function(window.activeStopScript)();
+                if(window.activeStopScript) { try { new Function(window.activeStopScript)(); } catch(e){} }
 
                 if (isUnlocked) {
-                    // إذا كان مشترى
-                    new Function(anim.playScript)();
-                    window.activeStopScript = anim.stopScript;
+                    try { new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    // فترة التجربة 5 ثواني
-                    new Function(anim.playScript)();
-                    window.activeStopScript = anim.stopScript;
+                    // Trial 5 seconds
+                    try { new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     
                     setTimeout(() => {
-                        new Function(anim.stopScript)();
-                        window.activeStopScript = null;
+                        if(window.activeStopScript === anim.stopScript) {
+                            try { new Function(anim.stopScript)(); } catch(e){}
+                            window.activeStopScript = null;
+                        }
                         
-                        // حساب الكود الصحيح برمجياً في الخلفية
                         let correctCode = window.generateLicenseKey(myUserId, anim.id);
 
-                        let code = prompt(`انتهت فترة التجربة ⏳\n\nلشراء هذا التأثير، انسخ هذا المعرف وأرسله للمطور:\n[ ${myUserId} ]\n\nإذا استلمت كود التفعيل، أدخله هنا:`);
-                        
-                        if (code && code.trim().toUpperCase() === correctCode) {
-                            localStorage.setItem('unlocked_' + anim.id, 'true');
-                            alert('✅ تم تفعيل التأثير بنجاح للأبد على هذا الجهاز!');
-                            window.renderAnimStore(); 
-                        } else if (code) {
-                            alert('❌ الكود غير صحيح، أو لا يخص هذا الجهاز!');
-                        }
+                        // Trial Ended Elegant Modal (with Copy User ID Button)
+                        let modalHTML = `
+                            <div style="font-size:40px; margin-bottom:10px;">${anim.icon}</div>
+                            <h3 style="margin-bottom:10px; color:#f59e0b;">Trial Ended ⏳</h3>
+                            <p style="font-size:13px; color:var(--text-sub); margin-bottom:15px;">To unlock this effect permanently, send your ID to the developer:</p>
+                            
+                            <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; border:1px solid var(--border-glass); display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <span style="font-family:monospace; font-weight:bold; color:#10b981; font-size:15px; letter-spacing:1px;">${myUserId}</span>
+                                <button id="copyBtnElement" onclick="window.copyToClipboard('${myUserId}')" style="background:#3b82f6; color:#fff; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold; transition:0.3s;"><i class="fas fa-copy"></i> Copy ID</button>
+                            </div>
+                            
+                            <input type="text" id="licenseInput" placeholder="Enter License Key..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:12px; border-radius:12px; font-family:monospace; text-align:center; margin-bottom:15px; outline:none; font-size:14px;">
+                            
+                            <div style="display:flex; gap:10px;">
+                                <button onclick="window.verifyActivation('${anim.id}', '${correctCode}')" style="flex:1; background:#10b981; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Activate</button>
+                                <button onclick="window.hideCustomModal()" style="flex:1; background:transparent; border:1px solid #ef4444; color:#ef4444; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Cancel</button>
+                            </div>
+                        `;
+                        window.showCustomModal(modalHTML);
                     }, 5000);
                 }
             };
             grid.appendChild(item);
         });
+    };
+
+    window.verifyActivation = (animId, correctCode) => {
+        let inputCode = document.getElementById('licenseInput').value.trim().toUpperCase();
+        if (inputCode === correctCode) {
+            localStorage.setItem('unlocked_' + animId, 'true');
+            window.hideCustomModal();
+            alert('✅ Effect Unlocked Successfully!');
+            window.renderAnimStore();
+        } else {
+            alert('❌ Invalid License Key! This key is not for your device.');
+        }
     };
 
     const toggleStore = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
@@ -1287,13 +1337,13 @@ function initCryptoStore() {
     overlay.onclick = toggleStore;
     window.renderAnimStore();
 
-    // 5. الباب الخلفي في الملاحظات (أداة الإضافة + أداة التوليد)
+    // 5. Developer Backdoor (Notes Terminal)
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = () => {
         let txt = DOM.noteInput.value.trim();
         
-        // أ. إضافة سكربت جديد (تم إزالة رقم الكود لأننا أصبحنا نشفره)
-        // الصيغة: >add | الأيقونة | الآيدي | كود التشغيل | كود الإيقاف
+        // Command 1: Add Script
+        // Format: >add | Icon | ID | PlayScript | StopScript
         if (txt.startsWith(">add |")) {
             try {
                 let parts = txt.split('|');
@@ -1301,13 +1351,30 @@ function initCryptoStore() {
                 let local = JSON.parse(localStorage.getItem('my_anim_store') || '[]');
                 local.push(newAnim);
                 localStorage.setItem('my_anim_store', JSON.stringify(local));
-                DOM.noteInput.value = ''; alert('✅ تمت إضافة التأثير للمتجر بنجاح!'); window.renderAnimStore();
-            } catch(e) { alert("❌ خطأ في الصيغة"); }
+                DOM.noteInput.value = ''; alert('✅ Effect added successfully!'); window.renderAnimStore();
+            } catch(e) { alert("❌ Syntax Error in command."); }
             return;
         }
 
-        // ب. أداة توليد الأكواد لك كمدير
-        // الصيغة: >gen | آيدي المستخدم | آيدي السكربت
+        // Command 2: Remove Script (New Feature)
+        // Format: >del | ID
+        if (txt.startsWith(">del |")) {
+            try {
+                let targetId = txt.split('|')[1].trim();
+                let local = JSON.parse(localStorage.getItem('my_anim_store') || '[]');
+                let filtered = local.filter(a => a.id !== targetId);
+                if (local.length !== filtered.length) {
+                    localStorage.setItem('my_anim_store', JSON.stringify(filtered));
+                    DOM.noteInput.value = ''; alert(`🗑️ Effect '${targetId}' removed!`); window.renderAnimStore();
+                } else {
+                    alert("❌ ID not found in store.");
+                }
+            } catch(e) { alert("❌ Syntax Error."); }
+            return;
+        }
+
+        // Command 3: Generate License
+        // Format: >gen | UserID | ScriptID
         if (txt.startsWith(">gen |")) {
             try {
                 let parts = txt.split('|');
@@ -1315,9 +1382,21 @@ function initCryptoStore() {
                 let targetScriptId = parts[2].trim();
                 
                 let generatedCode = window.generateLicenseKey(targetUserId, targetScriptId);
-                prompt(`✅ تم توليد الكود بنجاح!\n\nانسخ هذا الكود وأرسله للمستخدم:`, generatedCode);
+                
+                // Admin Modal (with Copy License Button)
+                let adminModalHTML = `
+                    <h3 style="margin-bottom:10px; color:#10b981;">✅ License Generated</h3>
+                    <p style="font-size:13px; color:var(--text-sub); margin-bottom:15px;">Send this activation key to the user:</p>
+                    
+                    <div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:12px; border:1px solid var(--border-glass); display:flex; flex-direction:column; gap:15px; align-items:center; margin-bottom:15px;">
+                        <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:22px; letter-spacing:2px;">${generatedCode}</span>
+                        <button id="copyBtnElement" onclick="window.copyToClipboard('${generatedCode}')" style="background:#3b82f6; width:100%; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:bold; transition:0.3s;"><i class="fas fa-copy"></i> Copy License</button>
+                    </div>
+                    <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Close</button>
+                `;
+                window.showCustomModal(adminModalHTML);
                 DOM.noteInput.value = '';
-            } catch(e) { alert("❌ خطأ في التوليد!"); }
+            } catch(e) { alert("❌ Generation Error!"); }
             return;
         }
 
@@ -1327,6 +1406,16 @@ function initCryptoStore() {
 initCryptoStore();
 
 
+
+
+
+
+
+
+
+
+
+        
 
 
 
