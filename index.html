@@ -1336,19 +1336,22 @@ initCryptoStore();
 // ======================================================
 // 🧹 المكنسة السرية (10 نقرات متتالية سريعة)
 // ======================================================
+// ======================================================
+// 🧹 Secret Wipe (10 consecutive fast taps)
+// ======================================================
 (function initSecretTapWipe() {
     let tapCount = 0;
     let lastTapTime = 0;
 
     document.body.addEventListener('pointerdown', (e) => {
-        // إذا ضغط المستخدم على زر أو حقل إدخال، لا نحسبها ضمن النقرات السرية
+        // Ignore taps on buttons, input fields, or textareas
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.closest('button')) {
             return;
         }
 
         let currentTime = new Date().getTime();
         
-        // إذا تأخر المستخدم لأكثر من 800 مللي ثانية (أقل من ثانية)، يتم تصفير العداد
+        // If the user delays for more than 800ms, reset the counter
         if (currentTime - lastTapTime > 800) {
             tapCount = 0;
         }
@@ -1356,17 +1359,17 @@ initCryptoStore();
         tapCount++;
         lastTapTime = currentTime;
 
-        // إذا وصل العداد إلى 10 نقرات متتالية
+        // Trigger action on the 10th consecutive tap
         if (tapCount === 10) {
-            tapCount = 0; // تصفير العداد للبدء من جديد
+            tapCount = 0; // Reset counter
             
-            // اهتزاز تنبيهي
+            // Haptic warning feedback if supported
             if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             
-            // ظهور رسالة التأكيد
-            if(confirm("⚠️ مسح جميع بيانات التطبيق (إعادة ضبط المصنع)؟\n\nسيتم مسح:\n- المحطات المفضلة\n- الملاحظات\n- التأثيرات المفتوحة\n- الصور المحفوظة")) {
-                localStorage.clear();
-                window.location.reload();
+            // Confirmation dialog
+            if(confirm("⚠️ Clear all app data (Factory Reset)?\n\nThis action will delete:\n- Favorite stations\n- Saved notes\n- Unlocked effects\n- Custom images")) {
+                localStorage.clear(); // Clear all cookies and cached data
+                window.location.reload(); // Reload the app
             }
         }
     });
