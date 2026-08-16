@@ -1175,16 +1175,20 @@
         
 // ======================================================
 // 🛒 VIP Cloud FX Store (Complete Final Version)
+
+
+
+      // ======================================================
+// 🛒 VIP Cloud FX Store (Complete Final Version - Bug Fixes)
 // ======================================================
 
-// ⚠️ ضع بياناتك الحقيقية هنا بين علامتي التنصيص:
+// ⚠️ ضع بياناتك الحقيقية هنا (تأكد من عدم وجود مسافات فارغة قبل أو بعد النصوص):
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
 const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
-const MY_BOT_USERNAME = "Time_of_world_origins_bot"; // معرف البوت الخاص بك بدون @
-const SECRET_SALT = "TIME_WORLD_2026"; // بصمتك السرية للتشفير
+const MY_BOT_USERNAME = "Time_of_world_origins_bot"; 
+const SECRET_SALT = "TIME_WORLD_2026"; 
 
 function initUltimateStore() {
-    // 1. توليد معرف المستخدم (User ID)
     let tgUserId = tg?.initDataUnsafe?.user?.id;
     let myUserId = localStorage.getItem('my_unique_id');
     if (!myUserId) {
@@ -1192,7 +1196,6 @@ function initUltimateStore() {
         localStorage.setItem('my_unique_id', myUserId);
     }
 
-    // خوارزمية التشفير (توليد كود التفعيل)
     window.generateLicenseKey = (userId, scriptId) => {
         let raw = userId + "|" + scriptId + "|" + SECRET_SALT;
         let hash1 = 5381, hash2 = 52711;
@@ -1206,7 +1209,6 @@ function initUltimateStore() {
         return `VIP-${p1}-${p2}`;
     };
 
-    // 2. واجهة المتجر (الزر والنوافذ)
     let headerRight = document.querySelector('.header-right');
     let storeBtn = document.createElement('button');
     storeBtn.className = 'icon-btn';
@@ -1230,7 +1232,6 @@ function initUltimateStore() {
     document.body.appendChild(sheet);
     let grid = sheet.querySelector('#animStoreGrid');
 
-    // نافذة الدفع والتنبيهات الزجاجية (Custom Modals)
     let customModalOverlay = document.createElement('div');
     customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(5px); transition:0.3s;';
     let customModalBox = document.createElement('div');
@@ -1241,7 +1242,6 @@ function initUltimateStore() {
     window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; };
     window.hideCustomModal = () => { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; };
 
-    // دالة نسخ النصوص
     window.copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -1255,11 +1255,9 @@ function initUltimateStore() {
         });
     };
 
-    // 3. دالة جلب المتجر وعرضه
     window.renderAnimStore = async () => {
         grid.innerHTML = '<div style="color:var(--text-sub); font-size:14px; margin:auto; padding:15px;"><i class="fas fa-spinner fa-spin"></i> Syncing store...</div>';
         
-        // أ. التأثير الافتراضي (يظهر للجميع دائماً)
         let defaultAnims = [{
             icon: '❄️',
             id: '1', 
@@ -1267,21 +1265,18 @@ function initUltimateStore() {
             stopScript: "clearInterval(window.sfx);"
         }];
 
-        // ب. جلب السحابة (إذا تم إعدادها)
         let cloudAnims = [];
         try {
             if(BIN_ID && BIN_ID !== "ضع_رقم_الـ_BIN_هنا") {
                 let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, {
                     headers: { 'X-Access-Key': ACCESS_KEY }
                 });
-                if(res.ok) cloudAnims = await res.json();
+                if(res.ok) { cloudAnims = await res.json(); if(!Array.isArray(cloudAnims)) cloudAnims = []; }
             }
         } catch(e) { console.log("Offline mode."); }
 
-        // ج. جلب التجارب المحلية
         let localAnims = JSON.parse(localStorage.getItem('my_anim_store') || '[]');
         
-        // دمج الكل بحيث لا تتكرر الأيديهات (الأولوية للسحابة/المحلي فوق الافتراضي)
         let animMap = new Map();
         defaultAnims.forEach(a => animMap.set(a.id, a));
         cloudAnims.forEach(a => animMap.set(a.id, a));
@@ -1297,7 +1292,6 @@ function initUltimateStore() {
         allAnims.forEach((anim) => {
             let isUnlocked = localStorage.getItem('unlocked_' + anim.id) === 'true';
             
-            // حاوية الدائرة + الرقم
             let wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
 
@@ -1305,15 +1299,12 @@ function initUltimateStore() {
             item.className = 'studio-item'; 
             item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.3s; cursor:pointer; margin:0; ${isUnlocked ? 'border-color:#10b981; box-shadow:0 0 10px #10b981;' : 'filter:grayscale(1); opacity:0.7;'}`;
             item.innerHTML = anim.icon;
-            
             if(!isUnlocked) item.innerHTML += `<div style="position:absolute; bottom:0; right:0; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; z-index:5;"><i class="fas fa-lock"></i></div>`;
 
-            // رقم العنصر
             let idLabel = document.createElement('div');
             idLabel.innerText = '#' + anim.id;
             idLabel.style.cssText = 'font-size:11px; font-weight:bold; color:var(--text-sub); font-family:monospace; letter-spacing:1px; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:10px;';
 
-            // تفاعل الضغط
             item.onclick = () => {
                 sheet.classList.remove('open'); overlay.classList.remove('open');
                 if(window.activeStopScript) { try{ new Function(window.activeStopScript)(); } catch(e){} }
@@ -1322,9 +1313,7 @@ function initUltimateStore() {
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    // تجربة 5 ثواني
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
-                    
                     setTimeout(() => {
                         if(window.activeStopScript === anim.stopScript) { try{ new Function(anim.stopScript)(); } catch(e){} window.activeStopScript = null; }
                         let correctCode = window.generateLicenseKey(myUserId, anim.id);
@@ -1334,16 +1323,12 @@ function initUltimateStore() {
                             <div style="font-size:14px; font-weight:bold; color:#f59e0b; margin-bottom:10px;">Item #${anim.id}</div>
                             <h3 style="margin-bottom:10px; color:#fff;">Trial Ended ⏳</h3>
                             <p style="font-size:13px; color:var(--text-sub); margin-bottom:15px;">Send your ID to the developer to unlock this effect:</p>
-                            
                             <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:12px; border:1px solid var(--border-glass); display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                                 <span style="font-family:monospace; font-weight:bold; color:#10b981; font-size:15px;">${myUserId}</span>
                                 <button id="copyBtnElement" onclick="window.copyToClipboard('${myUserId}')" style="background:#3b82f6; color:#fff; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fas fa-copy"></i> Copy ID</button>
                             </div>
-
                             <button onclick="let u='https://t.me/${MY_BOT_USERNAME}?start=buy_${anim.id}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:linear-gradient(135deg, #0ea5e9, #0284c7); color:#fff; border:none; padding:10px; border-radius:12px; font-weight:bold; font-size:14px; margin-bottom:15px; cursor:pointer;"><i class="fab fa-telegram"></i> Message Developer</button>
-                            
                             <input type="text" id="licenseInput" placeholder="Enter License Key..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:12px; border-radius:12px; font-family:monospace; text-align:center; margin-bottom:15px; outline:none;">
-                            
                             <div style="display:flex; gap:10px;">
                                 <button onclick="window.verifyActivation('${anim.id}', '${correctCode}')" style="flex:1; background:#10b981; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Activate</button>
                                 <button onclick="window.hideCustomModal()" style="flex:1; background:transparent; border:1px solid #ef4444; color:#ef4444; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">Cancel</button>
@@ -1353,7 +1338,6 @@ function initUltimateStore() {
                     }, 5000);
                 }
             };
-            
             wrapper.appendChild(item);
             wrapper.appendChild(idLabel);
             grid.appendChild(wrapper);
@@ -1374,18 +1358,17 @@ function initUltimateStore() {
     overlay.onclick = toggleStore;
     window.renderAnimStore();
 
-    // 4. الباب الخلفي الإداري في الملاحظات
+    // 4. الباب الخلفي للإدارة في الملاحظات
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = async () => {
         let txt = DOM.noteInput.value.trim();
 
-        // 🌟 دليل المبرمج (الأوامر الجاهزة)
         if (txt.startsWith(">help")) {
             let helpHTML = `
-                <h3 style="color:#f59e0b; margin-bottom:15px;"><i class="fas fa-terminal"></i> Developer Commands</h3>
+                <h3 style="color:#f59e0b; margin-bottom:15px;"><i class="fas fa-terminal"></i> Commands</h3>
                 <div style="text-align:left; font-family:monospace; font-size:11px; color:#fff; background:rgba(0,0,0,0.4); padding:15px; border-radius:12px; border:1px solid #3b82f6; overflow-y:auto; max-height:50vh; white-space:pre-wrap; line-height:1.6;">
-<span style="color:#10b981;">// 1. Login (Once per device)</span>
->admin | MASTER_KEY_HERE
+<span style="color:#10b981;">// 1. Reset broken local store</span>
+>reset
 
 <span style="color:#10b981;">// 2. Add local effect (Test)</span>
 >add | ❄️ | 2 | play_script | stop_script
@@ -1393,25 +1376,25 @@ function initUltimateStore() {
 <span style="color:#10b981;">// 3. Publish to Cloud (Global)</span>
 >publish | 🔥 | 3 | play_script | stop_script
 
-<span style="color:#10b981;">// 4. Remove from Cloud</span>
->remove_cloud | 3
-
-<span style="color:#10b981;">// 5. Generate License for User</span>
->gen | UserID_Here | 2
+<span style="color:#10b981;">// 4. Generate License</span>
+>gen | UserID | 2
                 </div>
                 <button onclick="window.hideCustomModal()" style="width:100%; margin-top:15px; background:transparent; border:1px solid #ef4444; color:#ef4444; padding:10px; border-radius:12px; cursor:pointer;">Close</button>
             `;
-            window.showCustomModal(helpHTML);
-            DOM.noteInput.value = ''; return;
+            window.showCustomModal(helpHTML); DOM.noteInput.value = ''; return;
+        }
+
+        // أداة مسح المتجر المحلي (لإصلاح الدوائر المعطوبة)
+        if (txt.startsWith(">reset")) {
+            localStorage.removeItem('my_anim_store');
+            DOM.noteInput.value = ''; alert('🧹 تم تنظيف المتجر المحلي بنجاح!'); window.renderAnimStore(); return;
         }
         
-        // تسجيل الدخول
         if (txt.startsWith(">admin |")) {
             localStorage.setItem('my_master_key', txt.split('|')[1].trim());
             DOM.noteInput.value = ''; alert('🔓 Admin Mode Activated!'); return;
         }
 
-        // الإضافة المحلية
         if (txt.startsWith(">add |")) {
             try {
                 let p = txt.split('|'); let newAnim = { icon: p[1].trim(), id: p[2].trim(), playScript: p[3].trim(), stopScript: p[4].trim() };
@@ -1421,15 +1404,18 @@ function initUltimateStore() {
             } catch(e) {} return;
         }
 
-        // النشر للسحابة
         if (txt.startsWith(">publish |")) {
             let mKey = localStorage.getItem('my_master_key');
             if(!mKey) { alert("⛔ Login as admin first: >admin | MASTER_KEY"); return; }
             try {
                 DOM.noteInput.placeholder = "⏳ Deploying..."; DOM.noteInput.value = '';
                 let p = txt.split('|'); let newAnim = { icon: p[1].trim(), id: p[2].trim(), playScript: p[3].trim(), stopScript: p[4].trim() };
-                let getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
-                let cloudAnims = getRes.ok ? await getRes.json() : [];
+                
+                // جلب الداتا باستخدام Master Key لتجنب أخطاء JSONBin
+                let getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+                if (!getRes.ok) throw new Error("GET Failed: " + getRes.status);
+                
+                let cloudAnims = await getRes.json();
                 if(!Array.isArray(cloudAnims)) cloudAnims = [];
                 cloudAnims.push(newAnim);
                 
@@ -1438,36 +1424,19 @@ function initUltimateStore() {
                     headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey },
                     body: JSON.stringify(cloudAnims)
                 });
-                if(putRes.ok) { alert('🚀 Published Globally!'); window.renderAnimStore(); }
-            } catch(e) { alert("❌ Network Error."); }
+                if(!putRes.ok) throw new Error("PUT Failed: " + putRes.status);
+                
+                alert('🚀 Published Globally!'); window.renderAnimStore();
+            } catch(e) { 
+                alert("❌ Network Error: " + e.message); // تم إضافة تفاصيل الخطأ هنا
+            }
             DOM.noteInput.placeholder = "Type your note here..."; return;
         }
 
-        // إزالة من السحابة
-        if (txt.startsWith(">remove_cloud |")) {
-            let mKey = localStorage.getItem('my_master_key');
-            let targetId = txt.split('|')[1].trim();
-            if(!mKey) return;
-            try {
-                DOM.noteInput.placeholder = "⏳ Removing..."; DOM.noteInput.value = '';
-                let getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
-                let cloudAnims = getRes.ok ? await getRes.json() : [];
-                let filtered = cloudAnims.filter(a => a.id !== targetId);
-                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey },
-                    body: JSON.stringify(filtered)
-                });
-                alert(`🗑️ Removed!`); window.renderAnimStore();
-            } catch(e) {} DOM.noteInput.placeholder = "Type your note here..."; return;
-        }
-
-        // توليد الكود
         if (txt.startsWith(">gen |")) {
             let p = txt.split('|'); let generatedCode = window.generateLicenseKey(p[1].trim(), p[2].trim());
             let adminHTML = `
                 <h3 style="margin-bottom:10px; color:#10b981;">✅ License Generated</h3>
-                <p style="font-size:13px; color:var(--text-sub); margin-bottom:15px;">Send this key to the user:</p>
                 <div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:12px; border:1px solid var(--border-glass); margin-bottom:15px;">
                     <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:22px;">${generatedCode}</span>
                     <button id="copyBtnElement" onclick="window.copyToClipboard('${generatedCode}')" style="background:#3b82f6; width:100%; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:bold; margin-top:10px;"><i class="fas fa-copy"></i> Copy</button>
@@ -1480,10 +1449,7 @@ function initUltimateStore() {
         if (originalSaveNote) originalSaveNote();
     };
 }
-initUltimateStore();
-
-
-
+initUltimateStore();  
 
 
 
