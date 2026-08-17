@@ -402,12 +402,29 @@
 
 
         let tgParamRaw = tg?.initDataUnsafe?.start_param || '';
-// إذا كان الرابط يحمل كود تفعيل VIP، لا نعتبره اسم دولة
-let isVipLink = tgParamRaw.startsWith('VIP-');
-let TG_PARAM = isVipLink ? '' : tgParamRaw;
+let vipCodeFromParam = '';
+let countryFromParam = '';
 
-let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
-const TARGET_COUNTRY = targetRaw.trim();
+// فحص إذا كان الرابط يحتوي على (دولة + كود VIP) معاً مفصولين بـ __
+if (tgParamRaw.includes('__')) {
+    let parts = tgParamRaw.split('__');
+    vipCodeFromParam = parts.find(p => p.startsWith('VIP-')) || '';
+    countryFromParam = parts.find(p => !p.startsWith('VIP-')) || '';
+} else if (tgParamRaw.startsWith('VIP-')) {
+    vipCodeFromParam = tgParamRaw;
+} else {
+    countryFromParam = tgParamRaw;
+}
+
+// تحديد الدولة (مع ألمانيا كخيار احتياطي أساسي)
+const DEFAULT_FALLBACK_COUNTRY = 'Germany';
+let savedCountry = localStorage.getItem('radio_last_country') || DEFAULT_FALLBACK_COUNTRY;
+let targetRaw = (countryFromParam ? countryFromParam.replace(/_/g, ' ') : '') || savedCountry || PARAMS.get('name') || PARAMS.get('country') || DEFAULT_FALLBACK_COUNTRY;
+
+const TARGET_COUNTRY = targetRaw.trim() || DEFAULT_FALLBACK_COUNTRY;
+if (TARGET_COUNTRY && TARGET_COUNTRY !== 'Global Radio') {
+    localStorage.setItem('radio_last_country', TARGET_COUNTRY);
+}
 
 
 
@@ -1420,21 +1437,14 @@ function initProStore() {
 
 
 
+// 6. التحقق الفوري وتفعيل الرابط المباشر للمستخدم للأبد
+    let startParam = vipCodeFromParam || (tg?.initDataUnsafe?.start_param && tg.initDataUnsafe.start_param.startsWith("VIP-") ? tg.initDataUnsafe.start_param : '');
+    if (startParam) {
+        let defaultAnims = [{ icon: '🦋', id: '1' }];
 
-// 6. التحقق من الروابط الذكية (Deep Linking) والتفعيل الصامت
-    let startParam = tg?.initDataUnsafe?.start_param;
-    if (startParam && startParam.startsWith("VIP-")) {
-        // فحص العناصر الافتراضية + عناصر السحابة
-        fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } })
-        .then(r => r.json())
-        .then(cloudAnims => {
-            let defaultAnims = [
-                { icon: '🦋', id: '1' }
-            ];
-            let all = [...defaultAnims, ...(Array.isArray(cloudAnims) ? cloudAnims : [])];
+        function checkAndUnlock(list) {
             let found = false;
-
-            all.forEach(anim => {
+            list.forEach(anim => {
                 let sId = window.getScrambledId(baseId, anim.id);
                 let expectedCode = window.generateLicenseKey(sId, anim.id);
                 if (startParam.toUpperCase() === expectedCode) {
@@ -1446,12 +1456,19 @@ function initProStore() {
             if (found) {
                 setTimeout(() => {
                     alert(`🎉 Success! Effect #${found} has been unlocked permanently.`);
-                    window.renderAnimStore();
-                }, 800);
+                    if(window.renderAnimStore) window.renderAnimStore();
+                }, 500);
             }
+        }
+
+        checkAndUnlock(defaultAnims);
+
+        fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } })
+        .then(r => r.json())
+        .then(cloudAnims => {
+            if (Array.isArray(cloudAnims)) checkAndUnlock(cloudAnims);
         }).catch(e => {});
     }
-
 
 
 
