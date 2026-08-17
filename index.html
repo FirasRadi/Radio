@@ -399,39 +399,10 @@
 
 
 
-
-
-        let tgParamRaw = tg?.initDataUnsafe?.start_param || '';
-let vipCodeFromParam = '';
-let countryFromParam = '';
-
-// فحص إذا كان الرابط يحتوي على (دولة + كود VIP) معاً مفصولين بـ __
-if (tgParamRaw.includes('__')) {
-    let parts = tgParamRaw.split('__');
-    vipCodeFromParam = parts.find(p => p.startsWith('VIP-')) || '';
-    countryFromParam = parts.find(p => !p.startsWith('VIP-')) || '';
-} else if (tgParamRaw.startsWith('VIP-')) {
-    vipCodeFromParam = tgParamRaw;
-} else {
-    countryFromParam = tgParamRaw;
-}
-
-// تحديد الدولة (مع ألمانيا كخيار احتياطي أساسي)
-const DEFAULT_FALLBACK_COUNTRY = 'Germany';
-let savedCountry = localStorage.getItem('radio_last_country') || DEFAULT_FALLBACK_COUNTRY;
-let targetRaw = (countryFromParam ? countryFromParam.replace(/_/g, ' ') : '') || savedCountry || PARAMS.get('name') || PARAMS.get('country') || DEFAULT_FALLBACK_COUNTRY;
-
-const TARGET_COUNTRY = targetRaw.trim() || DEFAULT_FALLBACK_COUNTRY;
-if (TARGET_COUNTRY && TARGET_COUNTRY !== 'Global Radio') {
-    localStorage.setItem('radio_last_country', TARGET_COUNTRY);
-}
-
-
-
         
-//        const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
- //       let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
- //       const TARGET_COUNTRY = targetRaw.trim();
+        const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
+        let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
+        const TARGET_COUNTRY = targetRaw.trim();
 
 
 
