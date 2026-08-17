@@ -396,10 +396,30 @@
         try { userPhotosGallery = JSON.parse(localStorage.getItem('radio_user_photos')) || []; } catch(e) { userPhotosGallery = []; }
 
         const PARAMS = new URLSearchParams(window.location.search);
-        const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
-        let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
-        const TARGET_COUNTRY = targetRaw.trim();
 
+
+
+
+
+        let tgParamRaw = tg?.initDataUnsafe?.start_param || '';
+// إذا كان الرابط يحمل كود تفعيل VIP، لا نعتبره اسم دولة
+let isVipLink = tgParamRaw.startsWith('VIP-');
+let TG_PARAM = isVipLink ? '' : tgParamRaw;
+
+let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
+const TARGET_COUNTRY = targetRaw.trim();
+
+
+
+        
+//        const TG_PARAM = tg?.initDataUnsafe?.start_param || '';
+ //       let targetRaw = TG_PARAM.replace(/_/g, ' ') || PARAMS.get('name') || PARAMS.get('country') || '';
+ //       const TARGET_COUNTRY = targetRaw.trim();
+
+
+
+
+    
         let audioUnlocked = false;
         document.body.addEventListener('touchstart', function() {
             if (!audioUnlocked && DOM.audio) {
@@ -1393,12 +1413,24 @@ function initProStore() {
     };
 
     // 6. التحقق الفوري وتفعيل الرابط عند الفتح (One-Time Auto Activation)
+
+
+
+
+
+
+
+
+// 6. التحقق من الروابط الذكية (Deep Linking) والتفعيل الصامت
     let startParam = tg?.initDataUnsafe?.start_param;
     if (startParam && startParam.startsWith("VIP-")) {
+        // فحص العناصر الافتراضية + عناصر السحابة
         fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } })
         .then(r => r.json())
         .then(cloudAnims => {
-            let defaultAnims = [{ icon: '🦋', id: '1' }];
+            let defaultAnims = [
+                { icon: '🦋', id: '1' }
+            ];
             let all = [...defaultAnims, ...(Array.isArray(cloudAnims) ? cloudAnims : [])];
             let found = false;
 
@@ -1413,12 +1445,22 @@ function initProStore() {
 
             if (found) {
                 setTimeout(() => {
-                    alert(`🎉 Success! Effect #${found} has been unlocked permanently for your device.`);
+                    alert(`🎉 Success! Effect #${found} has been unlocked permanently.`);
                     window.renderAnimStore();
                 }, 800);
             }
         }).catch(e => {});
     }
+
+
+
+
+
+
+
+
+
+    
 
     // أوامر الإدارة في السحابة
     window.adminActionAdd = () => {
