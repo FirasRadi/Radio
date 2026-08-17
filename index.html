@@ -1169,33 +1169,14 @@
 // 🛒 متجر الأنميشن الاحترافي (نظام التشفير وحماية الأكواد)
 // ======================================================
 
-// ======================================================
-// 🛒 VIP FX Store (Encryption, Custom Modals, English)
-// ====================================================
         
 // ======================================================
-// 🛒 VIP Cloud FX Store (Complete Final Version)
-
-
-
-      // ======================================================
-// 🛒 VIP Cloud FX Store (Complete Final Version - Bug Fixes)
-// ======================================================
-
-    
-
-// ======================================================
-// 🛒 VIP Cloud Store (Visual Admin UI & No More Commands)
-// ======================================================
-
-// ======================================================
-// 🛒 VIP Cloud Store (Stripe Integration, None Button, View Code)
+// 🛒 VIP Cloud Store (Visual Admin UI, None Button, Edit Mode)
 // ======================================================
 
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
 const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
-const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; // رابط الدفع
-const QR_IMAGE = "https://i.postimg.cc/nrxQX1Fn/IMG-20260816-233255.jpg"; // صورة الكود
+const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; // رابط دفع سترايب
 const MY_BOT_USERNAME = "Time_of_world_origins_bot"; 
 const SECRET_SALT = "TIME_WORLD_2026"; 
 
@@ -1266,17 +1247,14 @@ function initVisualAdminStore() {
         });
     };
 
-
-    
-
-// --- أوامر لوحة تحكم المدير ---
+    // 🌟 دوال الإدارة المرئية (بدون أوامر كتابية) 🌟
     window.adminActionAdd = () => {
         let formHTML = `
             <h3 style="color:#10b981; margin-bottom:15px;">➕ Add to Cloud</h3>
             <input id="newIcon" placeholder="Icon (e.g. 🍉)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:12px; border-radius:8px; margin-bottom:10px; outline:none; text-align:center;">
             <input id="newId" placeholder="ID Number (e.g. 5)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:12px; border-radius:8px; margin-bottom:10px; outline:none; text-align:center;">
             <textarea id="newPlay" placeholder="Play Script (JS)" rows="3" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:12px; border-radius:8px; margin-bottom:10px; outline:none; font-family:monospace;"></textarea>
-            <textarea id="newStop" placeholder="Stop Script (JS) - to stop and clean up" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:12px; border-radius:8px; margin-bottom:15px; outline:none; font-family:monospace;"></textarea>
+            <textarea id="newStop" placeholder="Stop Script (JS) - to clean up" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:12px; border-radius:8px; margin-bottom:15px; outline:none; font-family:monospace;"></textarea>
             <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:10px; cursor:pointer;">🚀 Deploy to Cloud</button>
             <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid #ef4444; color:#ef4444; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Cancel</button>
         `;
@@ -1307,21 +1285,6 @@ function initVisualAdminStore() {
         } catch(e) { alert('❌ Network Error'); window.renderAnimStore(); }
     };
 
-    window.adminActionGenKey = () => {
-        let uId = prompt("Enter User ID to generate license:");
-        if(!uId) return;
-        let code = window.generateLicenseKey(uId.trim(), window.adminSelectedAnim.id);
-        let html = `
-            <h3 style="color:#10b981;">✅ Key Generated</h3>
-            <div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:12px; border:1px solid var(--border-glass); margin:15px 0;">
-                <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:22px;">${code}</span>
-            </div>
-            <button id="copyBtnElement" onclick="window.copyToClipboard('${code}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:10px;">Copy Key</button>
-            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:12px; border-radius:12px; font-weight:bold;">Close</button>
-        `;
-        window.showCustomModal(html);
-    };
-
     window.adminActionDelete = async () => {
         let id = window.adminSelectedAnim.id;
         if(!confirm(`⚠️ Delete item #${id} globally?`)) return;
@@ -1333,6 +1296,7 @@ function initVisualAdminStore() {
             let data = await res.json();
             let filtered = data.filter(x => x.id !== id);
             if(filtered.length === 0) filtered = [{"id":"empty", "icon":"🔄", "playScript":"", "stopScript":""}];
+            
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey },
                 body: JSON.stringify(filtered)
@@ -1341,20 +1305,6 @@ function initVisualAdminStore() {
         } catch(e) { alert('❌ Error deleting'); window.renderAnimStore(); }
     };
 
-    window.adminActionNuke = async () => {
-        if(!confirm('☢️ WARNING: Wipe all items from the cloud?')) return;
-        let mKey = localStorage.getItem('my_master_key');
-        grid.innerHTML = '<div style="color:#ef4444; margin:auto;"><i class="fas fa-skull"></i> NUKING...</div>';
-        try {
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, 
-                body: JSON.stringify([{"id":"empty", "icon":"🔄", "playScript":"", "stopScript":""}])
-            });
-            alert('☢️ Cloud Wiped Successfully!'); window.renderAnimStore();
-        } catch(e) { alert('❌ Failed to wipe'); }
-    };
-
-    // 🌟 الميزة الجديدة: تعديل السكربت المحفوظ في السحابة 🌟
     window.adminActionEditCode = () => {
         let anim = window.adminSelectedAnim;
         let editHTML = `
@@ -1367,7 +1317,6 @@ function initVisualAdminStore() {
             <textarea id="editPlay" style="width:100%; background:rgba(0,0,0,0.5); color:#10b981; border:1px solid #3b82f6; padding:10px; border-radius:8px; font-family:monospace; font-size:11px; margin-bottom:10px; height:80px;">${anim.playScript}</textarea>
             <div style="text-align:left; color:#fbbf24; font-size:12px; margin-bottom:5px;">Stop Script:</div>
             <textarea id="editStop" style="width:100%; background:rgba(0,0,0,0.5); color:#ef4444; border:1px solid #3b82f6; padding:10px; border-radius:8px; font-family:monospace; font-size:11px; margin-bottom:15px; height:50px;">${anim.stopScript}</textarea>
-            
             <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:10px; cursor:pointer;">💾 Update Cloud</button>
             <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;">Cancel</button>
         `;
@@ -1381,17 +1330,14 @@ function initVisualAdminStore() {
         let mKey = localStorage.getItem('my_master_key');
         
         window.hideCustomModal();
-        grid.innerHTML = '<div style="color:#10b981; margin:auto;"><i class="fas fa-spinner fa-spin"></i> Updating Cloud...</div>';
+        grid.innerHTML = '<div style="color:#10b981; margin:auto;"><i class="fas fa-spinner fa-spin"></i> Updating...</div>';
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = await res.json();
-            
-            // تحديث العنصر المستهدف فقط
             let updatedData = data.map(x => {
-                if (x.id === targetId) { return { icon: i, id: targetId, playScript: p, stopScript: s }; }
+                if (x.id === targetId) return { icon: i, id: targetId, playScript: p, stopScript: s };
                 return x;
             });
-
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey },
                 body: JSON.stringify(updatedData)
@@ -1400,17 +1346,26 @@ function initVisualAdminStore() {
         } catch(e) { alert('❌ Error Updating'); window.renderAnimStore(); }
     };
 
-    // --- جلب وعرض المتجر ---
+    window.adminActionGenKey = () => {
+        let uId = prompt("Enter User ID:");
+        if(!uId) return;
+        let code = window.generateLicenseKey(uId.trim(), window.adminSelectedAnim.id);
+        let html = `
+            <h3 style="color:#10b981;">✅ Key Generated</h3>
+            <div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:12px; border:1px solid var(--border-glass); margin:15px 0;">
+                <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:22px;">${code}</span>
+            </div>
+            <button id="copyBtnElement" onclick="window.copyToClipboard('${code}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:10px;">Copy Key</button>
+            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:12px; border-radius:12px; font-weight:bold;">Close</button>
+        `;
+        window.showCustomModal(html);
+    };
+
+    // --- جلب وعرض المتجر للجميع ---
     window.renderAnimStore = async () => {
         let isAdmin = !!localStorage.getItem('my_master_key');
         grid.innerHTML = '<div style="color:var(--text-sub); font-size:14px; margin:auto; padding:15px;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
         
-        let defaultAnims = [{
-            icon: '❄️', id: '1', 
-            playScript: "window.sfx=setInterval(()=>{let e=document.createElement('div');e.innerText='❄️';e.style.cssText='position:fixed;left:'+Math.random()*100+'vw;top:-30px;z-index:999;pointer-events:none;transition:4s linear;opacity:0.8;font-size:18px;';document.body.appendChild(e);setTimeout(()=>e.style.top='110vh',50);setTimeout(()=>e.remove(),4000);},200);",
-            stopScript: "clearInterval(window.sfx);"
-        }];
-
         let cloudAnims = [];
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
@@ -1425,12 +1380,12 @@ function initVisualAdminStore() {
             adminBar.style.cssText = 'width:100%; display:flex; gap:10px; background:rgba(0,0,0,0.5); padding:10px; border-radius:12px; margin-bottom:15px; border:1px dashed #f59e0b;';
             adminBar.innerHTML = `
                 <button onclick="window.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer;">➕ Add</button>
-                <button onclick="window.adminActionNuke()" style="flex:1; background:#ef4444; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer;">☢️ Nuke</button>
                 <button onclick="localStorage.removeItem('my_master_key'); alert('Logged out'); window.renderAnimStore();" style="background:#64748b; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer;">Logout</button>
             `;
             grid.appendChild(adminBar);
         }
 
+        // 🌟 الدائرة السحرية: زر الإيقاف (None) 🌟
         let noneWrapper = document.createElement('div');
         noneWrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
         noneWrapper.innerHTML = `
@@ -1439,18 +1394,14 @@ function initVisualAdminStore() {
         `;
         grid.appendChild(noneWrapper);
 
-        let animMap = new Map();
-        defaultAnims.forEach(a => animMap.set(a.id, a));
-        cloudAnims.forEach(a => animMap.set(a.id, a));
-        let allAnims = Array.from(animMap.values());
-
-        if(allAnims.length === 0 && !isAdmin) {
+        if(cloudAnims.length === 0 && !isAdmin) {
             grid.innerHTML += '<div style="color:var(--text-sub); font-size:12px; margin:auto;">Store is empty.</div>';
             return;
         }
 
-        allAnims.forEach((anim) => {
+        cloudAnims.forEach((anim) => {
             let isUnlocked = localStorage.getItem('unlocked_' + anim.id) === 'true';
+            
             let wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
 
@@ -1469,17 +1420,19 @@ function initVisualAdminStore() {
                 sheet.classList.remove('open'); overlay.classList.remove('open');
                 if(window.activeStopScript) { try{ new Function(window.activeStopScript)(); } catch(e){} }
 
+                // 🌟 لوحة الإدارة عند الضغط على أي دائرة 🌟
                 if (isAdmin) {
                     window.adminSelectedAnim = anim;
                     let adminItemHTML = `
                         <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
-                        <div style="font-size:14px; font-weight:bold; color:#f59e0b; margin-bottom:15px;">Admin: Item #${anim.id}</div>
+                        <div style="font-size:14px; font-weight:bold; color:#f59e0b; margin-bottom:15px;">Manage Item #${anim.id}</div>
                         
                         <button onclick="window.hideCustomModal(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; margin-bottom:10px; font-weight:bold; cursor:pointer;">▶️ Test Effect</button>
                         
-                        <button onclick="window.adminActionGenKey()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; margin-bottom:10px; font-weight:bold; cursor:pointer;">🔑 Generate Key</button>
-                        
-                        <button onclick="window.adminActionEditCode()" style="width:100%; background:#8b5cf6; color:#fff; border:none; padding:12px; border-radius:10px; margin-bottom:10px; font-weight:bold; cursor:pointer;">✏️ Edit Script</button>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <button onclick="window.adminActionGenKey()" style="flex:1; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">🔑 Gen Key</button>
+                            <button onclick="window.adminActionEditCode()" style="flex:1; background:#8b5cf6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">✏️ Edit</button>
+                        </div>
 
                         <button onclick="window.adminActionDelete()" style="width:100%; background:#ef4444; color:#fff; border:none; padding:12px; border-radius:10px; margin-bottom:10px; font-weight:bold; cursor:pointer;">🗑️ Delete Globally</button>
                         
@@ -1489,6 +1442,7 @@ function initVisualAdminStore() {
                     return;
                 }
 
+                // تجربة الزائر العادي
                 if (isUnlocked) {
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                 } else {
@@ -1497,27 +1451,20 @@ function initVisualAdminStore() {
                         if(window.activeStopScript === anim.stopScript) { try{ new Function(anim.stopScript)(); } catch(e){} window.activeStopScript = null; }
                         let correctCode = window.generateLicenseKey(myUserId, anim.id);
 
-                        // 🌟 تحديث رسالة البوت لتكون نصية واضحة بدلاً من start= 🌟
-                        let tgMessage = encodeURIComponent(`👋 Hello!\nI want to buy Effect #${anim.id} (${anim.icon}).\n💳 I have paid via Stripe.\n📱 My Device ID is: ${myUserId}\n\nPlease send my Activation Key!`);
-
                         let modalHTML = `
                             <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
                             <h3 style="margin-bottom:10px; color:#fff;">Unlock Item #${anim.id} 🔒</h3>
-                            <p style="font-size:12px; color:var(--text-sub); margin-bottom:15px;">Pay €1 to unlock this effect permanently. Choose Stripe or scan the QR.</p>
-                            
-                            <div style="background:#fff; padding:10px; border-radius:12px; display:inline-block; margin-bottom:15px; border:2px solid #10b981;">
-                                <img src="${QR_IMAGE}" style="width:120px; height:120px; object-fit:cover; display:block;">
-                            </div>
+                            <p style="font-size:12px; color:var(--text-sub); margin-bottom:15px;">Pay €1 via Stripe to unlock this effect permanently.</p>
 
                             <button onclick="window.open('${STRIPE_LINK}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; font-size:15px; margin-bottom:15px; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px;"><i class="fab fa-stripe-s" style="font-size:18px;"></i> Pay with Stripe (€1)</button>
                             
                             <p style="font-size:11px; color:#f59e0b; margin-bottom:8px;">After payment, send your ID to the developer:</p>
                             <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:8px; border:1px solid var(--border-glass); display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                                 <span id="myIdSpan" style="font-family:monospace; font-weight:bold; color:#10b981; font-size:14px;">${myUserId}</span>
-                                <button onclick="window.copyToClipboard('${myUserId}')" style="background:#3b82f6; color:#fff; border:none; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">Copy</button>
+                                <button onclick="window.copyToClipboard('${myUserId}')" style="background:#3b82f6; color:#fff; border:none; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">Copy ID</button>
                             </div>
 
-                            <button onclick="let u='https://t.me/${MY_BOT_USERNAME}?text=${tgMessage}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:10px; border-radius:10px; font-weight:bold; font-size:13px; margin-bottom:15px; cursor:pointer;"><i class="fab fa-telegram"></i> Message Developer</button>
+                            <button onclick="let u='https://t.me/${MY_BOT_USERNAME}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:10px; border-radius:10px; font-weight:bold; font-size:13px; margin-bottom:15px; cursor:pointer;"><i class="fab fa-telegram"></i> Message Developer</button>
                             
                             <hr style="border:0; height:1px; background:var(--border-glass); margin-bottom:15px;">
                             <input type="text" id="licenseInput" placeholder="Enter License Key..." style="width:100%; background:rgba(0,0,0,0.4); border:1px solid #10b981; color:#fff; padding:12px; border-radius:12px; font-family:monospace; text-align:center; margin-bottom:15px; outline:none;">
@@ -1541,7 +1488,7 @@ function initVisualAdminStore() {
         let inputCode = document.getElementById('licenseInput').value.trim().toUpperCase();
         if (inputCode === correctCode) {
             localStorage.setItem('unlocked_' + animId, 'true');
-            window.hideCustomModal(); alert('✅ Effect Unlocked Successfully!'); window.renderAnimStore();
+            window.hideCustomModal(); alert('✅ Effect Unlocked!'); window.renderAnimStore();
         } else { alert('❌ Invalid License Key!'); }
     };
 
@@ -1551,19 +1498,18 @@ function initVisualAdminStore() {
     overlay.onclick = toggleStore;
     window.renderAnimStore();
 
+    // 4. تسجيل الدخول كمدير فقط من الملاحظات
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = async () => {
         let txt = DOM.noteInput.value.trim();
         if (txt.startsWith(">admin |")) {
             localStorage.setItem('my_master_key', txt.split('|')[1].trim());
-            DOM.noteInput.value = ''; alert('🔓 Admin Buttons Unlocked!'); window.renderAnimStore(); return;
+            DOM.noteInput.value = ''; alert('🔓 Admin Mode Unlocked!'); window.renderAnimStore(); return;
         }
         if (originalSaveNote) originalSaveNote();
     };
 }
 initVisualAdminStore();
-
-
 
 
 
