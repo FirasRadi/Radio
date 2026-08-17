@@ -1179,32 +1179,37 @@
 // 🛒 VIP Cloud Store (Advanced Crypto, Deep Linking, Elegant UI)
 // ======================================================
 
+// ======================================================
+// 🛒 VIP Cloud Store (Direct User Chat & 1-Click Link Generator)
+// ======================================================
+
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
 const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
 const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
-const DEVELOPER_BOT = "developer_origins_bot"; // بوتك الخاص بالتواصل
+const DEVELOPER_USERNAME = "developer_origins_bot"; // حسابك الشخصي المباشر
+const APP_BOT_LINK = "https://t.me/Time_of_world_origins_bot/Radio"; // رابط تطبيق الراديو الخاص بك
 const SECRET_SALT = "TIME_WORLD_2026"; 
 
 function initProStore() {
-    // 1. استخراج بيانات تيليجرام
+    // 1. بيانات المستخدم
     let tgUser = tg?.initDataUnsafe?.user;
     let baseId = localStorage.getItem('my_base_id');
     if (!baseId) {
         baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
         localStorage.setItem('my_base_id', baseId);
     }
-    let userName = tgUser?.first_name || "Unknown User";
+    let userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
 
-    // 2. خوارزمية تشفير الآيدي لكل عنصر (العبقرية التي طلبتها)
+    // 2. خوارزمية تشفير الآيدي لكل عنصر (لتغيير الأرقام لكل عنصر)
     window.getScrambledId = (bId, itemId) => {
         let clean = bId.toString().replace('TG-', '').replace('U-', '');
         let prefix = bId.toString().startsWith('TG-') ? 'TG-' : 'U-';
-        let shift = parseInt(itemId) % 10;
+        let shift = (parseInt(itemId) * 3) % 10;
         let scrambled = clean.split('').map(c => isNaN(c) ? c : (parseInt(c) + shift) % 10).join('');
         return `${prefix}${scrambled}-${itemId}`;
     };
 
-    // 3. خوارزمية توليد الأكواد
+    // 3. خوارزمية التشفير وتوليد كود VIP
     window.generateLicenseKey = (scrambledId, scriptId) => {
         let raw = scrambledId + "|" + scriptId + "|" + SECRET_SALT;
         let hash1 = 5381, hash2 = 52711;
@@ -1218,7 +1223,7 @@ function initProStore() {
         return `VIP-${p1}-${p2}`;
     };
 
-    // بناء الواجهات
+    // بناء الواجهة
     let headerRight = document.querySelector('.header-right');
     let storeBtn = document.createElement('button');
     storeBtn.className = 'icon-btn';
@@ -1233,20 +1238,31 @@ function initProStore() {
     let grid = sheet.querySelector('#animStoreGrid');
 
     let customModalOverlay = document.createElement('div');
-    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.9); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); transition:0.3s;';
+    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.92); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s;';
     let customModalBox = document.createElement('div');
-    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.1); width:90%; max-width:320px; border-radius:24px; padding:20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff;';
+    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.12); width:88%; max-width:320px; border-radius:24px; padding:20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff;';
     customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
 
     window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; };
     window.hideCustomModal = () => { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; };
 
-    // 4. جلب المتجر
+    window.copyToClipboard = (text, btnId) => {
+        navigator.clipboard.writeText(text).then(() => {
+            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            let btn = document.getElementById(btnId || 'copyBtnElement');
+            if(btn) {
+                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => btn.innerHTML = old, 2000);
+            }
+        });
+    };
+
+    // 4. عرض المتجر
     window.renderAnimStore = async () => {
         let isAdmin = !!localStorage.getItem('my_master_key');
         grid.innerHTML = '<div style="color:var(--text-sub); margin:auto;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
         
-        // العناصر الأساسية (بلا والفراشة)
+        // العناصر الافتراضية
         let defaultAnims = [
             { icon: '🚫', id: '0', playScript: "", stopScript: "document.body.style.background=''; document.body.style.filter='';" },
             { icon: '🦋', id: '1', playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),5000);}, 400);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
@@ -1257,7 +1273,7 @@ function initProStore() {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
             if(res.ok) cloudAnims = await res.json();
         } catch(e) {}
-        cloudAnims = cloudAnims.filter(a => a.id !== "empty");
+        cloudAnims = cloudAnims.filter(a => a.id && a.id !== "empty");
 
         let animMap = new Map();
         defaultAnims.forEach(a => animMap.set(a.id, a));
@@ -1274,7 +1290,7 @@ function initProStore() {
         }
 
         allAnims.forEach((anim) => {
-            let isUnlocked = anim.id === '0' || localStorage.getItem('unlocked_' + anim.id) === 'true'; // None (0) always unlocked
+            let isUnlocked = anim.id === '0' || localStorage.getItem('unlocked_' + anim.id) === 'true';
             let sId = window.getScrambledId(baseId, anim.id);
             let cCode = window.generateLicenseKey(sId, anim.id);
 
@@ -1297,10 +1313,10 @@ function initProStore() {
                 if (isAdmin && anim.id !== '0') {
                     window.adminSelectedAnim = anim;
                     let adminItemHTML = `
-                        <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
-                        <div style="font-size:14px; font-weight:bold; color:#f59e0b; margin-bottom:15px;">Admin: Item #${anim.id}</div>
+                        <div style="font-size:38px; margin-bottom:5px;">${anim.icon}</div>
+                        <div style="font-size:14px; font-weight:bold; color:#f59e0b; margin-bottom:15px;">Item #${anim.id} Admin</div>
                         <button onclick="window.hideCustomModal(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:10px; margin-bottom:8px; font-weight:bold;">▶️ Test Effect</button>
-                        <button onclick="let u=prompt('Enter User ID:'); if(u){let c=window.generateLicenseKey(u, '${anim.id}'); alert('Key: '+c);}" style="width:100%; background:#10b981; color:#fff; border:none; padding:10px; border-radius:10px; margin-bottom:8px; font-weight:bold;">🔑 Gen Key</button>
+                        <button onclick="window.adminGenOneClickLink('${anim.id}')" style="width:100%; background:#10b981; color:#fff; border:none; padding:10px; border-radius:10px; margin-bottom:8px; font-weight:bold;">🔗 Generate 1-Click Link</button>
                         ${anim.id !== '1' ? `<button onclick="window.adminActionDelete()" style="width:100%; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:10px; margin-bottom:8px; font-weight:bold;">🗑️ Delete Globally</button>` : ''}
                         <button onclick="window.hideCustomModal(); document.querySelector('.icon-btn[title=\\'FX Store\\']').click();" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:10px; border-radius:10px; font-weight:bold;">Cancel</button>
                     `;
@@ -1315,23 +1331,22 @@ function initProStore() {
                     setTimeout(() => {
                         if(window.activeStopScript === anim.stopScript) { try{ new Function(anim.stopScript)(); } catch(e){} window.activeStopScript = null; }
                         
-                        // 🌟 رسالة تيليجرام المنسقة والجاهزة للإرسال 🌟
-                        let msgText = `Hello! \nName: ${userName}\nID: ${sId}\nI want to buy item #${anim.id} (${anim.icon})`;
+                        // 🌟 رسالة الحساب الشخصي الجاهزة للإرسال مباشرة 🌟
+                        let formattedMsg = `Name: ${userName}\nID: ${sId}\nI want to buy item #${anim.id} (${anim.icon})`;
+                        let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(formattedMsg)}`;
 
                         let modalHTML = `
-                            <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
-                            <h3 style="margin-bottom:10px; color:#fff;">Unlock Item #${anim.id}</h3>
-                            <p style="font-size:12px; color:var(--text-sub); margin-bottom:15px;">Experience ended. Get permanent access for €1.</p>
+                            <div style="font-size:36px; margin-bottom:5px;">${anim.icon}</div>
+                            <h3 style="margin-bottom:6px; color:#fff; font-size:17px;">Unlock Item #${anim.id}</h3>
+                            <p style="font-size:12px; color:var(--text-sub); margin-bottom:15px;">Get permanent access for €1.</p>
                             
-                            <button onclick="window.open('${STRIPE_LINK}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; font-size:14px; margin-bottom:15px; cursor:pointer;"><i class="fab fa-stripe-s"></i> Pay with Stripe (€1)</button>
+                            <button onclick="window.open('${STRIPE_LINK}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; font-size:14px; margin-bottom:10px; cursor:pointer;"><i class="fab fa-stripe-s"></i> Pay with Stripe (€1)</button>
                             
-                            <p style="font-size:11px; color:#10b981; margin-bottom:8px;">After payment, contact developer:</p>
+                            <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:linear-gradient(135deg, #0ea5e9, #0284c7); color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; font-size:13px; margin-bottom:15px; cursor:pointer;"><i class="fab fa-telegram-plane"></i> Send Request to Developer</button>
                             
-                            <button onclick="navigator.clipboard.writeText('${msgText}').then(()=> { let u='https://t.me/${DEVELOPER_BOT}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank'); })" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid #3b82f6; color:#3b82f6; padding:10px; border-radius:10px; font-weight:bold; font-size:12px; margin-bottom:15px; cursor:pointer;"><i class="fas fa-copy"></i> Copy Details & Open Bot</button>
+                            <input type="text" id="licenseInput" placeholder="Enter License Key (or use direct link)..." style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:10px; border-radius:10px; font-family:monospace; text-align:center; margin-bottom:12px; outline:none; font-size:13px;">
                             
-                            <input type="text" id="licenseInput" placeholder="Paste License Key..." style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:12px; border-radius:10px; font-family:monospace; text-align:center; margin-bottom:15px; outline:none;">
-                            
-                            <div style="display:flex; gap:10px;">
+                            <div style="display:flex; gap:8px;">
                                 <button onclick="window.verifyActivation('${anim.id}', '${cCode}')" style="flex:1; background:#10b981; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold;">Activate</button>
                                 <button onclick="window.hideCustomModal()" style="flex:1; background:transparent; border:1px solid #ef4444; color:#ef4444; padding:10px; border-radius:10px; font-weight:bold;">Close</button>
                             </div>
@@ -1355,12 +1370,62 @@ function initProStore() {
     storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
     sheet.querySelector('#closeAnimStore').onclick = storeBtn.onclick; overlay.onclick = storeBtn.onclick;
 
-    // 5. أوامر لوحة تحكم السحابة (Add / Delete)
+    // 5. مولد الروابط التلقائية بنقرة واحدة (One-Click Link Generator)
+    window.adminGenOneClickLink = (itemId) => {
+        let targetScrambledId = prompt("Paste the User ID (e.g. TG-1169063391-1):");
+        if (!targetScrambledId) return;
+        
+        let code = window.generateLicenseKey(targetScrambledId.trim(), itemId);
+        let fullActivationLink = `${APP_BOT_LINK}?startapp=${code}`;
+
+        let modalHTML = `
+            <h3 style="color:#10b981; margin-bottom:10px; font-size:16px;">✅ Link Generated!</h3>
+            <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Send this link to the customer. When they click it, the effect unlocks automatically:</p>
+            
+            <div style="background:rgba(0,0,0,0.4); padding:12px; border-radius:10px; border:1px solid var(--border-glass); word-break:break-all; font-family:monospace; font-size:11px; color:#f59e0b; margin-bottom:12px; max-height:80px; overflow-y:auto;">
+                ${fullActivationLink}
+            </div>
+
+            <button id="copyLinkBtn" onclick="window.copyToClipboard('${fullActivationLink}', 'copyLinkBtn')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:13px; margin-bottom:8px; cursor:pointer;"><i class="fas fa-copy"></i> Copy Activation Link</button>
+            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:8px; border-radius:8px; font-weight:bold;">Close</button>
+        `;
+        window.showCustomModal(modalHTML);
+    };
+
+    // 6. التحقق الفوري وتفعيل الرابط عند الفتح (One-Time Auto Activation)
+    let startParam = tg?.initDataUnsafe?.start_param;
+    if (startParam && startParam.startsWith("VIP-")) {
+        fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } })
+        .then(r => r.json())
+        .then(cloudAnims => {
+            let defaultAnims = [{ icon: '🦋', id: '1' }];
+            let all = [...defaultAnims, ...(Array.isArray(cloudAnims) ? cloudAnims : [])];
+            let found = false;
+
+            all.forEach(anim => {
+                let sId = window.getScrambledId(baseId, anim.id);
+                let expectedCode = window.generateLicenseKey(sId, anim.id);
+                if (startParam.toUpperCase() === expectedCode) {
+                    localStorage.setItem('unlocked_' + anim.id, 'true');
+                    found = anim.id;
+                }
+            });
+
+            if (found) {
+                setTimeout(() => {
+                    alert(`🎉 Success! Effect #${found} has been unlocked permanently for your device.`);
+                    window.renderAnimStore();
+                }, 800);
+            }
+        }).catch(e => {});
+    }
+
+    // أوامر الإدارة في السحابة
     window.adminActionAdd = () => {
         let formHTML = `
             <h3 style="color:#10b981; margin-bottom:15px;">➕ Add Effect</h3>
-            <input id="nIcon" placeholder="Icon (e.g. 🍉)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none;">
-            <input id="nId" placeholder="ID Number (e.g. 5)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none;">
+            <input id="nIcon" placeholder="Icon (e.g. 🍉)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none; text-align:center;">
+            <input id="nId" placeholder="ID Number (e.g. 5)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none; text-align:center;">
             <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none; font-family:monospace;"></textarea>
             <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none; font-family:monospace;"></textarea>
             <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; margin-bottom:10px;">Deploy</button>
@@ -1372,7 +1437,7 @@ function initProStore() {
     window.executeAdminAdd = async () => {
         let mKey = localStorage.getItem('my_master_key');
         let i=document.getElementById('nIcon').value.trim(), id=document.getElementById('nId').value.trim(), p=document.getElementById('nPlay').value.trim(), s=document.getElementById('nStop').value.trim();
-        if(!i||!id||!p||!s) return; window.hideCustomModal(); grid.innerHTML = '<div style="color:#10b981; margin:auto;">Deploying...</div>';
+        if(!i||!id||!p||!s) return; window.hideCustomModal();
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = res.ok ? await res.json() : []; let filtered = data.filter(x => x.id !== id && x.id !== "empty");
@@ -1383,7 +1448,7 @@ function initProStore() {
     };
 
     window.adminActionDelete = async () => {
-        let mKey = localStorage.getItem('my_master_key'); let id = window.adminSelectedAnim.id; window.hideCustomModal(); grid.innerHTML = '<div style="color:#ef4444; margin:auto;">Deleting...</div>';
+        let mKey = localStorage.getItem('my_master_key'); let id = window.adminSelectedAnim.id; window.hideCustomModal();
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = await res.json(); let filtered = data.filter(x => x.id !== id);
@@ -1393,26 +1458,6 @@ function initProStore() {
         } catch(e) { window.renderAnimStore(); }
     };
 
-    // 6. التحقق من الروابط الذكية (Deep Linking) عند فتح التطبيق
-    let startParam = tg?.initDataUnsafe?.start_param;
-    if (startParam && startParam.startsWith("VIP-")) {
-        // إذا كان الرابط يحتوي على كود التفعيل، نقوم بفحص جميع العناصر لفتح العنصر المطابق
-        fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } }).then(r=>r.json()).then(cloudAnims => {
-            let found = false;
-            cloudAnims.forEach(anim => {
-                let expectedCode = window.generateLicenseKey(window.getScrambledId(baseId, anim.id), anim.id);
-                if (startParam.toUpperCase() === expectedCode) {
-                    localStorage.setItem('unlocked_' + anim.id, 'true');
-                    found = anim.id;
-                }
-            });
-            if(found) {
-                setTimeout(() => alert(`🎉 Link Activated! Item #${found} is now unlocked forever.`), 1000);
-            }
-        }).catch(e=>{});
-    }
-
-    // الملاحظات لتسجيل الدخول كمدير فقط
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = async () => {
         let txt = DOM.noteInput.value.trim();
@@ -1423,9 +1468,6 @@ function initProStore() {
     window.renderAnimStore();
 }
 initProStore();
-
-
-
 
 
 
