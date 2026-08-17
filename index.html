@@ -1198,108 +1198,128 @@
 // 🛒 VIP Cloud Store (High-Security Admin Authentication)
 // ======================================================
 
-const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
-const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
-const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
-const DEVELOPER_USERNAME = "developer_origins_bot"; 
-const SECRET_SALT = "TIME_WORLD_2026"; 
-const ADMIN_TELEGRAM_ID = 1169363091; // 🔒 آيدي حسابك الشخصي المسموح له بالإدارة فقط
+// ======================================================
+// 🛒 VIP Cloud Store (Bulletproof Scope & Flexible Admin)
+// ======================================================
 
-function initProStore() {
-    let tgUser = tg?.initDataUnsafe?.user;
-    let baseId = localStorage.getItem('my_base_id');
+(function() {
+    var BIN_ID = "6a821a3ada38895dfeec6ddc"; 
+    var ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
+    var STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
+    var DEVELOPER_USERNAME = "developer_origins_bot"; 
+    var SECRET_SALT = "TIME_WORLD_2026"; 
+    var ADMIN_TELEGRAM_ID = 1169363091; // حسابك المصرح له
+
+    var tgUser = window.tg?.initDataUnsafe?.user;
+    var baseId = localStorage.getItem('my_base_id');
     if (!baseId) {
         baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
         localStorage.setItem('my_base_id', baseId);
     }
-    let userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
+    var userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
 
-    window.getScrambledId = (bId, itemId) => {
-        let clean = bId.toString().replace('TG-', '').replace('U-', '');
-        let prefix = bId.toString().startsWith('TG-') ? 'TG-' : 'U-';
-        let shift = (parseInt(itemId) * 3) % 10;
-        let scrambled = clean.split('').map(c => isNaN(c) ? c : (parseInt(c) + shift) % 10).join('');
-        return `${prefix}${scrambled}-${itemId}`;
+    window.getScrambledId = function(bId, itemId) {
+        var clean = bId.toString().replace('TG-', '').replace('U-', '');
+        var prefix = bId.toString().startsWith('TG-') ? 'TG-' : 'U-';
+        var shift = (parseInt(itemId) * 3) % 10;
+        var scrambled = clean.split('').map(function(c) { return isNaN(c) ? c : (parseInt(c) + shift) % 10; }).join('');
+        return prefix + scrambled + "-" + itemId;
     };
 
-    window.generateLicenseKey = (scrambledId, scriptId) => {
-        let raw = scrambledId + "|" + scriptId + "|" + SECRET_SALT;
-        let hash1 = 5381, hash2 = 52711;
-        for (let i = 0; i < raw.length; i++) {
-            let char = raw.charCodeAt(i);
+    window.generateLicenseKey = function(scrambledId, scriptId) {
+        var raw = scrambledId + "|" + scriptId + "|" + SECRET_SALT;
+        var hash1 = 5381, hash2 = 52711;
+        for (var i = 0; i < raw.length; i++) {
+            var char = raw.charCodeAt(i);
             hash1 = ((hash1 << 5) + hash1) + char;
             hash2 = ((hash2 << 5) + hash2) ^ char;
         }
-        let p1 = Math.abs(hash1).toString(36).toUpperCase().padStart(4, 'X').slice(0,4);
-        let p2 = Math.abs(hash2).toString(36).toUpperCase().padStart(4, 'Y').slice(0,4);
-        return `VIP-${p1}-${p2}`;
+        var p1 = Math.abs(hash1).toString(36).toUpperCase().padStart(4, 'X').slice(0,4);
+        var p2 = Math.abs(hash2).toString(36).toUpperCase().padStart(4, 'Y').slice(0,4);
+        return "VIP-" + p1 + "-" + p2;
     };
 
-    let headerRight = document.querySelector('.header-right');
-    let storeBtn = document.createElement('button');
-    storeBtn.className = 'icon-btn';
-    storeBtn.innerHTML = '<i class="fas fa-store"></i>';
-    storeBtn.style.color = '#f59e0b';
-    headerRight.appendChild(storeBtn);
+    var headerRight = document.querySelector('.header-right');
+    if (headerRight && !document.getElementById('storeMainBtn')) {
+        var storeBtn = document.createElement('button');
+        storeBtn.id = 'storeMainBtn';
+        storeBtn.className = 'icon-btn';
+        storeBtn.innerHTML = '<i class="fas fa-store"></i>';
+        storeBtn.style.color = '#f59e0b';
+        headerRight.appendChild(storeBtn);
+    }
 
-    let overlay = document.createElement('div'); overlay.className = 'sheet-overlay';
-    let sheet = document.createElement('div'); sheet.className = 'bottom-sheet';
-    sheet.innerHTML = `<div class="sheet-header"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> VIP Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div><div class="studio-grid" id="animStoreGrid" style="flex-wrap: wrap;"></div>`;
-    document.body.appendChild(overlay); document.body.appendChild(sheet);
-    let grid = sheet.querySelector('#animStoreGrid');
+    var overlay = document.getElementById('animStoreOverlay');
+    var sheet = document.getElementById('animStoreSheet');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'animStoreOverlay';
+        overlay.className = 'sheet-overlay';
+        document.body.appendChild(overlay);
+    }
+    if (!sheet) {
+        sheet = document.createElement('div');
+        sheet.id = 'animStoreSheet';
+        sheet.className = 'bottom-sheet';
+        sheet.innerHTML = '<div class="sheet-header"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> VIP Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div><div class="studio-grid" id="animStoreGrid" style="flex-wrap: wrap;"></div>';
+        document.body.appendChild(sheet);
+    }
+    var grid = sheet.querySelector('#animStoreGrid');
 
-    let customModalOverlay = document.createElement('div');
-    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.92); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s;';
-    let customModalBox = document.createElement('div');
-    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.12); width:88%; max-width:320px; border-radius:24px; padding:20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff;';
-    customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
+    var customModalOverlay = document.getElementById('customSecModalOverlay');
+    var customModalBox = document.getElementById('customSecModalBox');
+    if (!customModalOverlay) {
+        customModalOverlay = document.createElement('div');
+        customModalOverlay.id = 'customSecModalOverlay';
+        customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.92); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s;';
+        customModalBox = document.createElement('div');
+        customModalBox.id = 'customSecModalBox';
+        customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.12); width:88%; max-width:320px; border-radius:24px; padding:20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff;';
+        customModalOverlay.appendChild(customModalBox);
+        document.body.appendChild(customModalOverlay);
+    }
 
-    window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; };
-    window.hideCustomModal = () => { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; };
+    window.showCustomModal = function(html) { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; };
+    window.hideCustomModal = function() { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; };
 
-    window.copyToClipboard = (text, btnId) => {
-        navigator.clipboard.writeText(text).then(() => {
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            let btn = document.getElementById(btnId || 'copyBtnElement');
+    window.copyToClipboard = function(text, btnId) {
+        navigator.clipboard.writeText(text).then(function() {
+            if(window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
+            var btn = document.getElementById(btnId || 'copyBtnElement');
             if(btn) {
-                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => btn.innerHTML = old, 2000);
+                var old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(function() { btn.innerHTML = old; }, 2000);
             }
         });
     };
 
-    // التحقق من صلاحيات الإدارة الحقيقية
-    window.isVerifiedAdmin = () => {
-        let key = localStorage.getItem('my_master_key');
+    window.isVerifiedAdmin = function() {
+        var key = localStorage.getItem('my_master_key');
         if (!key) return false;
-        // التحقق من حساب تليجرام المالك إذا كان التطبيق يعمل داخل تليجرام
-        if (tgUser && tgUser.id && tgUser.id !== ADMIN_TELEGRAM_ID) {
-            return false;
-        }
+        if (tgUser && tgUser.id && tgUser.id !== ADMIN_TELEGRAM_ID) return false;
         return true;
     };
 
-    // 4. عرض المتجر
-    window.renderAnimStore = async () => {
-        let isAdmin = window.isVerifiedAdmin();
+    window.renderAnimStore = async function() {
+        var isAdmin = window.isVerifiedAdmin();
         grid.innerHTML = '<div style="color:var(--text-sub); margin:auto;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
         
-        let defaultAnims = [
+        var defaultAnims = [
             { icon: '🚫', id: '0', playScript: "", stopScript: "document.body.style.background=''; document.body.style.filter='';" },
             { icon: '🦋', id: '1', playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),5000);}, 400);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
         ];
 
-        let cloudAnims = [];
+        var cloudAnims = [];
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
+            var res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
             if(res.ok) cloudAnims = await res.json();
         } catch(e) {}
-        cloudAnims = cloudAnims.filter(a => a.id && a.id !== "empty");
+        cloudAnims = Array.isArray(cloudAnims) ? cloudAnims.filter(function(a) { return a.id && a.id !== "empty"; }) : [];
 
-        let animMap = new Map();
-        defaultAnims.forEach(a => animMap.set(a.id, a));
-        cloudAnims.forEach(a => animMap.set(a.id, a));
-        let allAnims = Array.from(animMap.values());
+        var animMap = new Map();
+        defaultAnims.forEach(function(a) { animMap.set(a.id, a); });
+        cloudAnims.forEach(function(a) { animMap.set(a.id, a); });
+        var allAnims = Array.from(animMap.values());
         
         grid.innerHTML = '';
 
@@ -1310,30 +1330,30 @@ function initProStore() {
             </div>`;
         }
 
-        allAnims.forEach((anim) => {
-            let isUnlocked = anim.id === '0' || localStorage.getItem('unlocked_' + anim.id) === 'true';
-            let sId = window.getScrambledId(baseId, anim.id);
-            let cCode = window.generateLicenseKey(sId, anim.id);
+        allAnims.forEach(function(anim) {
+            var isUnlocked = anim.id === '0' || localStorage.getItem('unlocked_' + anim.id) === 'true';
+            var sId = window.getScrambledId(baseId, anim.id);
+            var cCode = window.generateLicenseKey(sId, anim.id);
 
-            let wrapper = document.createElement('div');
+            var wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
-            let item = document.createElement('div');
+            var item = document.createElement('div');
             item.className = 'studio-item'; 
             item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.3s; cursor:pointer; margin:0; ${(isUnlocked || isAdmin) ? 'border-color:#10b981; box-shadow:0 0 10px rgba(16,185,129,0.3);' : 'filter:grayscale(1); opacity:0.7;'}`;
             item.innerHTML = anim.icon;
             if(!isUnlocked && !isAdmin) item.innerHTML += `<div style="position:absolute; bottom:0; right:0; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; z-index:5;"><i class="fas fa-lock"></i></div>`;
 
-            let idLabel = document.createElement('div');
+            var idLabel = document.createElement('div');
             idLabel.innerText = anim.id === '0' ? 'None' : '#' + anim.id;
             idLabel.style.cssText = 'font-size:11px; font-weight:bold; color:var(--text-sub); font-family:monospace; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:10px;';
 
-            item.onclick = () => {
+            item.onclick = function() {
                 sheet.classList.remove('open'); overlay.classList.remove('open');
                 if(window.activeStopScript) { try{ new Function(window.activeStopScript)(); } catch(e){} window.activeStopScript=null; }
 
                 if (isAdmin && anim.id !== '0') {
                     window.adminSelectedAnim = anim;
-                    let adminItemHTML = `
+                    var adminItemHTML = `
                         <div style="font-size:38px; margin-bottom:5px;">${anim.icon}</div>
                         <div style="font-size:14px; font-weight:bold; color:#f59e0b; margin-bottom:15px;">Item #${anim.id} Admin</div>
                         <button onclick="window.hideCustomModal(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:10px; margin-bottom:8px; font-weight:bold;">▶️ Test Effect</button>
@@ -1346,23 +1366,23 @@ function initProStore() {
 
                 if (isUnlocked) {
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
-                    if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    if(window.tg && window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
-                    setTimeout(() => {
+                    setTimeout(function() {
                         if(window.activeStopScript === anim.stopScript) { try{ new Function(anim.stopScript)(); } catch(e){} window.activeStopScript = null; }
                         
-                        let formattedMsg = `Name: ${userName}\nID: ${sId}\nI want to buy item #${anim.id} (${anim.icon})`;
-                        let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(formattedMsg)}`;
+                        var formattedMsg = `Name: ${userName}\nID: ${sId}\nI want to buy item #${anim.id} (${anim.icon})`;
+                        var directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(formattedMsg)}`;
 
-                        let modalHTML = `
+                        var modalHTML = `
                             <div style="font-size:36px; margin-bottom:5px;">${anim.icon}</div>
                             <h3 style="margin-bottom:6px; color:#fff; font-size:17px;">Unlock Item #${anim.id}</h3>
                             <p style="font-size:12px; color:var(--text-sub); margin-bottom:15px;">Get permanent access for €1.</p>
                             
                             <button onclick="window.open('${STRIPE_LINK}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; font-size:14px; margin-bottom:10px; cursor:pointer;"><i class="fab fa-stripe-s"></i> Pay with Stripe (€1)</button>
                             
-                            <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:linear-gradient(135deg, #0ea5e9, #0284c7); color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; font-size:13px; margin-bottom:15px; cursor:pointer;"><i class="fab fa-telegram-plane"></i> Send Request to Developer</button>
+                            <button onclick="let u='${directChatUrl}'; window.tg&&window.tg.openTelegramLink ? window.tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:linear-gradient(135deg, #0ea5e9, #0284c7); color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; font-size:13px; margin-bottom:15px; cursor:pointer;"><i class="fab fa-telegram-plane"></i> Send Request to Developer</button>
                             
                             <input type="text" id="licenseInput" placeholder="Enter License Key..." style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:10px; border-radius:10px; font-family:monospace; text-align:center; margin-bottom:12px; outline:none; font-size:13px;">
                             
@@ -1379,39 +1399,40 @@ function initProStore() {
         });
     };
 
-    window.verifyActivation = (animId, correctCode) => {
-        let inputCode = document.getElementById('licenseInput').value.trim().toUpperCase();
+    window.verifyActivation = function(animId, correctCode) {
+        var inputCode = document.getElementById('licenseInput').value.trim().toUpperCase();
         if (inputCode === correctCode) {
             localStorage.setItem('unlocked_' + animId, 'true');
             window.hideCustomModal(); alert('✅ Unlocked Successfully!'); window.renderAnimStore();
         } else { alert('❌ Invalid License Key!'); }
     };
 
-    storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
-    sheet.querySelector('#closeAnimStore').onclick = storeBtn.onclick; overlay.onclick = storeBtn.onclick;
+    var btnEl = document.getElementById('storeMainBtn');
+    if (btnEl) {
+        btnEl.onclick = function() { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
+    }
+    var closeBtn = sheet.querySelector('#closeAnimStore');
+    if (closeBtn) closeBtn.onclick = function() { sheet.classList.remove('open'); overlay.classList.remove('open'); };
+    overlay.onclick = function() { sheet.classList.remove('open'); overlay.classList.remove('open'); };
 
-    window.adminGenKeyDialog = (itemId) => {
-        let targetScrambledId = prompt("Paste the User ID (e.g. TG-1169063391-1):");
+    window.adminGenKeyDialog = function(itemId) {
+        var targetScrambledId = prompt("Paste the User ID (e.g. TG-1169063391-1):");
         if (!targetScrambledId) return;
-        
-        let code = window.generateLicenseKey(targetScrambledId.trim(), itemId);
-
-        let modalHTML = `
+        var code = window.generateLicenseKey(targetScrambledId.trim(), itemId);
+        var modalHTML = `
             <h3 style="color:#10b981; margin-bottom:10px; font-size:16px;">✅ Key Generated!</h3>
             <p style="font-size:12px; color:var(--text-sub); margin-bottom:12px;">Send this activation code to the user:</p>
-            
             <div style="background:rgba(0,0,0,0.4); padding:15px; border-radius:10px; border:1px solid var(--border-glass); font-family:monospace; font-size:18px; color:#f59e0b; margin-bottom:12px; font-weight:bold; letter-spacing:1px;">
                 ${code}
             </div>
-
             <button id="copyGenKeyBtn" onclick="window.copyToClipboard('${code}', 'copyGenKeyBtn')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:13px; margin-bottom:8px; cursor:pointer;"><i class="fas fa-copy"></i> Copy Code</button>
             <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:8px; border-radius:8px; font-weight:bold;">Close</button>
         `;
         window.showCustomModal(modalHTML);
     };
 
-    window.adminActionAdd = () => {
-        let formHTML = `
+    window.adminActionAdd = function() {
+        var formHTML = `
             <h3 style="color:#10b981; margin-bottom:15px;">➕ Add Effect</h3>
             <input id="nIcon" placeholder="Icon (e.g. 🍉)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none;">
             <input id="nId" placeholder="ID Number (e.g. 5)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; outline:none;">
@@ -1423,77 +1444,78 @@ function initProStore() {
         window.showCustomModal(formHTML);
     };
 
-    window.executeAdminAdd = async () => {
-        let mKey = localStorage.getItem('my_master_key');
-        let i=document.getElementById('nIcon').value.trim(), id=document.getElementById('nId').value.trim(), p=document.getElementById('nPlay').value.trim(), s=document.getElementById('nStop').value.trim();
+    window.executeAdminAdd = async function() {
+        var mKey = localStorage.getItem('my_master_key');
+        var i=document.getElementById('nIcon').value.trim(), id=document.getElementById('nId').value.trim(), p=document.getElementById('nPlay').value.trim(), s=document.getElementById('nStop').value.trim();
         if(!i||!id||!p||!s) return; window.hideCustomModal();
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
-            let data = res.ok ? await res.json() : []; let filtered = data.filter(x => x.id !== id && x.id !== "empty");
+            var res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            var data = res.ok ? await res.json() : []; var filtered = data.filter(function(x) { return x.id !== id && x.id !== "empty"; });
             filtered.push({ icon: i, id: id, playScript: p, stopScript: s });
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
             window.renderAnimStore();
         } catch(e) { window.renderAnimStore(); }
     };
 
-    window.adminActionDelete = async () => {
-        let mKey = localStorage.getItem('my_master_key'); let id = window.adminSelectedAnim.id; window.hideCustomModal();
+    window.adminActionDelete = async function() {
+        var mKey = localStorage.getItem('my_master_key'); var id = window.adminSelectedAnim.id; window.hideCustomModal();
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
-            let data = await res.json(); let filtered = data.filter(x => x.id !== id);
+            var res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            var data = await res.json(); var filtered = data.filter(function(x) { return x.id !== id; });
             if(filtered.length === 0) filtered = [{"id":"empty"}];
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
             window.renderAnimStore();
         } catch(e) { window.renderAnimStore(); }
     };
 
-    // 🔒 تسجيل الدخول الآمن والمحمي (الحماية السحابية والفحص الفوري)
-    let originalSaveNote = DOM.saveNoteBtn.onclick;
-    DOM.saveNoteBtn.onclick = async () => {
-        let txt = DOM.noteInput.value.trim();
-        
-        if (txt.startsWith(">admin |")) {
-            let inputKey = txt.split('|')[1].trim();
+    // 🔒 مستمع الأوامر الآمن والذكي
+    if (window.DOM && window.DOM.saveNoteBtn) {
+        var originalSaveNote = window.DOM.saveNoteBtn.onclick;
+        window.DOM.saveNoteBtn.onclick = async function(e) {
+            var txt = (window.DOM.noteInput ? window.DOM.noteInput.value : "").trim();
+            
+            // قراءة مرنة لأمر الأدمن
+            if (txt.indexOf(">admin") === 0) {
+                var rawKey = txt.replace(">admin", "").replace("|", "").trim();
+                
+                if (tgUser && tgUser.id && tgUser.id !== ADMIN_TELEGRAM_ID) {
+                    alert('⛔ Security Alert: Unauthorized Telegram account.');
+                    window.DOM.noteInput.value = '';
+                    return;
+                }
 
-            // فحص آيدي حساب التليجرام أولاً
-            if (tgUser && tgUser.id && tgUser.id !== ADMIN_TELEGRAM_ID) {
-                alert('⛔ Security Alert: Unauthorized Telegram account.');
-                DOM.noteInput.value = '';
+                window.DOM.noteInput.placeholder = "🔐 Verifying Master Key...";
+                window.DOM.noteInput.value = '';
+
+                try {
+                    var testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, {
+                        headers: { 'X-Master-Key': rawKey }
+                    });
+
+                    if (testRes.ok) {
+                        localStorage.setItem('my_master_key', rawKey);
+                        alert('🔓 Identity Verified: Welcome Admin!');
+                        window.renderAnimStore();
+                    } else {
+                        localStorage.removeItem('my_master_key');
+                        alert('❌ Access Denied: Invalid Master Key!');
+                        window.renderAnimStore();
+                    }
+                } catch (err) {
+                    alert('❌ Verification Network Error');
+                }
+                window.DOM.noteInput.placeholder = "Type your note here...";
                 return;
             }
 
-            DOM.noteInput.placeholder = "🔐 Verifying Master Key with Cloud...";
-            DOM.noteInput.value = '';
-
-            try {
-                // فحص المفتاح الحقيقي مع سيرفر JSONBin
-                let testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, {
-                    headers: { 'X-Master-Key': inputKey }
-                });
-
-                if (testRes.ok) {
-                    localStorage.setItem('my_master_key', inputKey);
-                    alert('🔓 Identity Verified: Welcome Admin!');
-                    window.renderAnimStore();
-                } else {
-                    // إذا كان المفتاح خاطئ بحرف واحد (مثل Px)
-                    localStorage.removeItem('my_master_key');
-                    alert('❌ Access Denied: Invalid Master Key!');
-                    window.renderAnimStore();
-                }
-            } catch (e) {
-                alert('❌ Network verification failed.');
-            }
-            DOM.noteInput.placeholder = "Type your note here...";
-            return;
-        }
-
-        if (originalSaveNote) originalSaveNote();
-    };
+            if (originalSaveNote) originalSaveNote.call(this, e);
+        };
+    }
 
     window.renderAnimStore();
-}
-initProStore();
+})();
+
+
 
 
 
