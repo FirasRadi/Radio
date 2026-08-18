@@ -1177,498 +1177,440 @@
 // 🛒 متجر الأنميشن الاحترافي (نظام التشفير وحماية الأكواد)
 
 // ============================================================
-
 // ======================================================
-// 🛒 VIP Premium Store (Global Redeem, Flawless UI, Safe Core)
+// 🛒 VIP Premium Store (Classic Edition - Bug Free)
 // ======================================================
 
+const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
+const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
+const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
+const DEVELOPER_USERNAME = "developer_origins_bot"; 
+const SECRET_SALT = "TIME_WORLD_2026"; 
+
+function initProStore() {
+    // 1. Safe Telegram & User Detection
+    let tgApp = typeof window.Telegram !== 'undefined' ? window.Telegram.WebApp : null;
+    let tgUser = tgApp?.initDataUnsafe?.user;
     
-// ======================================================
-// 🛒 VIP Premium Store - Ultimate Edition (Flawless V3)
-// Architecture, UI, and Logic fully re-engineered.
-// ======================================================
+    let baseId = localStorage.getItem('my_base_id');
+    if (!baseId) {
+        baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
+        localStorage.setItem('my_base_id', baseId);
+    }
+    let userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
 
-const FX_STORE = {
-    config: {
-        binId: "6a821a3ada38895dfeec6ddc",
-        accessKey: "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC",
-        stripeLink: "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800",
-        devUser: "developer_origins_bot",
-        salt: "TIME_WORLD_2026"
-    },
-    state: {
-        items: [],
-        isPreviewing: false,
-        stopScript: null,
-        intervals: [],
-        masterKey: localStorage.getItem('fx_master_key') || null
-    },
-    user: {
-        id: "",
-        name: "Client"
-    },
+    // 2. Safe ID Scrambler & Key Generator
+    window.getScrambledId = (bId, itemId) => {
+        let clean = String(bId).replace(/[^0-9]/g, ''); // Extract only numbers
+        if(!clean) clean = "12345";
+        let prefix = String(bId).startsWith('TG-') ? 'TG-' : 'U-';
+        let shift = itemId === 'ALL' ? 5 : (String(itemId).charCodeAt(0) * 3) % 10;
+        let scrambled = clean.split('').map(c => (parseInt(c) + shift) % 10).join('');
+        return `${prefix}${scrambled}-${itemId}`;
+    };
 
-    init() {
-        // 1. Setup User
-        const tg = typeof window.Telegram !== 'undefined' ? window.Telegram.WebApp : null;
-        let baseId = localStorage.getItem('fx_base_id');
-        if (!baseId) {
-            baseId = tg?.initDataUnsafe?.user?.id ? "TG-" + tg.initDataUnsafe.user.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
-            localStorage.setItem('fx_base_id', baseId);
+    window.generateLicenseKey = (scrambledId, scriptId) => {
+        let raw = scrambledId + "|" + scriptId + "|" + SECRET_SALT;
+        let hash1 = 5381, hash2 = 52711;
+        for (let i = 0; i < raw.length; i++) {
+            let char = raw.charCodeAt(i);
+            hash1 = ((hash1 << 5) + hash1) + char;
+            hash2 = ((hash2 << 5) + hash2) ^ char;
         }
-        this.user.id = baseId;
-        this.user.name = tg?.initDataUnsafe?.user?.first_name || "Client";
+        let p1 = Math.abs(hash1).toString(36).toUpperCase().padStart(4, 'X').slice(0,4);
+        let p2 = Math.abs(hash2).toString(36).toUpperCase().padStart(4, 'Y').slice(0,4);
+        return `VIP-${p1}-${p2}`;
+    };
 
-        // 2. Inject Styles & UI
-        this.injectCSS();
-        this.buildUI();
-        this.loadStore();
-    },
-
-    // --- Core Utilities ---
-    haptic(type) {
-        if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp?.HapticFeedback) {
-            window.Telegram.WebApp.HapticFeedback.notificationOccurred(type);
-        }
-    },
-
-    getScrambledId(itemId) {
-        let numStr = String(this.user.id).replace(/\D/g, '') || "12345";
-        let shift = itemId === 'ALL' ? 7 : (String(itemId).charCodeAt(0) % 5);
-        let scrambled = numStr.split('').map(n => (parseInt(n) + shift) % 10).join('');
-        return `FX-${scrambled}-${itemId}`;
-    },
-
-    generateKey(scrambledId, itemId) {
-        let raw = `${scrambledId}|${itemId}|${this.config.salt}`;
-        let hash = 5381;
-        for (let i = 0; i < raw.length; i++) hash = ((hash << 5) + hash) + raw.charCodeAt(i);
-        let part = Math.abs(hash).toString(36).toUpperCase().padStart(6, 'X').slice(0, 6);
-        return `FX-${part}`;
-    },
-
-    copy(text, btnElement) {
-        navigator.clipboard.writeText(text).then(() => {
-            this.haptic('success');
-            if (btnElement) {
-                let old = btnElement.innerHTML;
-                btnElement.innerHTML = '✔'; btnElement.style.color = '#10b981';
-                setTimeout(() => { btnElement.innerHTML = old; btnElement.style.color = ''; }, 1500);
-            }
-        });
-    },
-
-    // --- UI Generation ---
-    injectCSS() {
-        if(document.getElementById('fx-store-css')) return;
-        const style = document.createElement('style');
-        style.id = 'fx-store-css';
+    // 3. Inject CSS (Missing in original code)
+    if(!document.getElementById('vip-store-css')) {
+        let style = document.createElement('style');
+        style.id = 'vip-store-css';
         style.innerHTML = `
-            .fx-fab { position:fixed; bottom:20px; right:20px; width:55px; height:55px; border-radius:50%; background:linear-gradient(135deg, #f59e0b, #ea580c); color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 25px rgba(245,158,11,0.5); z-index:9990; transition:0.3s cubic-bezier(0.4, 0, 0.2, 1); border:2px solid rgba(255,255,255,0.2); }
-            .fx-fab:hover { transform:scale(1.1) rotate(10deg); }
-            .fx-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:9995; opacity:0; pointer-events:none; transition:0.3s; display:flex; align-items:flex-end; justify-content:center; }
-            .fx-overlay.open { opacity:1; pointer-events:auto; }
-            .fx-sheet { background:#0f172a; width:100%; max-width:500px; max-height:85vh; border-radius:24px 24px 0 0; padding:20px; box-sizing:border-box; transform:translateY(100%); transition:0.4s cubic-bezier(0.4, 0, 0.2, 1); border-top:1px solid rgba(255,255,255,0.1); overflow-y:auto; box-shadow:0 -10px 40px rgba(0,0,0,0.8); }
-            .fx-overlay.open .fx-sheet { transform:translateY(0); }
-            .fx-grid { display:flex; gap:12px; overflow-x:auto; padding-bottom:10px; scrollbar-width:none; }
-            .fx-grid::-webkit-scrollbar { display:none; }
-            .fx-item { flex-shrink:0; width:70px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; position:relative; }
-            .fx-icon-box { width:65px; height:65px; border-radius:18px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; font-size:32px; border:2px solid rgba(255,255,255,0.05); transition:0.2s; position:relative; }
-            .fx-item:active .fx-icon-box { transform:scale(0.9); }
-            .fx-icon-box.unlocked { border-color:#10b981; background:rgba(16,185,129,0.1); box-shadow:0 0 15px rgba(16,185,129,0.2); }
-            .fx-icon-box.locked { filter:grayscale(1); opacity:0.6; }
-            .fx-badge { font-size:10px; font-weight:800; padding:4px 10px; border-radius:12px; color:#fff; background:rgba(255,255,255,0.1); letter-spacing:0.5px; }
-            .fx-badge.free { background:#10b981; color:#064e3b; }
-            .fx-lock { position:absolute; top:-5px; right:-5px; background:#ef4444; width:22px; height:22px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; border:2px solid #0f172a; color:#fff; }
-            .fx-modal-wrap { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px); padding:20px; }
-            .fx-modal { background:#1e293b; width:100%; max-width:320px; border-radius:24px; padding:25px; box-sizing:border-box; text-align:center; border:1px solid rgba(255,255,255,0.1); box-shadow:0 20px 50px rgba(0,0,0,0.5); color:#fff; }
-            .fx-input { width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:12px 15px; border-radius:12px; margin-bottom:10px; font-size:14px; outline:none; font-family:sans-serif; }
-            .fx-input:focus { border-color:#3b82f6; }
-            .fx-btn { width:100%; padding:14px; border-radius:12px; border:none; font-weight:bold; font-size:14px; cursor:pointer; transition:0.2s; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px; }
-            .fx-btn-green { background:#10b981; color:#fff; }
-            .fx-btn-blue { background:#3b82f6; color:#fff; }
-            .fx-btn-outline { background:transparent; border:1px solid rgba(255,255,255,0.2); color:#94a3b8; }
-            .fx-timer { position:fixed; top:40px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.9); border:3px solid #10b981; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; z-index:9999; backdrop-filter:blur(10px); box-shadow:0 10px 30px rgba(0,0,0,0.5); pointer-events:none; }
+            .h-scroll::-webkit-scrollbar { display: none; } 
+            .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+            .sheet-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(3px); z-index:9998; opacity:0; pointer-events:none; transition:0.3s; }
+            .sheet-overlay.open { opacity:1; pointer-events:auto; }
+            .bottom-sheet { position:fixed; bottom:-100%; left:0; width:100%; max-height:85vh; background:#0f172a; border-radius:24px 24px 0 0; padding:20px; z-index:9999; transition:0.4s cubic-bezier(0.4, 0, 0.2, 1); box-sizing:border-box; overflow-y:auto; box-shadow:0 -10px 40px rgba(0,0,0,0.7); border-top:1px solid rgba(255,255,255,0.1); }
+            .bottom-sheet.open { bottom:0; }
+            .icon-btn { border:none; outline:none; background:rgba(255,255,255,0.05); width:40px; height:40px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; }
+            .icon-btn:hover { background:rgba(255,255,255,0.1); }
+            .studio-item { position:relative; box-sizing:border-box; width:65px; height:65px; display:flex; align-items:center; justify-content:center; font-size:28px; border-radius:16px; background:rgba(255,255,255,0.03); cursor:pointer; transition:0.2s; margin-bottom:5px; }
+            .studio-item:active { transform:scale(0.95); }
         `;
         document.head.appendChild(style);
-    },
+    }
 
-    buildUI() {
-        // FAB Button
-        const fab = document.createElement('div');
-        fab.className = 'fx-fab';
-        fab.innerHTML = '🛒';
-        fab.onclick = () => this.toggleStore(true);
-        document.body.appendChild(fab);
+    // 4. Safely attach store button to header (Wait for header to load)
+    let storeBtn = document.createElement('button');
+    storeBtn.className = 'icon-btn';
+    storeBtn.innerHTML = '<i class="fas fa-store"></i>';
+    storeBtn.style.color = '#f59e0b';
+    
+    let checkHeader = setInterval(() => {
+        let headerRight = document.querySelector('.header-right');
+        if (headerRight) {
+            headerRight.appendChild(storeBtn);
+            clearInterval(checkHeader);
+        }
+    }, 500);
 
-        // Store Overlay & Sheet
-        this.uiOverlay = document.createElement('div');
-        this.uiOverlay.className = 'fx-overlay';
-        this.uiOverlay.innerHTML = `
-            <div class="fx-sheet" onclick="event.stopPropagation()">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <div style="font-size:20px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                        <span style="color:#f59e0b">🛒</span> FX Store
-                    </div>
-                    <div style="background:rgba(255,255,255,0.1); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff;" onclick="FX_STORE.toggleStore(false)">✕</div>
-                </div>
-
-                <div style="display:flex; gap:8px; background:rgba(0,0,0,0.4); padding:6px; border-radius:16px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05);">
-                    <input type="text" id="fxRedeemInp" placeholder="Paste License Key..." style="flex:1; background:transparent; border:none; color:#10b981; padding:10px 15px; font-family:monospace; font-weight:bold; font-size:14px; outline:none; text-transform:uppercase;">
-                    <button onclick="FX_STORE.redeem()" style="background:#10b981; color:#fff; border:none; padding:0 20px; border-radius:12px; font-weight:bold; cursor:pointer;">Unlock</button>
-                </div>
-
-                <div id="fxAdminArea"></div>
-                <div class="fx-grid" id="fxGrid"></div>
-            </div>
-        `;
-        this.uiOverlay.onclick = () => this.toggleStore(false);
-        document.body.appendChild(this.uiOverlay);
-
-        // Modal
-        this.modalWrap = document.createElement('div');
-        this.modalWrap.className = 'fx-modal-wrap';
-        this.modalWrap.innerHTML = `<div class="fx-modal" id="fxModalBox" onclick="event.stopPropagation()"></div>`;
-        this.modalWrap.onclick = () => this.closeModal();
-        document.body.appendChild(this.modalWrap);
-
-        // Timer
-        this.uiTimer = document.createElement('div');
-        this.uiTimer.className = 'fx-timer';
-        this.uiTimer.style.display = 'none';
-        document.body.appendChild(this.uiTimer);
-    },
-
-    toggleStore(state) {
-        if (state) this.uiOverlay.classList.add('open');
-        else this.uiOverlay.classList.remove('open');
-    },
-
-    openModal(html) {
-        document.getElementById('fxModalBox').innerHTML = html;
-        this.modalWrap.style.display = 'flex';
-    },
-    closeModal() {
-        this.modalWrap.style.display = 'none';
-        document.getElementById('fxModalBox').innerHTML = '';
-    },
-
-    // --- Core Logic ---
-    async loadStore() {
-        const grid = document.getElementById('fxGrid');
-        grid.innerHTML = '<div style="color:#94a3b8; width:100%; text-align:center; padding:20px;">Fetching Effects...</div>';
+    // 5. Build Original UI Layout
+    let overlay = document.createElement('div'); overlay.className = 'sheet-overlay';
+    let sheet = document.createElement('div'); sheet.className = 'bottom-sheet';
+    
+    sheet.innerHTML = `
+        <div class="sheet-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; color:#fff; font-size:18px; font-weight:bold;">
+            <div><i class="fas fa-store" style="color:#f59e0b; margin-right:8px;"></i> Premium FX Store</div>
+            <button class="close-sheet" id="closeAnimStore" style="background:rgba(255,255,255,0.1); border:none; color:#fff; width:30px; height:30px; border-radius:50%; cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
         
-        let defaults = [
-            { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "FX_STORE.stopAll();" },
-            { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "FX_STORE.intervals.push(setInterval(()=>{let e=document.createElement('div');e.className='fx-anim-el';e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9990;pointer-events:none;font-size:${Math.random()*15+20}px;transition:all 4s linear;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*200-100}px) rotate(${Math.random()*90}deg)\`;},50);setTimeout(()=>{e.remove();},4000);}, 300));", stopScript: "FX_STORE.intervals.forEach(clearInterval); document.querySelectorAll('.fx-anim-el').forEach(e=>e.remove());" }
+        <div style="display:flex; gap:8px; margin-bottom:20px; background:rgba(0,0,0,0.4); padding:8px; border-radius:14px; border:1px solid rgba(255,255,255,0.05);">
+            <input type="text" id="globalRedeemInput" placeholder="Paste License Key..." style="flex:1; background:transparent; border:none; color:#10b981; padding:8px 12px; font-family:monospace; font-weight:bold; font-size:14px; outline:none; text-transform:uppercase;">
+            <button onclick="window.globalRedeemCode()" style="background:#10b981; color:#fff; border:none; padding:8px 18px; border-radius:10px; font-weight:bold; cursor:pointer;"><i class="fas fa-unlock"></i> Redeem</button>
+        </div>
+
+        <div id="adminBarContainer" style="width:100%; margin-bottom:15px;"></div>
+        <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding-bottom:10px; scroll-behavior:smooth;"></div>
+    `;
+    document.body.appendChild(overlay); document.body.appendChild(sheet);
+    
+    let grid = sheet.querySelector('#animStoreGrid');
+    let adminBarContainer = sheet.querySelector('#adminBarContainer');
+
+    // Countdown UI
+    window.previewCountdown = document.createElement('div');
+    window.previewCountdown.style.cssText = 'position:fixed; top:30px; left:50%; transform:translateX(-50%); width:50px; height:50px; line-height:50px; font-size:24px; font-weight:900; color:#fff; z-index:10000; background:rgba(15,23,42,0.9); border-radius:50%; border:3px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.6); pointer-events:none;';
+    document.body.appendChild(window.previewCountdown);
+
+    // Modal UI
+    let customModalOverlay = document.createElement('div');
+    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10001; display:none; align-items:center; justify-content:center; backdrop-filter:blur(5px); padding:20px; box-sizing:border-box;';
+    let customModalBox = document.createElement('div');
+    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.1); width:100%; max-width:340px; border-radius:24px; padding:25px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.7); color:#fff; box-sizing:border-box;';
+    customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
+
+    window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; };
+    window.hideCustomModal = () => { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; };
+
+    // Tool: Copy text
+    window.copyToClipboard = (text, btnId) => {
+        navigator.clipboard.writeText(text).then(() => {
+            if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+            let btn = document.getElementById(btnId);
+            if(btn) {
+                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.background = '#10b981'; btn.style.color='#fff';
+                setTimeout(() => { btn.innerHTML = old; btn.style.background = 'rgba(56,189,248,0.1)'; btn.style.color='#38bdf8'; }, 2000);
+            }
+        });
+    };
+
+    // Tool: Stop Effects safely
+    window.fxActiveIntervals = [];
+    window.stopAllEffects = () => {
+        if(window.activeStopScript) { 
+            try { new Function(window.activeStopScript)(); } catch(e){} 
+            window.activeStopScript = null; 
+        }
+        window.fxActiveIntervals.forEach(clearInterval);
+        window.fxActiveIntervals = [];
+        document.querySelectorAll('.fx-gen-element').forEach(e => e.remove());
+        document.body.style.background = ''; document.body.style.filter = '';
+    };
+
+    // Global Redeem Logic
+    window.globalRedeemCode = () => {
+        let inp = document.getElementById('globalRedeemInput');
+        let inputCode = inp.value.trim().toUpperCase();
+        if(!inputCode) return;
+
+        let foundItem = null; let isBundle = false;
+
+        let expectedAll = window.generateLicenseKey(window.getScrambledId(baseId, 'ALL'), 'ALL');
+        if (inputCode === expectedAll) {
+            localStorage.setItem('unlocked_all', 'true');
+            isBundle = true; foundItem = 'ALL';
+        } else {
+            window.currentAllAnims.forEach(anim => {
+                let expected = window.generateLicenseKey(window.getScrambledId(baseId, anim.id), anim.id);
+                if (inputCode === expected) {
+                    localStorage.setItem('unlocked_' + anim.id, 'true');
+                    foundItem = anim.id;
+                }
+            });
+        }
+
+        if(foundItem) {
+            inp.value = '';
+            if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+            window.showCustomModal(`
+                <div style="font-size:45px; margin-bottom:10px;">${isBundle ? '🌟' : '✅'}</div>
+                <h3 style="color:#10b981; margin-bottom:10px;">Unlocked!</h3>
+                <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">${isBundle ? 'All Premium Effects Unlocked!' : `Effect #${foundItem} Unlocked Successfully!`}</p>
+                <button onclick="window.hideCustomModal()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold;">Continue</button>
+            `);
+            window.renderAnimStore();
+        } else {
+            inp.style.border = '1px solid #ef4444'; inp.style.color = '#ef4444';
+            if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('error');
+            setTimeout(()=> { inp.style.border = '1px solid rgba(255,255,255,0.05)'; inp.style.color = '#10b981'; }, 1000);
+        }
+    };
+
+    // Render Store Grid
+    window.renderAnimStore = async () => {
+        let isAdmin = !!localStorage.getItem('my_master_key');
+        let isAllUnlocked = localStorage.getItem('unlocked_all') === 'true';
+        grid.innerHTML = '<div style="color:#94a3b8; margin:auto; font-size:13px; padding:20px;">Syncing Store...</div>';
+        adminBarContainer.innerHTML = '';
+        
+        let defaultAnims = [
+            { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "window.stopAllEffects();" },
+            { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "window.fxActiveIntervals.push(setInterval(()=>{let e=document.createElement('div');e.className='fx-gen-element';e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9990;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>{if(e.parentNode)e.remove();},5000);}, 400));", stopScript: "window.stopAllEffects();" }
         ];
 
-        let cloud = [];
+        let cloudAnims = [];
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${this.config.binId}/latest?meta=false`, { headers: { 'X-Access-Key': this.config.accessKey } });
-            if(res.ok) cloud = await res.json();
-            if(!Array.isArray(cloud)) cloud = [];
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
+            if(res.ok) { let data = await res.json(); if(Array.isArray(data)) cloudAnims = data; }
         } catch(e) {}
-
-        const map = new Map();
-        defaults.forEach(i => map.set(i.id, i));
-        cloud.filter(i => i && i.id && i.id !== "empty").forEach(i => map.set(i.id, i));
-        this.state.items = Array.from(map.values());
-
-        this.renderGrid();
-    },
-
-    renderGrid() {
-        const grid = document.getElementById('fxGrid');
-        const adminArea = document.getElementById('fxAdminArea');
+        
+        let animMap = new Map();
+        defaultAnims.forEach(a => animMap.set(a.id, a));
+        cloudAnims.filter(a => a && a.id && a.id !== "empty").forEach(a => animMap.set(a.id, a));
+        window.currentAllAnims = Array.from(animMap.values());
+        
         grid.innerHTML = '';
-        adminArea.innerHTML = '';
-
-        const isAdmin = !!this.state.masterKey;
-        const allUnlocked = localStorage.getItem('fx_unlocked_ALL') === 'true';
 
         if (isAdmin) {
-            adminArea.innerHTML = `
-                <div style="display:flex; gap:8px; background:rgba(16,185,129,0.1); padding:10px; border-radius:12px; margin-bottom:15px; border:1px solid rgba(16,185,129,0.2);">
-                    <button class="fx-btn fx-btn-green" style="margin:0; padding:10px; flex:1;" onclick="FX_STORE.adminAdd()">➕ Add</button>
-                    <button class="fx-btn fx-btn-blue" style="margin:0; padding:10px; flex:1;" onclick="FX_STORE.adminGenKey('ALL')">🌟 ALL Key</button>
-                    <button class="fx-btn fx-btn-outline" style="margin:0; padding:10px; color:#ef4444; border-color:#ef4444;" onclick="FX_STORE.adminWipe()">☢ Wipe</button>
-                    <button class="fx-btn fx-btn-outline" style="margin:0; padding:10px;" onclick="localStorage.removeItem('fx_master_key');FX_STORE.state.masterKey=null;FX_STORE.renderGrid();">Lock</button>
+            adminBarContainer.innerHTML = `
+                <div style="display:flex; flex-wrap:wrap; gap:8px; background:rgba(16,185,129,0.1); padding:10px; border-radius:14px; border:1px solid rgba(16,185,129,0.2);">
+                    <button onclick="window.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:12px;">➕ Add</button>
+                    <button onclick="window.adminGenKeyDialog('ALL')" style="flex:1; background:#8b5cf6; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:12px;">🌟 Key</button>
+                    <button onclick="window.adminActionNuke()" style="flex:1; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:10px; border-radius:10px; font-weight:bold; font-size:12px;">☢ Wipe</button>
+                    <button onclick="localStorage.removeItem('my_master_key'); window.renderAnimStore();" style="flex:1; background:#475569; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:12px;">Lock</button>
                 </div>
             `;
         }
 
-        this.state.items.forEach(anim => {
-            const unlocked = anim.isFree || allUnlocked || localStorage.getItem(`fx_unlocked_${anim.id}`) === 'true';
+        window.currentAllAnims.forEach((anim) => {
+            let isUnlocked = anim.isFree || isAllUnlocked || localStorage.getItem('unlocked_' + anim.id) === 'true';
+            let sId = window.getScrambledId(baseId, anim.id);
+
+            let wrapper = document.createElement('div');
+            wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; flex-shrink:0;';
             
-            let itemHTML = `
-                <div class="fx-item" onclick="FX_STORE.handleItemClick('${anim.id}')">
-                    <div class="fx-icon-box ${unlocked || isAdmin ? 'unlocked' : 'locked'}">
-                        ${anim.icon}
-                        ${!unlocked && !isAdmin ? '<div class="fx-lock">🔒</div>' : ''}
-                    </div>
-                    <div class="fx-badge ${anim.isFree ? 'free' : ''}">
-                        ${anim.isFree ? 'FREE' : (unlocked ? 'ACTIVE' : (anim.price || '€1.00'))}
-                    </div>
-                </div>
-            `;
-            grid.insertAdjacentHTML('beforeend', itemHTML);
-        });
-    },
-
-    stopAll() {
-        if(this.state.stopScript) { try { new Function(this.state.stopScript)(); } catch(e){} }
-        this.state.intervals.forEach(clearInterval);
-        this.state.intervals = [];
-        document.querySelectorAll('.fx-anim-el').forEach(e => e.remove());
-        this.state.stopScript = null;
-    },
-
-    handleItemClick(id) {
-        if (this.state.isPreviewing) return;
-        const anim = this.state.items.find(i => i.id === id);
-        if (!anim) return;
-
-        const isAdmin = !!this.state.masterKey;
-        const allUnlocked = localStorage.getItem('fx_unlocked_ALL') === 'true';
-        const unlocked = anim.isFree || allUnlocked || localStorage.getItem(`fx_unlocked_${anim.id}`) === 'true';
-
-        if (isAdmin && id !== '0') {
-            this.openModal(`
-                <div style="font-size:50px; margin-bottom:10px;">${anim.icon}</div>
-                <div style="font-size:12px; color:#94a3b8; margin-bottom:20px; font-weight:bold;">Admin Mode • ID #${anim.id}</div>
-                <button class="fx-btn fx-btn-blue" onclick="FX_STORE.closeModal(); FX_STORE.playTest('${id}')">▶ Test Effect</button>
-                <button class="fx-btn fx-btn-outline" onclick="FX_STORE.adminEdit('${id}')">✏ Edit Logic</button>
-                <button class="fx-btn fx-btn-green" onclick="FX_STORE.adminGenKey('${id}')">🔑 Gen License Key</button>
-                ${!anim.isFree ? `<button class="fx-btn fx-btn-outline" style="color:#ef4444; border-color:rgba(239,68,68,0.3);" onclick="FX_STORE.adminDelete('${id}')">🗑 Delete Globally</button>` : ''}
-                <button class="fx-btn fx-btn-outline" style="border:none; margin-top:10px;" onclick="FX_STORE.closeModal()">Close</button>
-            `);
-            return;
-        }
-
-        this.toggleStore(false);
-        this.stopAll();
-
-        if (unlocked || anim.isFree) {
-            if (id !== '0') {
-                try { new Function(anim.playScript)(); this.state.stopScript = anim.stopScript; } catch(e){}
+            let item = document.createElement('div');
+            item.className = 'studio-item'; 
+            item.style.border = (isUnlocked || isAdmin) ? '2px solid #10b981' : '2px solid rgba(255,255,255,0.05)';
+            item.style.filter = (isUnlocked || isAdmin) ? 'none' : 'grayscale(1) opacity(0.6)';
+            item.innerHTML = anim.icon;
+            
+            if(!isUnlocked && !isAdmin) {
+                item.innerHTML += `<div style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:#fff; width:22px; height:22px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.5);">🔒</div>`;
             }
-            this.haptic('success');
-        } else {
-            this.startPreview(anim);
-        }
-    },
 
-    playTest(id) {
-        this.toggleStore(false);
-        this.stopAll();
-        const anim = this.state.items.find(i => i.id === id);
-        try { new Function(anim.playScript)(); this.state.stopScript = anim.stopScript; } catch(e){}
-    },
+            let priceText = anim.isFree ? 'FREE' : (isUnlocked ? 'ACTIVE' : (anim.price || '€1.00'));
+            let priceLabel = document.createElement('div');
+            priceLabel.innerText = priceText;
+            priceLabel.style.cssText = `font-size:10px; font-weight:800; color:${(isUnlocked || anim.isFree) ? '#10b981' : '#94a3b8'}; background:rgba(0,0,0,0.4); padding:4px 10px; border-radius:12px;`;
 
-    startPreview(anim) {
-        this.state.isPreviewing = true;
-        try { new Function(anim.playScript)(); this.state.stopScript = anim.stopScript; } catch(e){}
-        
-        this.uiTimer.style.display = 'flex';
-        let timeLeft = 5;
-        this.uiTimer.innerText = timeLeft;
-        
-        let cd = setInterval(() => {
-            timeLeft--;
-            if(timeLeft > 0) {
-                this.uiTimer.innerText = timeLeft;
-            } else {
-                clearInterval(cd);
-                this.uiTimer.style.display = 'none';
-                this.state.isPreviewing = false;
-                this.stopAll();
-                this.showPurchaseModal(anim);
-            }
-        }, 1000);
-    },
+            item.onclick = () => {
+                if (window.isPreviewing) return;
 
-    showPurchaseModal(anim) {
-        let sId = this.getScrambledId(anim.id);
-        let link = anim.buyLink || this.config.stripeLink;
-        let msg = `Hi!\nClient: ${this.user.name}\nID: ${sId}\nI want to buy Item #${anim.id} (${anim.icon})`;
-        let tgUrl = `https://t.me/${this.config.devUser}?text=${encodeURIComponent(msg)}`;
-
-        this.openModal(`
-            <div style="font-size:55px; margin-bottom:5px;">${anim.icon}</div>
-            <h3 style="margin:0 0 5px 0; font-size:20px;">Premium Effect</h3>
-            <div style="font-size:22px; color:#10b981; font-weight:900; margin-bottom:20px;">${anim.price || '€1.00'}</div>
-            
-            <button class="fx-btn" style="background:#635bff; color:#fff;" onclick="window.open('${link}', '_blank')">Pay Securely</button>
-            
-            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; margin-bottom:15px; text-align:left;">
-                <div style="font-size:11px; color:#94a3b8; margin-bottom:8px;">Send this ID to developer to get your key:</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px 12px; border-radius:12px; margin-bottom:10px;">
-                    <span style="font-family:monospace; font-weight:bold; color:#38bdf8; font-size:14px; letter-spacing:1px;">${sId}</span>
-                    <button onclick="FX_STORE.copy('${sId}', this)" style="background:rgba(56,189,248,0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;">Copy</button>
-                </div>
-                <button class="fx-btn fx-btn-outline" style="color:#0ea5e9; border-color:#0ea5e9; margin:0;" onclick="window.open('${tgUrl}','_blank')">Contact Developer</button>
-            </div>
-            <button class="fx-btn fx-btn-outline" style="border:none;" onclick="FX_STORE.closeModal(); FX_STORE.toggleStore(true);">Close</button>
-        `);
-    },
-
-    redeem() {
-        const inp = document.getElementById('fxRedeemInp');
-        const code = inp.value.trim().toUpperCase();
-        if (!code) return;
-
-        // --- SECRET ADMIN LOGIN ---
-        if (code.startsWith('SUDO|')) {
-            const key = code.split('|')[1];
-            localStorage.setItem('fx_master_key', key);
-            this.state.masterKey = key;
-            inp.value = '';
-            this.haptic('success');
-            this.renderGrid();
-            this.openModal(`<div style="font-size:50px;">🔓</div><h3 style="color:#10b981;">Admin Unlocked</h3><button class="fx-btn fx-btn-green" onclick="FX_STORE.closeModal()">Continue</button>`);
-            return;
-        }
-
-        let found = null;
-        let isAll = false;
-
-        if (code === this.generateKey(this.getScrambledId('ALL'), 'ALL')) {
-            localStorage.setItem('fx_unlocked_ALL', 'true');
-            found = 'ALL'; isAll = true;
-        } else {
-            for (let anim of this.state.items) {
-                if (code === this.generateKey(this.getScrambledId(anim.id), anim.id)) {
-                    localStorage.setItem(`fx_unlocked_${anim.id}`, 'true');
-                    found = anim.id;
-                    break;
+                if (isAdmin && anim.id !== '0') {
+                    window.adminSelectedAnim = anim;
+                    window.showCustomModal(`
+                        <div style="font-size:45px; margin-bottom:5px;">${anim.icon}</div>
+                        <div style="font-size:13px; font-weight:bold; color:#94a3b8; margin-bottom:20px;">Admin Mode • ID #${anim.id}</div>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <button onclick="window.hideCustomModal(); window.stopAllEffects(); try{new Function(window.adminSelectedAnim.playScript)();}catch(e){} window.activeStopScript=window.adminSelectedAnim.stopScript;" style="background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold;"><i class="fas fa-play"></i> Test</button>
+                            <button onclick="window.adminActionEditCode()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold;"><i class="fas fa-pen"></i> Edit</button>
+                            <button onclick="window.adminGenKeyDialog('${anim.id}')" style="background:#10b981; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold;"><i class="fas fa-key"></i> Key</button>
+                            ${!anim.isFree ? `<button onclick="window.adminActionDelete()" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:12px; border-radius:12px; font-weight:bold;"><i class="fas fa-trash"></i> Delete Global</button>` : ''}
+                        </div>
+                        <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:#94a3b8; font-size:13px; font-weight:bold; cursor:pointer;">Cancel</button>
+                    `);
+                    return;
                 }
-            }
-        }
 
-        if (found) {
-            inp.value = '';
-            this.haptic('success');
-            this.renderGrid();
-            this.openModal(`
-                <div style="font-size:50px; margin-bottom:10px;">${isAll ? '🌟' : '✅'}</div>
-                <h3 style="color:#10b981; margin-bottom:10px;">Success!</h3>
-                <div style="color:#94a3b8; font-size:14px; margin-bottom:20px;">${isAll ? 'All Premium Effects Unlocked!' : `Effect #${found} Unlocked Successfully!`}</div>
-                <button class="fx-btn fx-btn-green" onclick="FX_STORE.closeModal()">Awesome</button>
-            `);
-        } else {
-            inp.style.borderColor = '#ef4444'; inp.style.color = '#ef4444';
-            this.haptic('error');
-            setTimeout(() => { inp.style.borderColor = 'rgba(255,255,255,0.05)'; inp.style.color = '#10b981'; }, 1000);
-        }
-    },
+                sheet.classList.remove('open'); overlay.classList.remove('open');
+                window.stopAllEffects();
 
-    // --- Admin Functions ---
-    adminGenKey(id) {
-        let uId = prompt("Enter Client ID (e.g. FX-12345-5):"); if(!uId) return;
-        // extract the U-xxx part to hash properly based on how we generated it
-        let scrambledPart = uId.split('-').slice(0,2).join('-'); 
-        let code = this.generateKey(uId, id); // Note: Key expects exact scrambled string
-        
-        this.openModal(`
-            <h3 style="color:#10b981; margin-bottom:15px;">License Key</h3>
+                if (isUnlocked || anim.isFree) {
+                    if (anim.id !== '0') {
+                        try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
+                    }
+                    if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
+                } else {
+                    window.isPreviewing = true;
+                    try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
+                    
+                    window.previewCountdown.style.display = 'block';
+                    let timeLeft = 5;
+                    window.previewCountdown.innerText = timeLeft;
+                    
+                    window.cdInt = setInterval(() => {
+                        timeLeft--;
+                        if(timeLeft > 0) {
+                            window.previewCountdown.innerText = timeLeft;
+                        } else {
+                            clearInterval(window.cdInt);
+                            window.previewCountdown.style.display = 'none';
+                            window.isPreviewing = false;
+                            window.stopAllEffects();
+                            
+                            let buyLink = anim.buyLink || STRIPE_LINK;
+                            let userMsg = `Hi!\nClient: ${userName}\nID: ${sId}\nI want to buy Item #${anim.id} (${anim.icon})`;
+                            let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(userMsg)}`;
+
+                            window.showCustomModal(`
+                                <div style="font-size:50px; margin-bottom:5px;">${anim.icon}</div>
+                                <h3 style="margin:0 0 5px 0; font-size:20px; font-weight:800;">Premium Effect</h3>
+                                <div style="font-size:22px; color:#10b981; font-weight:900; margin-bottom:20px;">${anim.price || '€1.00'}</div>
+                                
+                                <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:15px; margin-bottom:15px;"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
+                                
+                                <div style="text-align:left; background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.05); margin-bottom:15px;">
+                                    <div style="font-size:12px; color:#94a3b8; margin-bottom:8px;">Send this ID to developer for your key:</div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px 14px; border-radius:10px; margin-bottom:12px;">
+                                        <span style="font-family:monospace; font-weight:bold; color:#38bdf8; font-size:15px;">${sId}</span>
+                                        <button onclick="window.copyToClipboard('${sId}', 'cpyIdBtn')" id="cpyIdBtn" style="background:rgba(56,189,248,0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; font-size:13px; font-weight:bold;"><i class="fas fa-copy"></i></button>
+                                    </div>
+                                    <button onclick="let u='${directChatUrl}'; typeof window.Telegram!=='undefined'&&window.Telegram.WebApp.openTelegramLink ? window.Telegram.WebApp.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:12px; border-radius:10px; font-weight:bold; font-size:14px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
+                                </div>
+                                <button onclick="window.hideCustomModal(); document.querySelector('.icon-btn').click();" style="background:transparent; border:none; color:#94a3b8; font-size:14px; font-weight:bold; cursor:pointer;">Close</button>
+                            `);
+                        }
+                    }, 1000);
+                }
+            };
+            wrapper.appendChild(item); wrapper.appendChild(priceLabel); grid.appendChild(wrapper);
+        });
+    };
+
+    // Open/Close Actions
+    storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.add('open'); overlay.classList.add('open'); };
+    sheet.querySelector('#closeAnimStore').onclick = () => { sheet.classList.remove('open'); overlay.classList.remove('open'); };
+    overlay.onclick = () => { sheet.classList.remove('open'); overlay.classList.remove('open'); };
+
+    // Admin Features
+    window.adminGenKeyDialog = (itemId) => {
+        let uId = prompt("Enter Client ID (e.g. TG-12345-5):"); if (!uId) return;
+        let code = window.generateLicenseKey(uId.trim(), itemId);
+        window.showCustomModal(`
+            <h3 style="color:#10b981; margin-bottom:15px; font-size:18px;">License Key</h3>
             <div style="background:rgba(0,0,0,0.4); padding:20px; border-radius:12px; margin-bottom:15px;">
                 <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:20px; letter-spacing:2px;">${code}</span>
             </div>
-            <button class="fx-btn fx-btn-blue" onclick="FX_STORE.copy('${code}', this)">Copy Code</button>
-            <button class="fx-btn fx-btn-outline" style="border:none;" onclick="FX_STORE.closeModal()">Close</button>
+            <button id="cpyKeyAd" onclick="window.copyToClipboard('${code}', 'cpyKeyAd')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:bold; font-size:14px; margin-bottom:10px;">Copy Code</button>
+            <button onclick="window.hideCustomModal()" style="background:transparent; color:#94a3b8; border:none; font-size:14px; font-weight:bold; cursor:pointer;">Close</button>
         `);
-    },
+    };
 
-    adminAdd() {
-        this.openModal(`
-            <h3 style="color:#10b981; margin-bottom:15px;">➕ Deploy Effect</h3>
-            <input id="adIcon" class="fx-input" placeholder="Icon 🍉" style="text-align:center;">
-            <input id="adId" class="fx-input" placeholder="Unique ID (e.g. 5)" style="text-align:center;">
-            <input id="adPrice" class="fx-input" placeholder="Price (e.g. €1.00)" style="text-align:center;">
-            <select id="adFree" class="fx-input" style="font-weight:bold; text-align:center;"><option value="false">Paid 🔒</option><option value="true">Free 🆓</option></select>
-            <textarea id="adPlay" class="fx-input" placeholder="Play JS Script" style="height:70px; font-family:monospace; color:#10b981;"></textarea>
-            <textarea id="adStop" class="fx-input" placeholder="Stop JS Script" style="height:50px; font-family:monospace; color:#ef4444;"></textarea>
-            <button class="fx-btn fx-btn-green" onclick="FX_STORE.adminSaveCloud(null)">🚀 Upload to Cloud</button>
-            <button class="fx-btn fx-btn-outline" style="border:none;" onclick="FX_STORE.closeModal()">Cancel</button>
+    const inputCSS = "width:100%; box-sizing:border-box; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:12px; border-radius:12px; margin-bottom:10px; outline:none; font-size:14px;";
+    
+    window.adminActionAdd = () => {
+        window.stopAllEffects();
+        window.showCustomModal(`
+            <h3 style="color:#10b981; margin-bottom:15px; font-size:18px;">➕ Add Effect</h3>
+            <input id="nIcon" placeholder="Icon 🍉" style="${inputCSS} text-align:center;">
+            <input id="nId" placeholder="ID Number (e.g. 5)" style="${inputCSS} text-align:center;">
+            <input id="nPrice" placeholder="Price (e.g. €1.00)" style="${inputCSS} text-align:center;">
+            <select id="nFree" style="${inputCSS} font-weight:bold;"><option value="false">Paid 🔒</option><option value="true">Free 🆓</option></select>
+            <input id="nLink" placeholder="Stripe Link (Optional)" style="${inputCSS}">
+            <textarea id="nPlay" placeholder="Play Script" style="${inputCSS} color:#10b981; height:60px; font-family:monospace;"></textarea>
+            <textarea id="nStop" placeholder="Stop Script" style="${inputCSS} color:#ef4444; height:50px; font-family:monospace;"></textarea>
+            <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:bold; margin-bottom:10px;">🚀 Deploy</button>
+            <button onclick="window.hideCustomModal()" style="background:transparent; color:#94a3b8; border:none; font-size:14px; font-weight:bold; cursor:pointer;">Cancel</button>
         `);
-    },
+    };
 
-    adminEdit(id) {
-        let anim = this.state.items.find(i => i.id === id);
-        this.openModal(`
-            <h3 style="color:#3b82f6; margin-bottom:15px;">✏ Edit #${id}</h3>
-            <input id="adIcon" class="fx-input" value="${anim.icon}" style="text-align:center;">
-            <input id="adPrice" class="fx-input" value="${anim.price || ''}" style="text-align:center;">
-            <select id="adFree" class="fx-input" style="font-weight:bold; text-align:center;">
-                <option value="false" ${!anim.isFree?'selected':''}>Paid 🔒</option>
-                <option value="true" ${anim.isFree?'selected':''}>Free 🆓</option>
-            </select>
-            <textarea id="adPlay" class="fx-input" style="height:80px; font-family:monospace; color:#10b981;">${anim.playScript}</textarea>
-            <textarea id="adStop" class="fx-input" style="height:60px; font-family:monospace; color:#ef4444;">${anim.stopScript}</textarea>
-            <button class="fx-btn fx-btn-blue" onclick="FX_STORE.adminSaveCloud('${id}')">💾 Save Updates</button>
-            <button class="fx-btn fx-btn-outline" style="border:none;" onclick="FX_STORE.closeModal()">Cancel</button>
+    window.adminActionEditCode = () => {
+        window.stopAllEffects();
+        let anim = window.adminSelectedAnim;
+        let isFr = anim.isFree ? 'selected' : '';
+        let isPd = !anim.isFree ? 'selected' : '';
+        window.showCustomModal(`
+            <h3 style="color:#3b82f6; margin-bottom:15px; font-size:18px;">✏ Edit #${anim.id}</h3>
+            <input id="eIcon" value="${anim.icon}" style="${inputCSS} text-align:center;">
+            <input id="ePrice" value="${anim.price || '€1.00'}" style="${inputCSS} text-align:center;">
+            <select id="eFree" style="${inputCSS} font-weight:bold;"><option value="false" ${isPd}>Paid 🔒</option><option value="true" ${isFr}>Free 🆓</option></select>
+            <input id="eLink" value="${anim.buyLink || STRIPE_LINK}" style="${inputCSS}">
+            <textarea id="ePlay" style="${inputCSS} color:#10b981; height:70px; font-family:monospace;">${anim.playScript}</textarea>
+            <textarea id="eStop" style="${inputCSS} color:#ef4444; height:50px; font-family:monospace;">${anim.stopScript}</textarea>
+            <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:bold; margin-bottom:10px;">💾 Update</button>
+            <button onclick="window.hideCustomModal()" style="background:transparent; color:#94a3b8; border:none; font-size:14px; font-weight:bold; cursor:pointer;">Cancel</button>
         `);
-    },
+    };
 
-    async adminSaveCloud(targetId) {
-        let icon = document.getElementById('adIcon').value.trim();
-        let id = targetId || document.getElementById('adId')?.value.trim();
-        let price = document.getElementById('adPrice').value.trim() || '€1.00';
-        let isFree = document.getElementById('adFree').value === 'true';
-        let play = document.getElementById('adPlay').value.trim();
-        let stop = document.getElementById('adStop').value.trim();
-
-        if(!icon || !id) return;
-        
-        this.openModal(`<div style="color:#10b981; font-weight:bold; padding:20px;">Syncing with Cloud...</div>`);
-        
+    // Cloud DB Functions
+    window.executeAdminAdd = async () => {
+        let mKey = localStorage.getItem('my_master_key');
+        let i=document.getElementById('nIcon').value.trim(), id=document.getElementById('nId').value.trim(), pr=document.getElementById('nPrice').value.trim(), fr=document.getElementById('nFree').value==='true', lnk=document.getElementById('nLink').value.trim(), p=document.getElementById('nPlay').value.trim(), s=document.getElementById('nStop').value.trim();
+        if(!i||!id) return; window.hideCustomModal(); grid.innerHTML = '<div style="color:#10b981; margin:auto; padding:20px;">Deploying...</div>';
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${this.config.binId}/latest?meta=false`, { headers: { 'X-Master-Key': this.state.masterKey } });
-            let data = await res.json();
-            if(!Array.isArray(data)) data = [];
-            
-            if(targetId) {
-                data = data.map(x => x.id === id ? {icon, id, price, isFree, playScript:play, stopScript:stop} : x);
-            } else {
-                data = data.filter(x => x.id !== id && x.id !== "empty");
-                data.push({icon, id, price, isFree, playScript:play, stopScript:stop});
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = res.ok ? await res.json() : []; if(!Array.isArray(data)) data = [];
+            let filtered = data.filter(x => x.id !== id && x.id !== "empty");
+            filtered.push({ icon: i, id: id, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
+            window.renderAnimStore();
+        } catch(e) { window.renderAnimStore(); }
+    };
+
+    window.executeAdminEdit = async (targetId) => {
+        let i=document.getElementById('eIcon').value.trim(), pr=document.getElementById('ePrice').value.trim(), fr=document.getElementById('eFree').value==='true', lnk=document.getElementById('eLink').value.trim(), p=document.getElementById('ePlay').value.trim(), s=document.getElementById('eStop').value.trim();
+        window.hideCustomModal(); grid.innerHTML = '<div style="color:#3b82f6; margin:auto; padding:20px;">Updating...</div>';
+        let mKey = localStorage.getItem('my_master_key');
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json(); if(!Array.isArray(data)) data = [];
+            let updated = data.map(x => x.id === targetId ? { icon: i, id: targetId, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s } : x);
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
+            window.renderAnimStore();
+        } catch(e) { window.renderAnimStore(); }
+    };
+
+    window.adminActionDelete = async () => {
+        let mKey = localStorage.getItem('my_master_key'); let id = window.adminSelectedAnim.id; window.hideCustomModal();
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json(); if(!Array.isArray(data)) data = [];
+            let filtered = data.filter(x => x.id !== id);
+            if(filtered.length === 0) filtered = [{"id":"empty"}];
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
+            window.renderAnimStore();
+        } catch(e) { window.renderAnimStore(); }
+    };
+
+    window.adminActionNuke = async () => {
+        if(!confirm('☢️ WARNING: WIPING ENTIRE CLOUD. Are you sure?')) return;
+        grid.innerHTML = '<div style="color:#ef4444; margin:auto; padding:20px;">NUKING...</div>';
+        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': localStorage.getItem('my_master_key') }, body: JSON.stringify([{"id":"empty"}]) });
+        window.renderAnimStore();
+    };
+
+    // Original hidden Admin Trigger logic via note input (Safely hooked)
+    if (typeof window.DOM !== 'undefined' && window.DOM.saveNoteBtn) {
+        let originalSaveNote = window.DOM.saveNoteBtn.onclick;
+        window.DOM.saveNoteBtn.onclick = async (e) => {
+            let txt = window.DOM.noteInput?.value?.trim() || "";
+            if (txt.startsWith(">admin |")) { 
+                localStorage.setItem('my_master_key', txt.split('|')[1].trim()); 
+                if(window.DOM.noteInput) window.DOM.noteInput.value = ''; 
+                window.showCustomModal(`<div style="font-size:50px;">🔓</div><h3 style="color:#10b981;">Admin Mode Unlocked!</h3>`);
+                window.renderAnimStore(); 
+                return; 
             }
-
-            await fetch(`https://api.jsonbin.io/v3/b/${this.config.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': this.state.masterKey }, body: JSON.stringify(data) });
-            this.closeModal();
-            this.loadStore();
-        } catch(e) { this.closeModal(); this.loadStore(); }
-    },
-
-    async adminDelete(id) {
-        this.openModal(`<div style="color:#ef4444; font-weight:bold; padding:20px;">Deleting...</div>`);
-        try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${this.config.binId}/latest?meta=false`, { headers: { 'X-Master-Key': this.state.masterKey } });
-            let data = await res.json();
-            if(!Array.isArray(data)) data = [];
-            data = data.filter(x => x.id !== id);
-            if(data.length === 0) data = [{id:"empty"}];
-            
-            await fetch(`https://api.jsonbin.io/v3/b/${this.config.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': this.state.masterKey }, body: JSON.stringify(data) });
-            this.closeModal();
-            this.loadStore();
-        } catch(e) { this.closeModal(); this.loadStore(); }
-    },
-
-    async adminWipe() {
-        if(!confirm("☢ WARNING: WIPE ENTIRE DATABASE?")) return;
-        this.openModal(`<div style="color:#ef4444; font-weight:bold; padding:20px;">NUKING DATABASE...</div>`);
-        try {
-            await fetch(`https://api.jsonbin.io/v3/b/${this.config.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': this.state.masterKey }, body: JSON.stringify([{id:"empty"}]) });
-            this.closeModal();
-            this.loadStore();
-        } catch(e) { this.closeModal(); this.loadStore(); }
+            if (originalSaveNote) originalSaveNote(e);
+        };
     }
-};
 
-// Initialize immediately
-FX_STORE.init();
+    // Pre-load store data
+    window.renderAnimStore();
+}
+initProStore();
 
 
 
