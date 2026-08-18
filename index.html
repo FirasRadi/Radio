@@ -1183,6 +1183,10 @@
 // 🛒 VIP Cloud Store (Bundle Purchase, Hidden IDs, Perfect UX)
 // ======================================================
 
+      // ======================================================
+// 🛒 VIP Cloud Store (Global Redeem System, Perfect UI, Bug Free)
+// ======================================================
+
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
 const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
 const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
@@ -1190,6 +1194,7 @@ const DEVELOPER_USERNAME = "developer_origins_bot";
 const SECRET_SALT = "TIME_WORLD_2026"; 
 
 function initProStore() {
+    // 1. إعداد بيانات المستخدم
     let tgUser = tg?.initDataUnsafe?.user;
     let baseId = localStorage.getItem('my_base_id');
     if (!baseId) {
@@ -1219,6 +1224,7 @@ function initProStore() {
         return `VIP-${p1}-${p2}`;
     };
 
+    // 2. بناء واجهات المتجر الأساسية
     let headerRight = document.querySelector('.header-right');
     let storeBtn = document.createElement('button');
     storeBtn.className = 'icon-btn';
@@ -1227,13 +1233,25 @@ function initProStore() {
     headerRight.appendChild(storeBtn);
 
     let style = document.createElement('style');
-    style.innerHTML = `.h-scroll::-webkit-scrollbar { display: none; } .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }`;
+    style.innerHTML = `
+        .h-scroll::-webkit-scrollbar { display: none; } 
+        .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .admin-inp { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 12px; outline: none; margin-bottom: 10px; font-family: monospace; text-align: center; }
+        .admin-inp:focus { border-color: #3b82f6; }
+    `;
     document.head.appendChild(style);
 
     let overlay = document.createElement('div'); overlay.className = 'sheet-overlay';
     let sheet = document.createElement('div'); sheet.className = 'bottom-sheet';
     sheet.innerHTML = `
-        <div class="sheet-header"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Effects Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div>
+        <div class="sheet-header"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Premium FX Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div>
+        
+        <!-- حقل Redeem الموحد الذكي 🌟 -->
+        <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); padding:10px; border-radius:14px; border:1px solid rgba(255,255,255,0.05); margin-bottom:10px;">
+            <input type="text" id="globalRedeemInput" placeholder="Got a VIP Code? Redeem here..." style="flex:1; background:transparent; border:none; color:#10b981; font-family:monospace; font-size:13px; font-weight:bold; outline:none; padding:5px;">
+            <button onclick="window.processGlobalRedeem()" style="background:#10b981; color:#fff; border:none; padding:8px 15px; border-radius:10px; font-weight:bold; cursor:pointer;"><i class="fas fa-check"></i></button>
+        </div>
+
         <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
         <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding:12px 5px; scroll-behavior:smooth;"></div>
     `;
@@ -1246,9 +1264,9 @@ function initProStore() {
     document.body.appendChild(window.previewCountdown);
 
     let customModalOverlay = document.createElement('div');
-    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.8); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.25s ease; padding:15px; overflow-y:auto;';
+    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.25s ease; padding:15px; overflow-y:auto;';
     let customModalBox = document.createElement('div');
-    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.1); width:100%; max-width:320px; border-radius:24px; padding:22px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.6); color:#fff; margin:auto;';
+    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.1); width:100%; max-width:340px; border-radius:24px; padding:22px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.6); color:#fff; margin:auto; box-sizing:border-box;';
     customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
 
     window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; };
@@ -1259,8 +1277,8 @@ function initProStore() {
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             let btn = document.getElementById(btnId);
             if(btn) {
-                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => { btn.innerHTML = old; }, 2000);
+                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.background = '#10b981'; btn.style.color='#fff';
+                setTimeout(() => { btn.innerHTML = old; btn.style.background = 'rgba(56,189,248,0.1)'; btn.style.color='#38bdf8'; }, 2000);
             }
         });
     };
@@ -1276,44 +1294,73 @@ function initProStore() {
         document.body.style.filter = '';
     };
 
-    // 🌟 واجهة شراء كل العناصر (Unlock All Bundle) 🌟
+    // 🌟 نظام الـ Redeem العالمي الذكي 🌟
+    window.processGlobalRedeem = () => {
+        let inp = document.getElementById('globalRedeemInput');
+        let code = inp.value.trim().toUpperCase();
+        if(!code) return;
+
+        let isAllCode = window.generateLicenseKey(window.getScrambledId(baseId, 'ALL'), 'ALL');
+        if (code === isAllCode) {
+            localStorage.setItem('unlocked_all', 'true');
+            inp.value = ''; alert('🎉 Success! ALL Premium Effects Unlocked!'); window.renderAnimStore();
+            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            return;
+        }
+
+        let found = null;
+        window.currentAllAnims.forEach(anim => {
+            if (anim.id !== '0') {
+                let expected = window.generateLicenseKey(window.getScrambledId(baseId, anim.id), anim.id);
+                if (code === expected) {
+                    localStorage.setItem('unlocked_' + anim.id, 'true');
+                    found = anim;
+                }
+            }
+        });
+
+        if (found) {
+            inp.value = ''; alert(`🎉 Success! Effect ${found.icon} Unlocked!`); window.renderAnimStore();
+            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        } else {
+            inp.style.color = '#ef4444';
+            setTimeout(()=> inp.style.color = '#10b981', 1000);
+            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            alert('❌ Invalid or Expired Code!');
+        }
+    };
+
     window.showBundleModal = () => {
         window.stopAllEffects();
         let sId = window.getScrambledId(baseId, 'ALL');
-        let cCode = window.generateLicenseKey(sId, 'ALL');
         let msg = `Hi!\nName: ${userName}\nID: ${sId}\nI want to buy the [UNLOCK ALL] Bundle 🌟`;
         let chatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(msg)}`;
 
         let html = `
             <div style="font-size:50px; margin-bottom:5px; filter:drop-shadow(0 0 10px rgba(245,158,11,0.5));">🌟</div>
             <h3 style="margin:0 0 5px 0; font-size:18px; font-weight:800; color:#f59e0b;">Unlock ALL Effects</h3>
-            <div style="font-size:12px; color:var(--text-sub); margin-bottom:15px; line-height:1.4;">Get permanent access to every current and future effect in the store.</div>
+            <div style="font-size:12px; color:var(--text-sub); margin-bottom:15px; line-height:1.4;">Get permanent access to every current and future effect.</div>
             <div style="font-size:24px; color:#10b981; font-weight:900; margin-bottom:20px;">€10.00</div>
-            
-            <button onclick="window.open('${STRIPE_LINK}', '_blank')" style="width:100%; background:linear-gradient(135deg, #635bff, #4f46e5); color:#fff; border:none; padding:14px; border-radius:14px; font-weight:700; font-size:14px; margin-bottom:12px; box-shadow:0 6px 15px rgba(99,91,255,0.4);"><i class="fab fa-stripe-s"></i> Pay with Stripe (€10)</button>
-            
-            <button onclick="let u='${chatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:rgba(255,255,255,0.05); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:12px; border-radius:12px; font-weight:600; font-size:13px; margin-bottom:20px;"><i class="fab fa-telegram-plane"></i> Send Request to Developer</button>
-            
-            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.05);">
-                <div style="font-size:11px; color:#f59e0b; font-weight:bold; margin-bottom:8px;">Activate Bundle</div>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="bundleLicenseInput" placeholder="Paste Key..." style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:10px; font-family:monospace; text-align:center; outline:none; font-size:13px;">
-                    <button onclick="window.verifyActivation('ALL', '${cCode}')" style="background:#10b981; color:#fff; border:none; padding:10px 15px; border-radius:10px; font-weight:bold;"><i class="fas fa-check"></i></button>
-                </div>
+            <button onclick="window.open('${STRIPE_LINK}', '_blank')" style="width:100%; background:linear-gradient(135deg, #635bff, #4f46e5); color:#fff; border:none; padding:14px; border-radius:14px; font-weight:700; font-size:14px; margin-bottom:12px;"><i class="fab fa-stripe-s"></i> Pay with Stripe (€10)</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:10px; margin-bottom:10px;">
+                <span style="font-family:monospace; color:#38bdf8; font-weight:bold; font-size:13px;">${sId}</span>
+                <button id="cpyBdBtn" onclick="window.copyToClipboard('${sId}', 'cpyBdBtn')" style="background:rgba(56,189,248,0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:bold;"><i class="fas fa-copy"></i> Copy ID</button>
             </div>
-            <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:13px; font-weight:600;">Cancel</button>
+            <button onclick="let u='${chatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:transparent; border:1px solid #38bdf8; color:#38bdf8; padding:12px; border-radius:12px; font-weight:600; font-size:13px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send to Developer</button>
+            <div style="font-size:10px; color:#10b981; font-weight:bold;">Got the key? Use the Redeem box in the store!</div>
+            <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:13px; font-weight:600;">Close</button>
         `;
         window.showCustomModal(html);
     };
 
+    // 3. جلب ועرض المتجر
     window.renderAnimStore = async () => {
         let isAdmin = !!localStorage.getItem('my_master_key');
-        let isAllUnlocked = localStorage.getItem('unlocked_all') === 'true'; // فحص شراء الباقة الشاملة
+        let isAllUnlocked = localStorage.getItem('unlocked_all') === 'true';
         
         grid.innerHTML = '<div style="color:var(--text-sub); margin:auto; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
         adminBarContainer.innerHTML = '';
         
-        // 🌟 عرض البانر الذكي 🌟
         if (isAdmin) {
             adminBarContainer.innerHTML = `
                 <div style="display:flex; flex-wrap:wrap; gap:8px; background:rgba(0,0,0,0.3); padding:10px; border-radius:14px; border:1px dashed #10b981;">
@@ -1325,7 +1372,7 @@ function initProStore() {
             `;
         } else if (!isAllUnlocked) {
             adminBarContainer.innerHTML = `
-                <button onclick="window.showBundleModal()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:none; padding:12px; border-radius:12px; font-weight:800; font-size:13px; box-shadow:0 4px 15px rgba(245,158,11,0.3); cursor:pointer; margin-bottom:5px;">🌟 Unlock ALL Premium Effects (€10)</button>
+                <button onclick="window.showBundleModal()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:none; padding:12px; border-radius:12px; font-weight:800; font-size:13px; box-shadow:0 4px 15px rgba(245,158,11,0.3); cursor:pointer;">🌟 Unlock ALL Premium Effects (€10)</button>
             `;
         }
 
@@ -1349,10 +1396,8 @@ function initProStore() {
         grid.innerHTML = '';
 
         window.currentAllAnims.forEach((anim) => {
-            // العنصر يفتح إذا كان مجاني أو مشترى منفرداً أو ضمن باقة All
             let isUnlocked = anim.isFree || isAllUnlocked || localStorage.getItem('unlocked_' + anim.id) === 'true';
             let sId = window.getScrambledId(baseId, anim.id);
-            let cCode = window.generateLicenseKey(sId, anim.id);
 
             let wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
@@ -1422,19 +1467,14 @@ function initProStore() {
                                 <div style="font-size:45px; margin-bottom:5px;">${anim.icon}</div>
                                 <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:700;">Premium Effect</h3>
                                 <div style="font-size:20px; color:#10b981; font-weight:900; margin-bottom:15px;">${anim.price || '€1.00'}</div>
-                                
                                 <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; margin-bottom:10px;"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
-                                
-                                <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:rgba(255,255,255,0.05); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:10px; border-radius:12px; font-weight:600; font-size:12px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send Request to Developer</button>
-                                
-                                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.05);">
-                                    <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:bold;">Already purchased?</div>
-                                    <div style="display:flex; gap:8px;">
-                                        <input type="text" id="licenseInput" placeholder="Paste Key..." style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:10px; font-family:monospace; text-align:center; outline:none; font-size:13px;">
-                                        <button onclick="window.verifyActivation('${anim.id}', '${cCode}')" style="background:#10b981; color:#fff; border:none; padding:10px 15px; border-radius:10px; font-weight:bold;"><i class="fas fa-check"></i></button>
-                                    </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:10px; margin-bottom:10px;">
+                                    <span style="font-family:monospace; color:#38bdf8; font-weight:bold; font-size:13px;">${sId}</span>
+                                    <button id="cpyIdBtn" onclick="window.copyToClipboard('${sId}', 'cpyIdBtn')" style="background:rgba(56,189,248,0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:bold;"><i class="fas fa-copy"></i> Copy ID</button>
                                 </div>
-                                <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px;">Cancel</button>
+                                <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:10px; border-radius:12px; font-weight:600; font-size:12px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
+                                <div style="font-size:10px; color:#10b981; font-weight:bold;">Got the key? Use the Redeem box in the store!</div>
+                                <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px;">Close</button>
                             `;
                             window.showCustomModal(modalHTML);
                         }
@@ -1445,27 +1485,10 @@ function initProStore() {
         });
     };
 
-    window.verifyActivation = (animId, correctCode, isBundle = false) => {
-        let inpId = isBundle ? 'bundleLicenseInput' : 'licenseInput';
-        let inputCode = document.getElementById(inpId).value.trim().toUpperCase();
-        if (inputCode === correctCode) {
-            if (isBundle) localStorage.setItem('unlocked_all', 'true');
-            else localStorage.setItem('unlocked_' + animId, 'true');
-            
-            window.hideCustomModal(); alert('✅ Activated Successfully!'); window.renderAnimStore();
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        } else { 
-            let inp = document.getElementById(inpId);
-            inp.style.border = '1px solid #ef4444';
-            setTimeout(()=> { if(inp) inp.style.border = '1px solid rgba(255,255,255,0.1)'; }, 1000);
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        }
-    };
-
     storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
     sheet.querySelector('#closeAnimStore').onclick = storeBtn.onclick; overlay.onclick = storeBtn.onclick;
 
-    // --- واجهات الإدارة المنقحة ---
+    // 🌟 واجهات الإدارة المنظمة عمودياً لمنع التداخل 🌟
     window.adminGenKeyDialog = (itemId) => {
         let titleText = itemId === 'ALL' ? 'Generate VIP-ALL Key' : 'Generate License Key';
         let uId = prompt(`${titleText}\n\nEnter Client ID sent to you:`, "TG-"); 
@@ -1483,24 +1506,21 @@ function initProStore() {
         window.showCustomModal(html);
     };
 
+    // تصميم نماذج الإضافة والتعديل بخطوط عمودية (Block) لتجنب التكسر في الهواتف الصغيرة
     window.adminActionAdd = () => {
         window.stopAllEffects();
         let formHTML = `
-            <h3 style="color:#10b981; margin-bottom:15px; font-size:16px;">Add Effect</h3>
-            <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <input id="nIcon" placeholder="Icon 🍉" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <input id="nId" placeholder="ID 5" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-            </div>
-            <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <input id="nPrice" placeholder="€1.00" value="€1.00" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <select id="nFree" style="flex:1; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:10px; border-radius:8px; outline:none; font-size:12px; font-weight:bold;">
-                    <option value="false">Paid 🔒</option><option value="true">Free 🆓</option>
-                </select>
-            </div>
-            <input id="nLink" placeholder="Stripe Payment Link" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none; font-size:11px;">
-            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px;"></textarea>
-            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px;"></textarea>
-            <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px;">Deploy</button>
+            <h3 style="color:#10b981; margin-bottom:15px; font-size:16px;">➕ Add Effect</h3>
+            <input id="nIcon" class="admin-inp" placeholder="Icon (e.g. 🍉)">
+            <input id="nId" class="admin-inp" placeholder="ID Number (e.g. 5)">
+            <input id="nPrice" class="admin-inp" placeholder="Price (e.g. €1.00)">
+            <select id="nFree" class="admin-inp" style="color:#10b981; font-weight:bold;">
+                <option value="false">Paid 🔒</option><option value="true">Free 🆓</option>
+            </select>
+            <input id="nLink" class="admin-inp" placeholder="Stripe URL (Optional)">
+            <textarea id="nPlay" class="admin-inp" placeholder="Play Script" rows="3" style="color:#10b981; text-align:left;"></textarea>
+            <textarea id="nStop" class="admin-inp" placeholder="Stop Script" rows="2" style="color:#ef4444; text-align:left; margin-bottom:15px;"></textarea>
+            <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px;">Deploy to Store</button>
             <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub); border:none; font-size:12px; font-weight:bold; padding:10px;">Cancel</button>
         `;
         window.showCustomModal(formHTML);
@@ -1512,21 +1532,17 @@ function initProStore() {
         let isFr = anim.isFree ? 'selected' : '';
         let isPd = !anim.isFree ? 'selected' : '';
         let editHTML = `
-            <h3 style="color:#3b82f6; margin-bottom:12px; font-size:16px;">✏️ Edit Effect #${anim.id}</h3>
-            <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <input id="eIcon" value="${anim.icon}" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <input id="eId" value="${anim.id}" readonly style="flex:1; background:rgba(0,0,0,0.1); border:1px solid rgba(255,255,255,0.05); color:var(--text-sub); padding:10px; border-radius:8px; text-align:center; outline:none;">
-            </div>
-            <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <input id="ePrice" value="${anim.price || '€1.00'}" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <select id="eFree" style="flex:1; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:10px; border-radius:8px; outline:none; font-size:12px; font-weight:bold;">
-                    <option value="false" ${isPd}>Paid 🔒</option><option value="true" ${isFr}>Free 🆓</option>
-                </select>
-            </div>
-            <input id="eLink" value="${anim.buyLink || STRIPE_LINK}" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none; font-size:11px;">
-            <textarea id="ePlay" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px; height:60px;">${anim.playScript}</textarea>
-            <textarea id="eStop" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px; height:50px;">${anim.stopScript}</textarea>
-            <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px;">Update</button>
+            <h3 style="color:#3b82f6; margin-bottom:15px; font-size:16px;">✏️ Edit Product #${anim.id}</h3>
+            <input id="eIcon" class="admin-inp" value="${anim.icon}">
+            <input id="eId" class="admin-inp" value="${anim.id}" readonly style="color:var(--text-sub); background:rgba(0,0,0,0.1);">
+            <input id="ePrice" class="admin-inp" value="${anim.price || '€1.00'}">
+            <select id="eFree" class="admin-inp" style="color:#10b981; font-weight:bold;">
+                <option value="false" ${isPd}>Paid 🔒</option><option value="true" ${isFr}>Free 🆓</option>
+            </select>
+            <input id="eLink" class="admin-inp" value="${anim.buyLink || STRIPE_LINK}">
+            <textarea id="ePlay" class="admin-inp" rows="3" style="color:#10b981; text-align:left;">${anim.playScript}</textarea>
+            <textarea id="eStop" class="admin-inp" rows="2" style="color:#ef4444; text-align:left; margin-bottom:15px;">${anim.stopScript}</textarea>
+            <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px;">💾 Update Store</button>
             <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub); border:none; font-size:12px; font-weight:bold; padding:10px;">Cancel</button>
         `;
         window.showCustomModal(editHTML);
@@ -1576,15 +1592,16 @@ function initProStore() {
         window.renderAnimStore();
     };
 
-    // تسجيل الدخول
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = async () => {
         let txt = DOM.noteInput.value.trim();
         if (txt.startsWith(">admin |")) { localStorage.setItem('my_master_key', txt.split('|')[1].trim()); DOM.noteInput.value = ''; alert('🔓 Admin Mode Unlocked!'); window.renderAnimStore(); return; }
         if (originalSaveNote) originalSaveNote();
     };
+
+    window.renderAnimStore();
 }
-initProStore();        
+initProStore();  
 
 
         
