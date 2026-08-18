@@ -1185,6 +1185,10 @@
 // 🛒 VIP Cloud Store (Auto-Preview Countdown, Free/Paid Toggle, Smart UX)
 // ======================================================
 
+// ======================================================
+// 🛒 VIP Store (Refined UI, Fixed None, Clean Admin & 5s Counter)
+// ======================================================
+
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
 const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
 const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
@@ -1221,7 +1225,6 @@ function initProStore() {
         return `VIP-${p1}-${p2}`;
     };
 
-    // 1. بناء واجهة المتجر
     let headerRight = document.querySelector('.header-right');
     let storeBtn = document.createElement('button');
     storeBtn.className = 'icon-btn';
@@ -1236,33 +1239,32 @@ function initProStore() {
     let overlay = document.createElement('div'); overlay.className = 'sheet-overlay';
     let sheet = document.createElement('div'); sheet.className = 'bottom-sheet';
     sheet.innerHTML = `
-        <div class="sheet-header"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Premium FX Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div>
+        <div class="sheet-header"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Effects Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div>
         <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
-        <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding:15px 5px; scroll-behavior:smooth;"></div>
+        <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding:12px 5px; scroll-behavior:smooth;"></div>
     `;
     document.body.appendChild(overlay); document.body.appendChild(sheet);
     let grid = sheet.querySelector('#animStoreGrid');
     let adminBarContainer = sheet.querySelector('#adminBarContainer');
 
-    // 🌟 بناء العداد التنازلي الضخم (فوق اسم الدولة) 🌟
+    // 🌟 عداد تنازلي رقمي بسيط وأنيق (5، 4، 3...) 🌟
     window.previewCountdown = document.createElement('div');
-    window.previewCountdown.style.cssText = 'position:fixed; top:25px; left:50%; transform:translateX(-50%); font-size:45px; font-weight:900; color:#fff; text-shadow:0 0 25px #10b981, 0 0 50px #10b981; z-index:10000; font-family:monospace; background:rgba(0,0,0,0.6); padding:5px 25px; border-radius:20px; border:2px solid rgba(16,185,129,0.5); backdrop-filter:blur(10px); display:none; letter-spacing:2px; box-shadow:0 10px 30px rgba(0,0,0,0.5); pointer-events:none;';
+    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:44px; height:44px; line-height:44px; font-size:22px; font-weight:800; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
     document.body.appendChild(window.previewCountdown);
 
-    // النوافذ الزجاجية
     let customModalOverlay = document.createElement('div');
-    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(12px); transition:all 0.3s ease; padding:20px; overflow-y:auto;';
+    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.8); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.25s ease; padding:15px;';
     let customModalBox = document.createElement('div');
-    customModalBox.style.cssText = 'background:linear-gradient(145deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.08); width:100%; max-width:340px; border-radius:28px; padding:25px; text-align:center; box-shadow:0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); color:#fff; transform:scale(0.95); opacity:0; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); margin:auto;';
+    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.1); width:100%; max-width:320px; border-radius:24px; padding:22px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.6); color:#fff;';
     customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
 
     window.showCustomModal = (html) => { 
-        customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; 
-        setTimeout(() => { customModalBox.style.transform = 'scale(1)'; customModalBox.style.opacity = '1'; }, 10);
+        customModalBox.innerHTML = html; 
+        customModalOverlay.style.display = 'flex'; 
     };
     window.hideCustomModal = () => { 
-        customModalBox.style.transform = 'scale(0.95)'; customModalBox.style.opacity = '0';
-        setTimeout(() => { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; }, 300);
+        customModalOverlay.style.display = 'none'; 
+        customModalBox.innerHTML = ''; 
     };
 
     window.copyToClipboard = (text, btnId) => {
@@ -1270,21 +1272,34 @@ function initProStore() {
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             let btn = document.getElementById(btnId);
             if(btn) {
-                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.background = '#10b981'; btn.style.color='#fff';
-                setTimeout(() => { btn.innerHTML = old; btn.style.background = 'rgba(56,189,248,0.1)'; btn.style.color='#38bdf8'; }, 2000);
+                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.background = '#10b981';
+                setTimeout(() => { btn.innerHTML = old; btn.style.background = ''; }, 1500);
             }
         });
     };
 
-    // 2. جلب وعرض المتجر
+    // 🌟 دالة الإيقاف الصريح والمباشر لكل التأثيرات 🌟
+    window.stopAllEffects = () => {
+        if(window.activeStopScript) {
+            try { new Function(window.activeStopScript)(); } catch(e){}
+            window.activeStopScript = null;
+        }
+        document.querySelectorAll('div').forEach(e => {
+            if(e.innerText === '🦋') e.remove();
+        });
+        if(window.bfly) clearInterval(window.bfly);
+        document.body.style.background = '';
+        document.body.style.filter = '';
+    };
+
+    // 2. عرض المتجر
     window.renderAnimStore = async () => {
         let isAdmin = !!localStorage.getItem('my_master_key');
-        grid.innerHTML = '<div style="color:var(--text-sub); margin:auto; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Syncing Cloud...</div>';
+        grid.innerHTML = '<div style="color:var(--text-sub); margin:auto; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
         adminBarContainer.innerHTML = '';
         
-        // 🌟 العناصر المجانية الدائمة للجميع (بلا والفراشات) 🌟
         let defaultAnims = [
-            { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "document.body.style.background=''; document.body.style.filter='';" },
+            { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "window.stopAllEffects();" },
             { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),5000);}, 400);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
         ];
 
@@ -1305,111 +1320,100 @@ function initProStore() {
 
         if (isAdmin) {
             adminBarContainer.innerHTML = `
-                <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); padding:8px; border-radius:14px; border:1px solid rgba(255,255,255,0.05);">
-                    <button onclick="window.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:10px; font-weight:600; font-size:12px;"><i class="fas fa-plus"></i> Add Effect</button>
-                    <button onclick="window.adminActionNuke()" style="flex:1; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:8px; border-radius:10px; font-weight:600; font-size:12px;"><i class="fas fa-skull"></i> Wipe Cloud</button>
-                    <button onclick="localStorage.removeItem('my_master_key'); window.renderAnimStore();" style="background:#64748b; color:#fff; border:none; padding:8px 12px; border-radius:10px; font-weight:600; font-size:12px;"><i class="fas fa-sign-out-alt"></i></button>
+                <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); padding:8px; border-radius:12px;">
+                    <button onclick="window.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:600; font-size:12px;"><i class="fas fa-plus"></i> Add Item</button>
+                    <button onclick="window.adminActionNuke()" style="flex:1; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:8px; border-radius:8px; font-weight:600; font-size:12px;"><i class="fas fa-skull"></i> Wipe</button>
+                    <button onclick="localStorage.removeItem('my_master_key'); window.renderAnimStore();" style="background:#64748b; color:#fff; border:none; padding:8px 12px; border-radius:8px;"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             `;
         }
 
         allAnims.forEach((anim) => {
-            // العنصر يفتح إذا كان: مجاني، أو تم شراؤه، أو أنت المدير
             let isUnlocked = anim.isFree || localStorage.getItem('unlocked_' + anim.id) === 'true';
             let sId = window.getScrambledId(baseId, anim.id);
             let cCode = window.generateLicenseKey(sId, anim.id);
 
             let wrapper = document.createElement('div');
-            wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;';
+            wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
             
             let item = document.createElement('div');
             item.className = 'studio-item'; 
-            item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:32px; background:rgba(255,255,255,0.05); transition: 0.3s; cursor:pointer; margin:0; width:65px; height:65px; ${(isUnlocked || isAdmin) ? 'border:2px solid #10b981; box-shadow:0 0 15px rgba(16,185,129,0.4);' : 'border:2px solid rgba(255,255,255,0.1); filter:grayscale(1); opacity:0.6;'}`;
+            item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:28px; background:rgba(255,255,255,0.05); transition: 0.2s; cursor:pointer; margin:0; width:60px; height:60px; ${(isUnlocked || isAdmin) ? 'border:2px solid #10b981;' : 'border:2px solid rgba(255,255,255,0.1); filter:grayscale(1); opacity:0.6;'}`;
             item.innerHTML = anim.icon;
             
-            if(!isUnlocked && !isAdmin) item.innerHTML += `<div style="position:absolute; bottom:-4px; right:-4px; background:#ef4444; color:#fff; width:22px; height:22px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.5);"><i class="fas fa-lock"></i></div>`;
+            if(!isUnlocked && !isAdmin) item.innerHTML += `<div style="position:absolute; top:-3px; right:-3px; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-lock"></i></div>`;
 
-            let priceText = anim.isFree ? 'FREE' : (isUnlocked ? 'UNLOCKED' : (anim.price || '€1.00'));
+            let priceText = anim.isFree ? 'FREE' : (isUnlocked ? 'ACTIVE' : (anim.price || '€1.00'));
             let priceLabel = document.createElement('div');
             priceLabel.innerText = priceText;
-            priceLabel.style.cssText = `font-size:10px; font-weight:800; color:${(isUnlocked || anim.isFree) ? '#10b981' : 'var(--text-sub)'}; background:rgba(0,0,0,0.4); padding:3px 10px; border-radius:12px; letter-spacing:0.5px;`;
+            priceLabel.style.cssText = `font-size:9px; font-weight:700; color:${(isUnlocked || anim.isFree) ? '#10b981' : 'var(--text-sub)'}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:10px;`;
 
             item.onclick = () => {
-                if (window.isPreviewing) return; // منع الضغط أثناء العداد
+                if (window.isPreviewing) return;
                 
                 // لوحة تحكم المدير
                 if (isAdmin && !anim.isFree && anim.id !== '0') {
                     window.adminSelectedAnim = anim;
                     let adminHTML = `
-                        <div style="font-size:45px; margin-bottom:5px;">${anim.icon}</div>
-                        <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:20px; text-transform:uppercase;">Admin Panel • ID #${anim.id}</div>
-                        <div style="display:flex; flex-direction:column; gap:10px;">
-                            <button onclick="window.hideCustomModal(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:600; font-size:14px;"><i class="fas fa-play"></i> Test Effect</button>
-                            <button onclick="window.adminActionEditCode()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:12px; border-radius:12px; font-weight:600; font-size:14px;"><i class="fas fa-pen"></i> Edit Effect</button>
-                            <button onclick="window.adminGenKeyDialog('${anim.id}')" style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:12px; border-radius:12px; font-weight:600; font-size:14px;"><i class="fas fa-key"></i> Generate License</button>
-                            <button onclick="window.adminActionDelete()" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px; border-radius:12px; font-weight:600; font-size:14px;"><i class="fas fa-trash"></i> Delete Globally</button>
+                        <div style="font-size:36px; margin-bottom:5px;">${anim.icon}</div>
+                        <div style="font-size:12px; color:var(--text-sub); margin-bottom:15px;">Item #${anim.id} Admin</div>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <button onclick="window.hideCustomModal(); window.stopAllEffects(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-play"></i> Test</button>
+                            <button onclick="window.adminActionEditCode()" style="background:rgba(255,255,255,0.06); color:#fff; border:none; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-pen"></i> Edit</button>
+                            <button onclick="window.adminGenKeyDialog('${anim.id}')" style="background:#10b981; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-key"></i> Key</button>
+                            <button onclick="window.adminActionDelete()" style="background:#ef4444; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-trash"></i> Delete</button>
                         </div>
-                        <button onclick="window.hideCustomModal()" style="margin-top:20px; background:transparent; border:none; color:var(--text-sub); font-size:13px; font-weight:600;">Close</button>
+                        <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px;">Close</button>
                     `;
                     window.showCustomModal(adminHTML); return;
                 }
 
                 sheet.classList.remove('open'); overlay.classList.remove('open');
-                if(window.activeStopScript) { try{ new Function(window.activeStopScript)(); } catch(e){} window.activeStopScript=null; }
+                window.stopAllEffects();
 
-                // إذا كان مجاني أو مفتوح، يعمل فوراً
                 if (isUnlocked || anim.isFree) {
-                    try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
+                    if (anim.id !== '0') {
+                        try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
+                    }
                     if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    // 🌟 نظام التجربة الفورية مع العداد التنازلي 🌟
+                    // 🌟 تجربة الـ 5 ثواني مع العداد المصغر 🌟
                     window.isPreviewing = true;
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     
                     window.previewCountdown.style.display = 'block';
                     let timeLeft = 5;
-                    window.previewCountdown.innerText = '00:05';
+                    window.previewCountdown.innerText = timeLeft;
                     
                     let cdInt = setInterval(() => {
                         timeLeft--;
                         if(timeLeft > 0) {
-                            window.previewCountdown.innerText = '00:0' + timeLeft;
+                            window.previewCountdown.innerText = timeLeft;
                         } else {
                             clearInterval(cdInt);
                             window.previewCountdown.style.display = 'none';
                             window.isPreviewing = false;
+                            window.stopAllEffects();
                             
-                            // إيقاف التأثير
-                            if(window.activeStopScript === anim.stopScript) { 
-                                try{ new Function(anim.stopScript)(); } catch(e){} 
-                                window.activeStopScript = null; 
-                            }
-                            
-                            // 🌟 عرض نافذة الدفع الموضحة والذكية 🌟
+                            // 🌟 واجهة شراء مبسطة وواضحة جداً للمستخدم 🌟
                             let buyLink = anim.buyLink || STRIPE_LINK;
+                            let userMsg = `Client: ${userName}\nItem: #${anim.id} (${anim.icon})\nCODE: ${sId}`;
+                            let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(userMsg)}`;
+
                             let modalHTML = `
-                                <div style="font-size:50px; margin-bottom:5px; filter:drop-shadow(0 10px 15px rgba(0,0,0,0.5));">${anim.icon}</div>
-                                <h2 style="margin:0 0 5px 0; font-size:20px; font-weight:800;">Premium Effect</h2>
-                                <div style="font-size:20px; color:#10b981; font-weight:900; margin-bottom:15px;">${anim.price || '€1.00'}</div>
+                                <div style="font-size:42px; margin-bottom:5px;">${anim.icon}</div>
+                                <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:700;">Item #${anim.id}</h3>
+                                <div style="font-size:18px; color:#10b981; font-weight:800; margin-bottom:15px;">${anim.price || '€1.00'}</div>
                                 
-                                <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; background:linear-gradient(135deg, #635bff, #4f46e5); color:#fff; border:none; padding:14px; border-radius:14px; font-weight:700; font-size:15px; margin-bottom:20px; box-shadow:0 8px 20px rgba(99,91,255,0.4); cursor:pointer;"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
+                                <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; margin-bottom:10px;"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
                                 
-                                <div style="text-align:left; background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.05);">
-                                    <div style="font-size:12px; color:#10b981; margin-bottom:8px; font-weight:bold;">1️⃣ Step 1: Send ID</div>
-                                    <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px;">Copy your ID and send it to the developer:</div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:10px; margin-bottom:15px;">
-                                        <span style="font-family:monospace; color:#38bdf8; font-weight:bold; font-size:13px;">${sId}</span>
-                                        <button id="cpyIdBtn" onclick="window.copyToClipboard('${sId}', 'cpyIdBtn')" style="background:rgba(56,189,248,0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;"><i class="fas fa-copy"></i></button>
-                                    </div>
-                                    
-                                    <div style="font-size:12px; color:#f59e0b; margin-bottom:8px; font-weight:bold;">2️⃣ Step 2: Activate</div>
-                                    <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px;">Paste the License Key you received:</div>
-                                    <div style="display:flex; gap:8px;">
-                                        <input type="text" id="licenseInput" placeholder="Paste Key..." style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:10px; font-family:monospace; text-align:center; outline:none; font-size:12px;">
-                                        <button onclick="window.verifyActivation('${anim.id}', '${cCode}')" style="background:#10b981; color:#fff; border:none; padding:10px 15px; border-radius:10px; font-weight:bold; cursor:pointer;"><i class="fas fa-unlock"></i></button>
-                                    </div>
+                                <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:#0284c7; color:#fff; border:none; padding:10px; border-radius:12px; font-weight:600; font-size:12px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
+                                
+                                <div style="display:flex; gap:6px; margin-bottom:12px;">
+                                    <input type="text" id="licenseInput" placeholder="Enter Key..." style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:10px; border-radius:10px; font-family:monospace; text-align:center; outline:none; font-size:13px; font-weight:bold;">
+                                    <button onclick="window.verifyActivation('${anim.id}', '${cCode}')" style="background:#10b981; color:#fff; border:none; padding:10px 14px; border-radius:10px; font-weight:bold;"><i class="fas fa-check"></i></button>
                                 </div>
-                                <button onclick="window.hideCustomModal()" style="margin-top:20px; background:transparent; border:none; color:var(--text-sub); font-size:13px; font-weight:600; cursor:pointer;">Close</button>
+                                <button onclick="window.hideCustomModal()" style="background:transparent; border:none; color:var(--text-sub); font-size:12px;">Cancel</button>
                             `;
                             window.showCustomModal(modalHTML);
                         }
@@ -1425,11 +1429,10 @@ function initProStore() {
         if (inputCode === correctCode) {
             localStorage.setItem('unlocked_' + animId, 'true');
             window.hideCustomModal(); alert('✅ Activated Successfully!'); window.renderAnimStore();
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         } else { 
             let inp = document.getElementById('licenseInput');
-            inp.style.border = '1px solid #ef4444'; inp.style.color = '#ef4444';
-            setTimeout(()=> {inp.style.border = '1px solid rgba(255,255,255,0.1)'; inp.style.color = '#fff';}, 1000);
+            inp.style.border = '1px solid #ef4444';
+            setTimeout(()=> { if(inp) inp.style.border = '1px solid rgba(255,255,255,0.1)'; }, 1000);
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         }
     };
@@ -1437,39 +1440,39 @@ function initProStore() {
     storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
     sheet.querySelector('#closeAnimStore').onclick = storeBtn.onclick; overlay.onclick = storeBtn.onclick;
 
-    // --- أوامر الإدارة الشاملة (Add/Edit) ---
+    // --- نوافذ الإدارة المصححة والمحسنة (بدون تداخل عناصر) ---
     window.adminGenKeyDialog = (itemId) => {
-        let uId = prompt("Enter User ID:"); if (!uId) return;
+        let uId = prompt("Enter CODE sent by client (e.g. TG-XXXX-X):"); if (!uId) return;
         let code = window.generateLicenseKey(uId.trim(), itemId);
         let html = `
-            <h3 style="color:#10b981; margin-bottom:15px;">✅ Key Generated</h3>
-            <div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); margin-bottom:15px;">
-                <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:22px;">${code}</span>
+            <h3 style="color:#10b981; margin-bottom:10px; font-size:15px;">License Key</h3>
+            <div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; margin-bottom:12px;">
+                <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:18px;">${code}</span>
             </div>
-            <button id="cpyKeyAd" onclick="window.copyToClipboard('${code}', 'cpyKeyAd')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:10px;">Copy Code</button>
-            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; color:var(--text-sub); border:none; padding:10px; font-weight:bold;">Close</button>
+            <button id="cpyKeyAd" onclick="window.copyToClipboard('${code}', 'cpyKeyAd')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:12px; margin-bottom:8px;">Copy</button>
+            <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub); border:none; font-size:12px;">Close</button>
         `;
         window.showCustomModal(html);
     };
 
     window.adminActionAdd = () => {
         let formHTML = `
-            <h3 style="color:#10b981; margin-bottom:15px;">➕ Add Product</h3>
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <input id="nIcon" placeholder="Icon (e.g 🍉)" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <input id="nId" placeholder="ID (e.g 5)" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
+            <h3 style="color:#10b981; margin-bottom:12px; font-size:16px;">Add Effect</h3>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input id="nIcon" placeholder="Icon 🍉" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; outline:none;">
+                <input id="nId" placeholder="ID 5" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; outline:none;">
             </div>
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <input id="nPrice" placeholder="Price (e.g €1.50)" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <select id="nFree" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:10px; border-radius:8px; outline:none; font-weight:bold;">
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input id="nPrice" placeholder="Price €1.00" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; outline:none;">
+                <select id="nFree" style="flex:1; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:8px; border-radius:8px; outline:none; font-size:12px;">
                     <option value="false">Paid 🔒</option><option value="true">Free 🆓</option>
                 </select>
             </div>
-            <input id="nLink" placeholder="Payment Link (Stripe URL)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; text-align:center; outline:none; font-size:11px;">
-            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:10px; outline:none; font-family:monospace; font-size:11px;"></textarea>
-            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:15px; outline:none; font-family:monospace; font-size:11px;"></textarea>
-            <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:10px;">Deploy to Store</button>
-            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; color:var(--text-sub); border:none; padding:10px; font-weight:bold;">Cancel</button>
+            <input id="nLink" placeholder="Stripe Link" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none; font-size:11px;">
+            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px;"></textarea>
+            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px;"></textarea>
+            <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:6px;">Deploy</button>
+            <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub); border:none; font-size:12px;">Cancel</button>
         `;
         window.showCustomModal(formHTML);
     };
@@ -1479,22 +1482,19 @@ function initProStore() {
         let isFr = anim.isFree ? 'selected' : '';
         let isPd = !anim.isFree ? 'selected' : '';
         let editHTML = `
-            <h3 style="color:#3b82f6; margin-bottom:15px;">✏️ Edit Product #${anim.id}</h3>
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <input id="eIcon" value="${anim.icon}" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <input id="eId" value="${anim.id}" readonly style="flex:1; background:rgba(0,0,0,0.1); border:1px solid rgba(255,255,255,0.05); color:var(--text-sub); padding:10px; border-radius:8px; text-align:center; outline:none;">
-            </div>
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <input id="ePrice" value="${anim.price || '€1.00'}" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
-                <select id="eFree" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:10px; border-radius:8px; outline:none; font-weight:bold;">
+            <h3 style="color:#3b82f6; margin-bottom:12px; font-size:16px;">Edit #${anim.id}</h3>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input id="eIcon" value="${anim.icon}" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; outline:none;">
+                <input id="ePrice" value="${anim.price || '€1.00'}" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; outline:none;">
+                <select id="eFree" style="flex:1; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:8px; border-radius:8px; outline:none; font-size:12px;">
                     <option value="false" ${isPd}>Paid 🔒</option><option value="true" ${isFr}>Free 🆓</option>
                 </select>
             </div>
-            <input id="eLink" value="${anim.buyLink || STRIPE_LINK}" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:10px; text-align:center; outline:none; font-size:11px;">
-            <textarea id="ePlay" style="width:100%; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:10px; outline:none; font-family:monospace; font-size:11px; height:70px;">${anim.playScript}</textarea>
-            <textarea id="eStop" style="width:100%; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:15px; outline:none; font-family:monospace; font-size:11px; height:50px;">${anim.stopScript}</textarea>
-            <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:10px;">💾 Update Cloud</button>
-            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; color:var(--text-sub); border:none; padding:10px; font-weight:bold;">Cancel</button>
+            <input id="eLink" value="${anim.buyLink || STRIPE_LINK}" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none; font-size:11px;">
+            <textarea id="ePlay" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px; height:60px;">${anim.playScript}</textarea>
+            <textarea id="eStop" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px; height:50px;">${anim.stopScript}</textarea>
+            <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:6px;">Update</button>
+            <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub); border:none; font-size:12px;">Cancel</button>
         `;
         window.showCustomModal(editHTML);
     };
@@ -1537,23 +1537,42 @@ function initProStore() {
     };
 
     window.adminActionNuke = async () => {
-        if(!confirm('☢️ WIPING ENTIRE CLOUD. Are you sure?')) return;
-        grid.innerHTML = '<div style="color:#ef4444; margin:auto;">NUKING...</div>';
+        if(!confirm('Wipe cloud store?')) return;
+        grid.innerHTML = '<div style="color:#ef4444; margin:auto;">Wiping...</div>';
         await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': localStorage.getItem('my_master_key') }, body: JSON.stringify([{"id":"empty"}]) });
         window.renderAnimStore();
     };
 
+    // تسجيل الدخول الآمن للمدير
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = async () => {
         let txt = DOM.noteInput.value.trim();
-        if (txt.startsWith(">admin |")) { localStorage.setItem('my_master_key', txt.split('|')[1].trim()); DOM.noteInput.value = ''; alert('🔓 Admin Mode Unlocked!'); window.renderAnimStore(); return; }
+        if (txt.startsWith(">admin |")) {
+            let inputKey = txt.split('|')[1].trim();
+            if (tgUser && tgUser.id && tgUser.id !== 1169363091) {
+                alert('⛔ Security Alert: Unauthorized account.'); return;
+            }
+            DOM.noteInput.placeholder = "🔐 Verifying..."; DOM.noteInput.value = '';
+            try {
+                let testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': inputKey } });
+                if (testRes.ok) {
+                    localStorage.setItem('my_master_key', inputKey);
+                    alert('🔓 Verified: Welcome Admin!');
+                    window.renderAnimStore();
+                } else {
+                    localStorage.removeItem('my_master_key');
+                    alert('❌ Access Denied!');
+                    window.renderAnimStore();
+                }
+            } catch (e) { alert('❌ Verification failed.'); }
+            DOM.noteInput.placeholder = "Type your note here..."; return;
+        }
         if (originalSaveNote) originalSaveNote();
     };
 
     window.renderAnimStore();
 }
-initProStore();
-        
+initProStore();        
         
 
     
