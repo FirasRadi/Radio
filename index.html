@@ -1181,403 +1181,484 @@
 // 🛒 VIP Premium Store (Global Redeem, Flawless UI, Safe Core)
 // ======================================================
 
-const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
-const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
-const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
-const DEVELOPER_USERNAME = "developer_origins_bot"; 
-const SECRET_SALT = "TIME_WORLD_2026"; 
-const ADMIN_ID = 5350129816; // 👑 آيدي المطور المسموح له بفتح لوحة الإدارة
+// ======================================================
+// 🌌 VIP FX STUDIO - NEXUS EDITION (Completely Reimagined)
+// Zero Bottom-Sheets. 100% Immersive Glassmorphism UI.
+// ======================================================
 
-function initProStore() {
-    let tgApp = typeof tg !== 'undefined' ? tg : (window.Telegram?.WebApp || null);
-    let tgUser = tgApp?.initDataUnsafe?.user;
-    let baseId = localStorage.getItem('my_base_id');
-    
-    if (!baseId) {
-        baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
-        localStorage.setItem('my_base_id', baseId);
-    }
-    let userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
+const FX_NEXUS = {
+    BIN_ID: "6a821a3ada38895dfeec6ddc",
+    ACCESS_KEY: "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC",
+    STRIPE_LINK: "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800",
+    DEV_USERNAME: "developer_origins_bot",
+    SECRET_SALT: "TIME_WORLD_2026",
+    ADMIN_ID: 5350129816,
 
-    window.getScrambledId = (bId, itemId) => {
-        let clean = bId.toString().replace('TG-', '').replace('U-', '');
-        let prefix = bId.toString().startsWith('TG-') ? 'TG-' : 'U-';
-        let parsedItem = parseInt(itemId) || 1;
-        let shift = itemId === 'ALL' ? 5 : (parsedItem * 3) % 10;
-        let scrambled = clean.split('').map(c => isNaN(c) || c === ' ' ? '1' : (parseInt(c) + shift) % 10).join('');
+    state: { items: [], isPreviewing: false, activeIntervals: [], stopScript: null, isAdmin: false },
+    user: { id: "", name: "Client", tgId: null },
+
+    init() {
+        const tgApp = typeof window.Telegram !== 'undefined' ? window.Telegram.WebApp : null;
+        this.user.tgId = tgApp?.initDataUnsafe?.user?.id || null;
+        
+        let baseId = localStorage.getItem('nexus_base_id');
+        if (!baseId) {
+            baseId = this.user.tgId ? "TG-" + this.user.tgId : "U-" + Math.floor(Math.random() * 90000 + 10000);
+            localStorage.setItem('nexus_base_id', baseId);
+        }
+        this.user.id = baseId;
+        this.user.name = tgApp?.initDataUnsafe?.user?.first_name || "Client";
+
+        this.injectCSS();
+        this.buildUI();
+        this.fetchData();
+    },
+
+    haptic(type) {
+        if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp?.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred(type);
+        }
+    },
+
+    getScrambledId(itemId) {
+        let clean = String(this.user.id).replace(/[^0-9]/g, '') || "00000";
+        let prefix = String(this.user.id).startsWith('TG-') ? 'TG-' : 'U-';
+        let shift = itemId === 'ALL' ? 7 : (String(itemId).charCodeAt(0) * 2) % 10;
+        let scrambled = clean.split('').map(c => (parseInt(c) + shift) % 10).join('');
         return `${prefix}${scrambled}-${itemId}`;
-    };
+    },
 
-    window.generateLicenseKey = (scrambledId, scriptId) => {
-        let raw = scrambledId + "|" + scriptId + "|" + SECRET_SALT;
-        let hash1 = 5381, hash2 = 52711;
-        for (let i = 0; i < raw.length; i++) {
-            let char = raw.charCodeAt(i);
-            hash1 = ((hash1 << 5) + hash1) + char;
-            hash2 = ((hash2 << 5) + hash2) ^ char;
-        }
-        let p1 = Math.abs(hash1).toString(36).toUpperCase().padStart(4, 'X').slice(0,4);
-        let p2 = Math.abs(hash2).toString(36).toUpperCase().padStart(4, 'Y').slice(0,4);
-        return `VIP-${p1}-${p2}`;
-    };
+    generateKey(scrambledId, scriptId) {
+        let raw = scrambledId + "|" + scriptId + "|" + this.SECRET_SALT;
+        let hash = 5381;
+        for (let i = 0; i < raw.length; i++) hash = ((hash << 5) + hash) + raw.charCodeAt(i);
+        return `NEXUS-${Math.abs(hash).toString(36).toUpperCase().padStart(6, 'X').slice(0, 6)}`;
+    },
 
-    // وضع أيقونة المتجر بأمان
-    let storeBtn = document.createElement('button');
-    storeBtn.className = 'icon-btn';
-    storeBtn.innerHTML = '<i class="fas fa-store"></i>';
-    storeBtn.style.color = '#f59e0b';
-    
-    let headerRight = document.querySelector('.header-right');
-    if (headerRight) {
-        headerRight.appendChild(storeBtn);
-    } else {
-        storeBtn.style.cssText += 'position:fixed; top:15px; right:15px; z-index:9900; background:rgba(0,0,0,0.5); width:40px; height:40px; border-radius:12px; border:none;';
-        document.body.appendChild(storeBtn);
-    }
+    // 🎨 التصميم الجديد كلياً - بدون Bottom Sheet
+    injectCSS() {
+        if (document.getElementById('nexus-css')) return;
+        let style = document.createElement('style');
+        style.id = 'nexus-css';
+        style.innerHTML = `
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+            
+            /* The Floating Trigger Button */
+            .nx-trigger { position:fixed; top:20px; right:20px; width:45px; height:45px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.1); border-radius:14px; backdrop-filter:blur(10px); color:#10b981; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:9900; transition:0.3s; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+            .nx-trigger:hover { background:rgba(16,185,129,0.2); border-color:#10b981; transform:scale(1.05); }
 
-    let style = document.createElement('style');
-    style.innerHTML = `
-        .h-scroll::-webkit-scrollbar { display: none; } 
-        .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9998; opacity: 0; pointer-events: none; transition: 0.3s ease; }
-        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
-        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #0f172a; border-radius: 20px 20px 0 0; padding: 20px; z-index: 9999; transition: bottom 0.4s ease; box-sizing: border-box; max-height: 85vh; overflow-y: auto; color: #fff; }
-        .bottom-sheet.open { bottom: 0; }
-    `;
-    document.head.appendChild(style);
+            /* Full Screen Immersive Dashboard */
+            .nx-universe { position:fixed; inset:0; background:radial-gradient(circle at 50% 0%, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.95) 100%); backdrop-filter:blur(15px); z-index:9990; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:opacity 0.4s ease; font-family:'Outfit', sans-serif; padding:20px; box-sizing:border-box; }
+            .nx-universe.open { display:flex; opacity:1; }
+            
+            /* Main App Window */
+            .nx-window { background:rgba(255,255,255,0.02); width:100%; max-width:500px; height:85vh; border-radius:24px; border:1px solid rgba(255,255,255,0.05); box-shadow:0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1); display:flex; flex-direction:column; overflow:hidden; position:relative; }
+            
+            /* Header */
+            .nx-header { padding:25px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.2); }
+            .nx-logo { font-size:24px; font-weight:800; color:#fff; display:flex; align-items:center; gap:10px; letter-spacing:1px; }
+            .nx-logo span { color:#10b981; }
+            .nx-close { background:rgba(255,255,255,0.05); border:none; width:40px; height:40px; border-radius:12px; color:#fff; font-size:16px; cursor:pointer; transition:0.2s; }
+            .nx-close:hover { background:#ef4444; }
 
-    let overlay = document.createElement('div'); overlay.className = 'sheet-overlay';
-    let sheet = document.createElement('div'); sheet.className = 'bottom-sheet';
-    
-    sheet.innerHTML = `
-        <div class="sheet-header" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-size:16px; font-weight:bold;"><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Premium FX Store</div>
-            <button class="close-sheet" id="closeAnimStore" style="background:transparent; border:none; color:#fff; font-size:18px; cursor:pointer;"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div style="display:flex; gap:8px; margin-bottom:15px; background:rgba(0,0,0,0.3); padding:8px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-            <input type="text" id="globalRedeemInput" placeholder="Paste License Key here..." style="flex:1; background:transparent; border:none; color:#10b981; padding:5px; font-family:monospace; font-weight:bold; font-size:13px; outline:none; letter-spacing:1px;">
-            <button onclick="window.globalRedeemCode()" style="background:#10b981; color:#fff; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer;"><i class="fas fa-unlock"></i></button>
-        </div>
+            /* Command Line (Redeem) */
+            .nx-cli { margin:20px; background:rgba(0,0,0,0.4); padding:5px; border-radius:16px; border:1px solid rgba(16,185,129,0.2); display:flex; align-items:center; transition:0.3s; }
+            .nx-cli:focus-within { border-color:#10b981; box-shadow:0 0 20px rgba(16,185,129,0.2); }
+            .nx-cli.admin-mode { border-color:#8b5cf6; box-shadow:0 0 20px rgba(139,92,246,0.2); }
+            .nx-cli-icon { padding:0 15px; color:#10b981; font-weight:bold; }
+            .nx-cli input { flex:1; background:transparent; border:none; color:#fff; font-family:monospace; font-size:15px; outline:none; padding:12px 0; }
+            .nx-cli button { background:#10b981; color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:800; cursor:pointer; font-family:'Outfit'; transition:0.2s; margin-right:5px; }
 
-        <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
-        <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding:5px; scroll-behavior:smooth;"></div>
-    `;
-    document.body.appendChild(overlay); document.body.appendChild(sheet);
-    let grid = sheet.querySelector('#animStoreGrid');
-    let adminBarContainer = sheet.querySelector('#adminBarContainer');
+            /* List View (Replacing the Grid) */
+            .nx-list { flex:1; overflow-y:auto; padding:0 20px 20px 20px; display:flex; flex-direction:column; gap:12px; scrollbar-width:none; }
+            .nx-list::-webkit-scrollbar { display:none; }
+            
+            /* Wide Cards */
+            .nx-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:20px; padding:15px; display:flex; align-items:center; gap:15px; transition:0.3s; position:relative; overflow:hidden; }
+            .nx-card:hover { background:rgba(255,255,255,0.06); transform:translateY(-2px); }
+            .nx-card.unlocked { border-left:4px solid #10b981; }
+            .nx-card.admin { border-left:4px solid #8b5cf6; }
+            
+            .nx-icon { font-size:35px; width:60px; height:60px; background:rgba(0,0,0,0.3); border-radius:16px; display:flex; align-items:center; justify-content:center; }
+            .nx-info { flex:1; }
+            .nx-title { color:#fff; font-weight:800; font-size:16px; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+            .nx-status { font-size:12px; font-weight:600; padding:4px 10px; border-radius:8px; display:inline-block; }
+            .nx-status.free { background:rgba(16,185,129,0.1); color:#10b981; }
+            .nx-status.paid { background:rgba(239,68,68,0.1); color:#ef4444; }
+            
+            .nx-action-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 20px; border-radius:12px; font-weight:800; cursor:pointer; transition:0.2s; font-family:'Outfit'; }
+            .nx-card.unlocked .nx-action-btn { background:#10b981; color:#fff; border:none; }
+            
+            /* Cinematic Preview Progress */
+            .nx-progress-wrap { position:fixed; top:0; left:0; width:100%; height:4px; background:rgba(255,255,255,0.1); z-index:10000; display:none; }
+            .nx-progress-bar { height:100%; background:#10b981; width:100%; transition:width 1s linear; box-shadow:0 0 20px #10b981; }
+            
+            /* Next-Gen Modal */
+            .nx-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:10001; display:none; align-items:center; justify-content:center; padding:20px; opacity:0; transition:0.3s; }
+            .nx-modal-overlay.open { display:flex; opacity:1; }
+            .nx-modal { background:linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border:1px solid rgba(255,255,255,0.1); width:100%; max-width:360px; border-radius:28px; padding:30px; box-shadow:0 30px 60px rgba(0,0,0,0.9); text-align:center; color:#fff; position:relative; overflow:hidden; }
+            .nx-modal::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%); pointer-events:none; }
+            
+            .nx-btn-primary { width:100%; background:#10b981; color:#fff; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer; margin-bottom:12px; font-family:'Outfit'; transition:0.2s; }
+            .nx-btn-primary:hover { filter:brightness(1.1); transform:translateY(-2px); box-shadow:0 10px 20px rgba(16,185,129,0.3); }
+            .nx-btn-telegram { width:100%; background:rgba(14, 165, 233, 0.1); border:1px solid rgba(14, 165, 233, 0.3); color:#0ea5e9; padding:16px; border-radius:16px; font-weight:800; font-size:15px; cursor:pointer; font-family:'Outfit'; }
+            
+            /* Admin Inputs */
+            .nx-admin-inp { width:100%; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:15px; border-radius:14px; margin-bottom:12px; font-family:monospace; box-sizing:border-box; outline:none; }
+            .nx-admin-inp:focus { border-color:#8b5cf6; }
+        `;
+        document.head.appendChild(style);
+    },
 
-    window.previewCountdown = document.createElement('div');
-    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:44px; height:44px; line-height:44px; font-size:22px; font-weight:800; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
-    document.body.appendChild(window.previewCountdown);
+    buildUI() {
+        const trigger = document.createElement('button');
+        trigger.className = 'nx-trigger';
+        trigger.innerHTML = '✨';
+        trigger.onclick = () => this.toggleUI(true);
+        document.body.appendChild(trigger);
 
-    let customModalOverlay = document.createElement('div');
-    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:all 0.3s ease; padding:15px; overflow-y:auto;';
-    let customModalBox = document.createElement('div');
-    customModalBox.style.cssText = 'background:#1e293b; border:1px solid rgba(255,255,255,0.1); width:100%; max-width:320px; border-radius:24px; padding:22px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.6); color:#fff; margin:auto; box-sizing:border-box;';
-    customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
+        this.universe = document.createElement('div');
+        this.universe.className = 'nx-universe';
+        this.universe.innerHTML = `
+            <div class="nx-window" onclick="event.stopPropagation()">
+                <div class="nx-header">
+                    <div class="nx-logo">FX <span>NEXUS</span></div>
+                    <button class="nx-close" onclick="FX_NEXUS.toggleUI(false)">✕</button>
+                </div>
+                
+                <div class="nx-cli" id="nxCliBox">
+                    <span class="nx-cli-icon">❯</span>
+                    <input type="text" id="nxRedeem" placeholder="Enter License Key...">
+                    <button onclick="FX_NEXUS.processCommand()" id="nxCliBtn">Unlock</button>
+                </div>
 
-    window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; };
-    window.hideCustomModal = () => { customModalOverlay.style.display = 'none'; customModalBox.innerHTML = ''; };
+                <div id="nxAdminBar" style="padding:0 20px;"></div>
+                <div class="nx-list" id="nxList"></div>
+            </div>
+        `;
+        this.universe.onclick = () => this.toggleUI(false);
+        document.body.appendChild(this.universe);
 
-    window.copyToClipboard = (text, btnId) => {
-        navigator.clipboard.writeText(text).then(() => {
-            if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
-            let btn = document.getElementById(btnId);
-            if(btn) {
-                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.background = '#10b981'; btn.style.color='#fff';
-                setTimeout(() => { btn.innerHTML = old; btn.style.background = 'rgba(56,189,248,0.1)'; btn.style.color='#38bdf8'; }, 2000);
-            }
-        });
-    };
+        this.modalWrap = document.createElement('div');
+        this.modalWrap.className = 'nx-modal-overlay';
+        this.modalWrap.innerHTML = `<div class="nx-modal" id="nxModalCore" onclick="event.stopPropagation()"></div>`;
+        this.modalWrap.onclick = () => this.closeModal();
+        document.body.appendChild(this.modalWrap);
 
-    window.fxIntervals = [];
-    window.stopAllEffects = () => {
-        if(window.activeStopScript) { try { new Function(window.activeStopScript)(); } catch(e){} window.activeStopScript = null; }
-        window.fxIntervals.forEach(clearInterval); window.fxIntervals = [];
-        document.querySelectorAll('.fx-gen').forEach(e => e.remove());
-        document.body.style.background = ''; document.body.style.filter = '';
-    };
+        this.progressBar = document.createElement('div');
+        this.progressBar.className = 'nx-progress-wrap';
+        this.progressBar.innerHTML = `<div class="nx-progress-bar" id="nxProgress"></div>`;
+        document.body.appendChild(this.progressBar);
+    },
 
-    window.globalRedeemCode = () => {
-        let inputCode = document.getElementById('globalRedeemInput').value.trim();
-        if(!inputCode) return;
-
-        // 👑 نظام الإدارة (مربوط بالـ ID الخاص بك فقط) 👑
-        if (inputCode.startsWith(">admin |")) {
-            if (tgUser?.id == ADMIN_ID) {
-                let masterKey = inputCode.split('|')[1].trim();
-                localStorage.setItem('my_master_key', masterKey);
-                document.getElementById('globalRedeemInput').value = '';
-                alert('👑 Admin Mode Unlocked!');
-                window.renderAnimStore();
-            } else {
-                alert('❌ Access Denied: Unauthorized User!');
-            }
-            return;
-        }
-
-        inputCode = inputCode.toUpperCase();
-        let foundItem = null;
-        let isBundle = false;
-
-        let sIdAll = window.getScrambledId(baseId, 'ALL');
-        let expectedAll = window.generateLicenseKey(sIdAll, 'ALL');
-        
-        if (inputCode === expectedAll) {
-            localStorage.setItem('unlocked_all', 'true');
-            isBundle = true;
-            foundItem = 'ALL';
+    toggleUI(state) {
+        if (state) {
+            this.universe.classList.add('open');
+            document.body.style.overflow = 'hidden';
         } else {
-            window.currentAllAnims.forEach(anim => {
-                let sId = window.getScrambledId(baseId, anim.id);
-                let expected = window.generateLicenseKey(sId, anim.id);
-                if (inputCode === expected) {
-                    localStorage.setItem('unlocked_' + anim.id, 'true');
-                    foundItem = anim.id;
-                }
-            });
+            this.universe.classList.remove('open');
+            document.body.style.overflow = '';
         }
+    },
 
-        let inp = document.getElementById('globalRedeemInput');
-        if(foundItem) {
-            inp.value = '';
-            alert(isBundle ? '🌟 All Premium Effects Unlocked!' : `✅ Effect #${foundItem} Unlocked Successfully!`);
-            if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
-            window.renderAnimStore();
-        } else {
-            inp.style.border = '1px solid #ef4444'; inp.style.color = '#ef4444';
-            setTimeout(()=> { inp.style.border = 'none'; inp.style.color = '#10b981'; }, 1000);
-            if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('error');
-        }
-    };
+    openModal(html) {
+        document.getElementById('nxModalCore').innerHTML = html;
+        this.modalWrap.classList.add('open');
+    },
+    closeModal() {
+        this.modalWrap.classList.remove('open');
+        setTimeout(() => document.getElementById('nxModalCore').innerHTML = '', 300);
+    },
 
-    window.renderAnimStore = async () => {
-        let isAdmin = !!localStorage.getItem('my_master_key');
-        let isAllUnlocked = localStorage.getItem('unlocked_all') === 'true';
-        grid.innerHTML = '<div style="color:var(--text-sub, #94a3b8); margin:auto; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
-        adminBarContainer.innerHTML = '';
+    async fetchData() {
+        const list = document.getElementById('nxList');
+        list.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:40px; font-weight:600;">Establishing Uplink... 📡</div>';
         
-        let defaultAnims = [
-            { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "window.stopAllEffects();" },
-            { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "window.fxIntervals.push(setInterval(()=>{let e=document.createElement('div');e.className='fx-gen';e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),5000);}, 400));", stopScript: "window.stopAllEffects();" }
+        let defaults = [
+            { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "FX_NEXUS.stopAll();" },
+            { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "FX_NEXUS.state.activeIntervals.push(setInterval(()=>{let e=document.createElement('div');e.className='nx-fx-el';e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9990;pointer-events:none;font-size:${Math.random()*15+20}px;transition:all 5s linear;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*200-100}px) rotate(${Math.random()*90}deg)\`;},50);setTimeout(()=>{e.remove();},5000);}, 400));", stopScript: "FX_NEXUS.stopAll();" }
         ];
 
-        let cloudAnims = [];
+        let cloud = [];
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } });
-            if(res.ok) { let data = await res.json(); if(Array.isArray(data)) cloudAnims = data; }
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${this.BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': this.ACCESS_KEY } });
+            if(res.ok) { let data = await res.json(); if(Array.isArray(data)) cloud = data; }
         } catch(e) {}
-        cloudAnims = cloudAnims.filter(a => a && a.id && a.id !== "empty");
 
-        let animMap = new Map();
-        defaultAnims.forEach(a => animMap.set(a.id, a));
-        cloudAnims.forEach(a => animMap.set(a.id, a));
-        window.currentAllAnims = Array.from(animMap.values());
-        
-        grid.innerHTML = '';
+        const map = new Map();
+        defaults.forEach(i => map.set(i.id, i));
+        cloud.filter(i => i && i.id && i.id !== "empty").forEach(i => map.set(i.id, i));
+        this.state.items = Array.from(map.values());
 
-        if (isAdmin) {
-            adminBarContainer.innerHTML = `
-                <div style="display:flex; flex-wrap:wrap; gap:8px; background:rgba(0,0,0,0.3); padding:10px; border-radius:14px; border:1px dashed #10b981;">
-                    <button onclick="window.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;">➕ Add</button>
-                    <button onclick="window.adminGenKeyDialog('ALL')" style="flex:1; background:#8b5cf6; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;">🌟 ALL Key</button>
-                    <button onclick="window.adminActionNuke()" style="flex:1; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;">☢ Wipe</button>
-                    <button onclick="localStorage.removeItem('my_master_key'); window.renderAnimStore();" style="background:#64748b; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;">Lock</button>
+        this.renderList();
+    },
+
+    renderList() {
+        const list = document.getElementById('nxList');
+        const adminBar = document.getElementById('nxAdminBar');
+        list.innerHTML = ''; adminBar.innerHTML = '';
+
+        const allUnlocked = localStorage.getItem('nexus_ALL') === 'true';
+
+        if (this.state.isAdmin) {
+            adminBar.innerHTML = `
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <button onclick="FX_NEXUS.adminAdd()" style="flex:1; background:#8b5cf6; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">➕ Add Effect</button>
+                    <button onclick="FX_NEXUS.adminGenKey('ALL')" style="flex:1; background:rgba(139,92,246,0.2); color:#a78bfa; border:1px solid rgba(139,92,246,0.3); padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">🌟 Master Key</button>
+                    <button onclick="FX_NEXUS.state.isAdmin=false; FX_NEXUS.renderList(); document.getElementById('nxCliBox').classList.remove('admin-mode');" style="background:rgba(255,255,255,0.05); color:#fff; border:none; padding:12px 20px; border-radius:12px; cursor:pointer;">Lock</button>
                 </div>
             `;
         }
 
-        window.currentAllAnims.forEach((anim) => {
-            let isUnlocked = anim.isFree || isAllUnlocked || localStorage.getItem('unlocked_' + anim.id) === 'true';
-            let sId = window.getScrambledId(baseId, anim.id);
-
-            let wrapper = document.createElement('div');
-            wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
+        this.state.items.forEach(anim => {
+            const unlocked = anim.isFree || allUnlocked || localStorage.getItem(`nexus_${anim.id}`) === 'true';
+            const cardClass = this.state.isAdmin ? 'admin' : (unlocked ? 'unlocked' : '');
             
-            let item = document.createElement('div');
-            item.className = 'studio-item'; 
-            item.style.cssText = `position:relative; display:flex; align-items:center; justify-content:center; font-size:28px; background:rgba(255,255,255,0.05); transition: 0.2s; cursor:pointer; width:60px; height:60px; border-radius:14px; ${(isUnlocked || isAdmin) ? 'border:2px solid #10b981;' : 'border:2px solid rgba(255,255,255,0.1); filter:grayscale(1); opacity:0.6;'}`;
-            item.innerHTML = anim.icon;
-            
-            if(!isUnlocked && !isAdmin) item.innerHTML += `<div style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-lock"></i></div>`;
-
-            let priceText = anim.isFree ? 'FREE' : (isUnlocked ? 'ACTIVE' : (anim.price || '€1.00'));
-            let priceLabel = document.createElement('div');
-            priceLabel.innerText = priceText;
-            priceLabel.style.cssText = `font-size:10px; font-weight:700; color:${(isUnlocked || anim.isFree) ? '#10b981' : 'var(--text-sub, #94a3b8)'}; background:rgba(0,0,0,0.4); padding:3px 8px; border-radius:10px;`;
-
-            item.onclick = () => {
-                if (window.isPreviewing) return;
-
-                if (isAdmin && anim.id !== '0') {
-                    window.adminSelectedAnim = anim;
-                    window.showCustomModal(`
-                        <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
-                        <div style="font-size:12px; font-weight:bold; color:var(--text-sub, #94a3b8); margin-bottom:15px;">Admin Panel • ID #${anim.id}</div>
-                        <div style="display:flex; flex-direction:column; gap:8px;">
-                            <button onclick="window.hideCustomModal(); window.stopAllEffects(); try{new Function(window.adminSelectedAnim.playScript)();}catch(e){} window.activeStopScript=window.adminSelectedAnim.stopScript;" style="background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-play"></i> Test</button>
-                            <button onclick="window.adminActionEditCode()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-pen"></i> Edit</button>
-                            <button onclick="window.adminGenKeyDialog('${anim.id}')" style="background:#10b981; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-key"></i> Key</button>
-                            ${!anim.isFree ? `<button onclick="window.adminActionDelete()" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:10px; border-radius:10px; font-weight:600;"><i class="fas fa-trash"></i> Delete Globally</button>` : ''}
+            let html = `
+                <div class="nx-card ${cardClass}">
+                    <div class="nx-icon">${anim.icon}</div>
+                    <div class="nx-info">
+                        <div class="nx-title">
+                            Effect #${anim.id} 
+                            ${!unlocked && !this.state.isAdmin ? '<span style="font-size:10px; background:#ef4444; padding:2px 6px; border-radius:6px;">🔒 LOCKED</span>' : ''}
                         </div>
-                        <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub, #94a3b8); font-size:12px;">Close</button>
-                    `);
-                    return;
-                }
-
-                sheet.classList.remove('open'); overlay.classList.remove('open');
-                window.stopAllEffects();
-
-                if (isUnlocked || anim.isFree) {
-                    if (anim.id !== '0') {
-                        try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
-                    }
-                    if(tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred('success');
-                } else {
-                    window.isPreviewing = true;
-                    try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
-                    
-                    window.previewCountdown.style.display = 'block';
-                    let timeLeft = 5;
-                    window.previewCountdown.innerText = timeLeft;
-                    
-                    let cdInt = setInterval(() => {
-                        timeLeft--;
-                        if(timeLeft > 0) {
-                            window.previewCountdown.innerText = timeLeft;
-                        } else {
-                            clearInterval(cdInt);
-                            window.previewCountdown.style.display = 'none';
-                            window.isPreviewing = false;
-                            window.stopAllEffects();
-                            
-                            let buyLink = anim.buyLink || STRIPE_LINK;
-                            let userMsg = `Hi!\nClient: ${userName}\nID: ${sId}\nI want to buy Item #${anim.id} (${anim.icon})`;
-                            let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(userMsg)}`;
-
-                            // 🚫 تم إزالة زر نسخ الـ ID كما طلبت تماماً 🚫
-                            window.showCustomModal(`
-                                <div style="font-size:45px; margin-bottom:5px;">${anim.icon}</div>
-                                <h3 style="margin:0 0 4px 0; font-size:18px; font-weight:700;">Premium Effect</h3>
-                                <div style="font-size:18px; color:#10b981; font-weight:800; margin-bottom:20px;">${anim.price || '€1.00'}</div>
-                                
-                                <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; margin-bottom:12px;"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
-                                
-                                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.05); margin-bottom:15px;">
-                                    <div style="font-size:12px; color:var(--text-sub, #94a3b8); margin-bottom:12px;">Send request to get your activation key:</div>
-                                    <button onclick="let u='${directChatUrl}'; window.Telegram?.WebApp?.openTelegramLink ? window.Telegram.WebApp.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:10px; border-radius:10px; font-weight:600; font-size:13px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
-                                </div>
-                                <button onclick="window.hideCustomModal(); document.querySelector('.icon-btn').click();" style="background:transparent; border:none; color:var(--text-sub, #94a3b8); font-size:12px; cursor:pointer;">Close</button>
-                            `);
-                        }
-                    }, 1000);
-                }
-            };
-            wrapper.appendChild(item); wrapper.appendChild(priceLabel); grid.appendChild(wrapper);
+                        <div class="nx-status ${anim.isFree ? 'free' : 'paid'}">
+                            ${anim.isFree ? 'FREE INCLUDED' : (unlocked ? 'PURCHASED' : (anim.price || '€1.00'))}
+                        </div>
+                    </div>
+                    <button class="nx-action-btn" onclick="FX_NEXUS.handleAction('${anim.id}')">
+                        ${this.state.isAdmin ? 'Manage' : (unlocked || anim.isFree ? 'Activate' : 'Preview')}
+                    </button>
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', html);
         });
-    };
+    },
 
-    storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.add('open'); overlay.classList.add('open'); };
-    sheet.querySelector('#closeAnimStore').onclick = () => { sheet.classList.remove('open'); overlay.classList.remove('open'); }; 
-    overlay.onclick = () => { sheet.classList.remove('open'); overlay.classList.remove('open'); };
+    stopAll() {
+        if(this.state.stopScript) { try { new Function(this.state.stopScript)(); } catch(e){} }
+        this.state.activeIntervals.forEach(clearInterval);
+        this.state.activeIntervals = [];
+        document.querySelectorAll('.nx-fx-el').forEach(e => e.remove());
+        this.state.stopScript = null;
+    },
 
-    window.adminGenKeyDialog = (itemId) => {
-        let uId = prompt("Enter Client ID (e.g. TG-XXXXX):"); if (!uId) return;
-        let code = window.generateLicenseKey(uId.trim(), itemId);
-        window.showCustomModal(`
-            <h3 style="color:#10b981; margin-bottom:10px; font-size:16px;">License Key</h3>
-            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; margin-bottom:12px;">
-                <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:18px; letter-spacing:1px;">${code}</span>
+    handleAction(id) {
+        if (this.state.isPreviewing) return;
+        const anim = this.state.items.find(i => i.id === id);
+        if (!anim) return;
+
+        const allUnlocked = localStorage.getItem('nexus_ALL') === 'true';
+        const unlocked = anim.isFree || allUnlocked || localStorage.getItem(`nexus_${anim.id}`) === 'true';
+
+        if (this.state.isAdmin && id !== '0') {
+            this.openModal(`
+                <div style="font-size:60px; margin-bottom:10px;">${anim.icon}</div>
+                <div style="color:#a78bfa; font-weight:800; letter-spacing:1px; margin-bottom:20px;">NEXUS ADMIN • #${anim.id}</div>
+                <button class="nx-btn-primary" style="background:#3b82f6;" onclick="FX_NEXUS.closeModal(); FX_NEXUS.playEffect('${id}')">▶ Force Test</button>
+                <button class="nx-btn-primary" style="background:#8b5cf6;" onclick="FX_NEXUS.adminEdit('${id}')">✏ Edit Module</button>
+                <button class="nx-btn-primary" style="background:#10b981;" onclick="FX_NEXUS.adminGenKey('${id}')">🔑 Generate Access Key</button>
+                ${!anim.isFree ? `<button class="nx-btn-primary" style="background:transparent; border:1px solid #ef4444; color:#ef4444;" onclick="FX_NEXUS.adminDelete('${id}')">🗑 Erase from Server</button>` : ''}
+                <button style="background:transparent; border:none; color:#94a3b8; font-weight:bold; cursor:pointer; margin-top:15px;" onclick="FX_NEXUS.closeModal()">Close Panel</button>
+            `);
+            return;
+        }
+
+        this.toggleUI(false);
+        this.stopAll();
+
+        if (unlocked || anim.isFree) {
+            this.playEffect(id);
+            this.haptic('success');
+        } else {
+            this.startCinematicPreview(anim);
+        }
+    },
+
+    playEffect(id) {
+        const anim = this.state.items.find(i => i.id === id);
+        if(anim && anim.id !== '0') {
+            try { new Function(anim.playScript)(); this.state.stopScript = anim.stopScript; } catch(e){}
+        }
+    },
+
+    startCinematicPreview(anim) {
+        this.state.isPreviewing = true;
+        try { new Function(anim.playScript)(); this.state.stopScript = anim.stopScript; } catch(e){}
+        
+        this.progressBar.style.display = 'block';
+        let bar = document.getElementById('nxProgress');
+        bar.style.width = '100%';
+        
+        // Animate width over 5 seconds
+        setTimeout(() => { bar.style.width = '0%'; }, 50);
+
+        setTimeout(() => {
+            this.progressBar.style.display = 'none';
+            bar.style.width = '100%'; // reset
+            this.state.isPreviewing = false;
+            this.stopAll();
+            this.showPurchaseModal(anim);
+        }, 5000);
+    },
+
+    showPurchaseModal(anim) {
+        let sId = this.getScrambledId(anim.id);
+        let link = anim.buyLink || this.STRIPE_LINK;
+        let msg = `Hi Developer!\nMy Name: ${this.user.name}\nMy ID: ${sId}\nI wish to purchase the Effect #${anim.id} (${anim.icon})`;
+        let tgUrl = `https://t.me/${this.DEV_USERNAME}?text=${encodeURIComponent(msg)}`;
+
+        // No copy button, just direct Telegram action
+        this.openModal(`
+            <div style="font-size:70px; margin-bottom:10px; filter:drop-shadow(0 10px 20px rgba(16,185,129,0.4));">${anim.icon}</div>
+            <h2 style="margin:0 0 5px 0; font-size:24px;">Premium Module</h2>
+            <div style="font-size:30px; color:#10b981; font-weight:900; margin-bottom:25px; letter-spacing:1px;">${anim.price || '€1.00'}</div>
+            
+            <button class="nx-btn-primary" onclick="window.open('${link}', '_blank')">Checkout securely</button>
+            <button class="nx-btn-telegram" onclick="let u='${tgUrl}'; typeof window.Telegram!=='undefined'&&window.Telegram.WebApp.openTelegramLink ? window.Telegram.WebApp.openTelegramLink(u) : window.open(u,'_blank');">Send ID via Telegram</button>
+            
+            <button style="background:transparent; border:none; color:#94a3b8; font-size:14px; font-weight:bold; margin-top:20px; cursor:pointer;" onclick="FX_NEXUS.closeModal(); FX_NEXUS.toggleUI(true);">Return to Store</button>
+        `);
+    },
+
+    processCommand() {
+        const inp = document.getElementById('nxRedeem');
+        const code = inp.value.trim().toUpperCase();
+        if (!code) return;
+
+        // 👑 Command Line Admin Auth
+        if (code.startsWith(">ADMIN |")) {
+            if (this.user.tgId == this.ADMIN_ID) {
+                this.state.isAdmin = true;
+                this.masterKey = code.split('|')[1].trim();
+                inp.value = '';
+                document.getElementById('nxCliBox').classList.add('admin-mode');
+                document.getElementById('nxCliBtn').style.background = '#8b5cf6';
+                this.haptic('success');
+                this.renderList();
+            } else {
+                inp.style.color = '#ef4444';
+                setTimeout(() => inp.style.color = '#fff', 1000);
+            }
+            return;
+        }
+
+        // Standard Redeem
+        let found = null; let isAll = false;
+        if (code === this.generateKey(this.getScrambledId('ALL'), 'ALL')) {
+            localStorage.setItem('nexus_ALL', 'true');
+            found = 'ALL'; isAll = true;
+        } else {
+            for (let anim of this.state.items) {
+                if (code === this.generateKey(this.getScrambledId(anim.id), anim.id)) {
+                    localStorage.setItem(`nexus_${anim.id}`, 'true');
+                    found = anim.id; break;
+                }
+            }
+        }
+
+        if (found) {
+            inp.value = '';
+            this.haptic('success');
+            this.renderList();
+            this.openModal(`
+                <div style="font-size:60px; margin-bottom:15px;">${isAll ? '🔮' : '✅'}</div>
+                <h2 style="color:#10b981; margin-bottom:10px;">Access Granted</h2>
+                <p style="color:#94a3b8; font-size:15px; margin-bottom:25px;">${isAll ? 'Full System Unlocked!' : `Module #${found} is now active.`}</p>
+                <button class="nx-btn-primary" onclick="FX_NEXUS.closeModal()">Initialize</button>
+            `);
+        } else {
+            document.getElementById('nxCliBox').style.borderColor = '#ef4444';
+            this.haptic('error');
+            setTimeout(() => document.getElementById('nxCliBox').style.borderColor = 'rgba(16,185,129,0.2)', 1000);
+        }
+    },
+
+    // --- Admin Operations ---
+    adminGenKey(id) {
+        let uId = prompt("Enter Target ID (e.g. TG-12345-5):"); if(!uId) return;
+        let code = this.generateKey(uId.trim(), id);
+        this.openModal(`
+            <h3 style="color:#8b5cf6; margin-bottom:20px;">Encrypted Key Generated</h3>
+            <div style="background:rgba(0,0,0,0.5); padding:20px; border-radius:16px; margin-bottom:20px; border:1px solid rgba(139,92,246,0.3);">
+                <span style="font-family:monospace; font-weight:bold; color:#a78bfa; font-size:24px; letter-spacing:2px;">${code}</span>
             </div>
-            <button id="cpyKeyAd" onclick="window.copyToClipboard('${code}', 'cpyKeyAd')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:12px; margin-bottom:8px;">Copy Code</button>
-            <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub, #94a3b8); border:none; font-size:12px;">Close</button>
+            <button class="nx-btn-primary" style="background:#8b5cf6;" onclick="navigator.clipboard.writeText('${code}'); this.innerHTML='Copied ✔'; setTimeout(()=>this.innerHTML='Copy to Clipboard',2000);">Copy to Clipboard</button>
+            <button style="background:transparent; border:none; color:#94a3b8; font-weight:bold; cursor:pointer; margin-top:10px;" onclick="FX_NEXUS.closeModal()">Close</button>
         `);
-    };
+    },
 
-    const cssInp = "width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none;";
-
-    window.adminActionAdd = () => {
-        window.stopAllEffects();
-        window.showCustomModal(`
-            <h3 style="color:#10b981; margin-bottom:12px; font-size:16px;">➕ Add Effect</h3>
-            <input id="nIcon" placeholder="Icon 🍉" style="${cssInp}">
-            <input id="nId" placeholder="ID Number (e.g. 5)" style="${cssInp}">
-            <input id="nPrice" placeholder="Price (e.g. €1.00)" style="${cssInp}">
-            <select id="nFree" style="${cssInp} font-weight:bold;"><option value="false">Paid 🔒</option><option value="true">Free 🆓</option></select>
-            <input id="nLink" placeholder="Stripe Link (Optional)" style="${cssInp} font-size:11px;">
-            <textarea id="nPlay" placeholder="Play Script" style="${cssInp} color:#10b981; font-family:monospace; height:50px; text-align:left;"></textarea>
-            <textarea id="nStop" placeholder="Stop Script" style="${cssInp} color:#ef4444; font-family:monospace; height:40px; text-align:left;"></textarea>
-            <button onclick="window.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold; margin-bottom:6px;">🚀 Deploy</button>
-            <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub, #94a3b8); border:none; font-size:12px;">Cancel</button>
+    adminAdd() {
+        this.openModal(`
+            <h3 style="color:#8b5cf6; margin-bottom:20px;">Deploy Module</h3>
+            <input id="adIcon" class="nx-admin-inp" placeholder="Emoji Icon">
+            <input id="adId" class="nx-admin-inp" placeholder="Module ID (e.g. 5)">
+            <input id="adPrice" class="nx-admin-inp" placeholder="Price (e.g. €1.00)">
+            <select id="adFree" class="nx-admin-inp"><option value="false">Paid</option><option value="true">Free</option></select>
+            <textarea id="adPlay" class="nx-admin-inp" placeholder="Initialization Script (JS)" style="height:70px; color:#10b981;"></textarea>
+            <textarea id="adStop" class="nx-admin-inp" placeholder="Termination Script (JS)" style="height:50px; color:#ef4444;"></textarea>
+            <button class="nx-btn-primary" style="background:#8b5cf6; margin-top:10px;" onclick="FX_NEXUS.adminSaveCloud(null)">Transmit to Server</button>
+            <button style="background:transparent; border:none; color:#94a3b8; font-weight:bold; cursor:pointer;" onclick="FX_NEXUS.closeModal()">Abort</button>
         `);
-    };
+    },
 
-    window.adminActionEditCode = () => {
-        window.stopAllEffects();
-        let anim = window.adminSelectedAnim;
-        window.showCustomModal(`
-            <h3 style="color:#3b82f6; margin-bottom:12px; font-size:16px;">✏️ Edit #${anim.id}</h3>
-            <input id="eIcon" value="${anim.icon}" style="${cssInp}">
-            <input id="ePrice" value="${anim.price || '€1.00'}" style="${cssInp}">
-            <select id="eFree" style="${cssInp} font-weight:bold;"><option value="false" ${!anim.isFree?'selected':''}>Paid 🔒</option><option value="true" ${anim.isFree?'selected':''}>Free 🆓</option></select>
-            <input id="eLink" value="${anim.buyLink || STRIPE_LINK}" style="${cssInp} font-size:11px;">
-            <textarea id="ePlay" style="${cssInp} color:#10b981; font-family:monospace; height:60px; text-align:left;">${anim.playScript}</textarea>
-            <textarea id="eStop" style="${cssInp} color:#ef4444; font-family:monospace; height:45px; text-align:left;">${anim.stopScript}</textarea>
-            <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold; margin-bottom:6px;">💾 Update</button>
-            <button onclick="window.hideCustomModal()" style="background:transparent; color:var(--text-sub, #94a3b8); border:none; font-size:12px;">Cancel</button>
+    adminEdit(id) {
+        let anim = this.state.items.find(i => i.id === id);
+        this.openModal(`
+            <h3 style="color:#3b82f6; margin-bottom:20px;">Reconfigure Module #${id}</h3>
+            <input id="adIcon" class="nx-admin-inp" value="${anim.icon}">
+            <input id="adPrice" class="nx-admin-inp" value="${anim.price || ''}">
+            <select id="adFree" class="nx-admin-inp">
+                <option value="false" ${!anim.isFree?'selected':''}>Paid</option>
+                <option value="true" ${anim.isFree?'selected':''}>Free</option>
+            </select>
+            <textarea id="adPlay" class="nx-admin-inp" style="height:80px; color:#10b981;">${anim.playScript}</textarea>
+            <textarea id="adStop" class="nx-admin-inp" style="height:60px; color:#ef4444;">${anim.stopScript}</textarea>
+            <button class="nx-btn-primary" style="background:#3b82f6; margin-top:10px;" onclick="FX_NEXUS.adminSaveCloud('${id}')">Overwrite Server</button>
+            <button style="background:transparent; border:none; color:#94a3b8; font-weight:bold; cursor:pointer;" onclick="FX_NEXUS.closeModal()">Abort</button>
         `);
-    };
+    },
 
-    window.executeAdminAdd = async () => {
-        let mKey = localStorage.getItem('my_master_key');
-        let i=document.getElementById('nIcon').value.trim(), id=document.getElementById('nId').value.trim(), pr=document.getElementById('nPrice').value.trim(), fr=document.getElementById('nFree').value==='true', lnk=document.getElementById('nLink').value.trim(), p=document.getElementById('nPlay').value.trim(), s=document.getElementById('nStop').value.trim();
-        if(!i||!id) return; window.hideCustomModal(); grid.innerHTML = '<div style="color:#10b981; margin:auto;">Deploying...</div>';
+    async adminSaveCloud(targetId) {
+        let icon = document.getElementById('adIcon').value.trim();
+        let id = targetId || document.getElementById('adId')?.value.trim();
+        let price = document.getElementById('adPrice').value.trim() || '€1.00';
+        let isFree = document.getElementById('adFree').value === 'true';
+        let play = document.getElementById('adPlay').value.trim();
+        let stop = document.getElementById('adStop').value.trim();
+
+        if(!icon || !id) return;
+        this.openModal(`<div style="color:#8b5cf6; font-size:20px; font-weight:bold; padding:40px;">Syncing... 📡</div>`);
+        
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
-            let data = res.ok ? await res.json() : []; if(!Array.isArray(data)) data = [];
-            let filtered = data.filter(x => x.id !== id && x.id !== "empty");
-            filtered.push({ icon: i, id: id, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s });
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
-            window.renderAnimStore();
-        } catch(e) { window.renderAnimStore(); }
-    };
-
-    window.executeAdminEdit = async (targetId) => {
-        let i=document.getElementById('eIcon').value.trim(), pr=document.getElementById('ePrice').value.trim(), fr=document.getElementById('eFree').value==='true', lnk=document.getElementById('eLink').value.trim(), p=document.getElementById('ePlay').value.trim(), s=document.getElementById('eStop').value.trim();
-        window.hideCustomModal(); grid.innerHTML = '<div style="color:#3b82f6; margin:auto;">Updating...</div>';
-        let mKey = localStorage.getItem('my_master_key');
-        try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${this.BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': this.masterKey } });
             let data = await res.json(); if(!Array.isArray(data)) data = [];
-            let updated = data.map(x => x.id === targetId ? { icon: i, id: targetId, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s } : x);
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
-            window.renderAnimStore();
-        } catch(e) { window.renderAnimStore(); }
-    };
+            
+            if(targetId) data = data.map(x => x.id === id ? {icon, id, price, isFree, playScript:play, stopScript:stop} : x);
+            else { data = data.filter(x => x.id !== id && x.id !== "empty"); data.push({icon, id, price, isFree, playScript:play, stopScript:stop}); }
 
-    window.adminActionDelete = async () => {
-        let mKey = localStorage.getItem('my_master_key'); let id = window.adminSelectedAnim.id; window.hideCustomModal();
+            await fetch(`https://api.jsonbin.io/v3/b/${this.BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': this.masterKey }, body: JSON.stringify(data) });
+            this.closeModal(); this.fetchData();
+        } catch(e) { this.closeModal(); this.fetchData(); }
+    },
+
+    async adminDelete(id) {
+        this.openModal(`<div style="color:#ef4444; font-size:20px; font-weight:bold; padding:40px;">Purging Module... 🔥</div>`);
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${this.BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': this.masterKey } });
             let data = await res.json(); if(!Array.isArray(data)) data = [];
-            let filtered = data.filter(x => x.id !== id);
-            if(filtered.length === 0) filtered = [{"id":"empty"}];
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
-            window.renderAnimStore();
-        } catch(e) { window.renderAnimStore(); }
-    };
+            data = data.filter(x => x.id !== id); if(data.length === 0) data = [{id:"empty"}];
+            
+            await fetch(`https://api.jsonbin.io/v3/b/${this.BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': this.masterKey }, body: JSON.stringify(data) });
+            this.closeModal(); this.fetchData();
+        } catch(e) { this.closeModal(); this.fetchData(); }
+    }
+};
 
-    window.adminActionNuke = async () => {
-        if(!confirm('☢️ WIPING ENTIRE CLOUD. Are you sure?')) return;
-        grid.innerHTML = '<div style="color:#ef4444; margin:auto;">NUKING...</div>';
-        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': localStorage.getItem('my_master_key') }, body: JSON.stringify([{"id":"empty"}]) });
-        window.renderAnimStore();
-    };
-
-    window.renderAnimStore();
-}
-initProStore();
+FX_NEXUS.init();
+    
+            
+    
 
         
 
