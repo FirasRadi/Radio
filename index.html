@@ -1175,9 +1175,8 @@
 
 // ===================================================
 
-
 // ======================================================
-// 🛒 VIP Premium Store (Global Redeem, Perfect UI, Solid Security)
+// 🛒 VIP Premium Store (Clean UX, Revoke Feature, Solid Logic)
 // ======================================================
 
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
@@ -1198,7 +1197,7 @@ function initProStore() {
     window.getScrambledId = (bId, itemId) => {
         let clean = bId.toString().replace('TG-', '').replace('U-', '');
         let prefix = bId.toString().startsWith('TG-') ? 'TG-' : 'U-';
-        let shift = itemId === 'ALL' ? 5 : (parseInt(itemId) * 3) % 10;
+        let shift = (parseInt(itemId) * 3) % 10;
         let scrambled = clean.split('').map(c => isNaN(c) ? c : (parseInt(c) + shift) % 10).join('');
         return `${prefix}${scrambled}-${itemId}`;
     };
@@ -1216,7 +1215,6 @@ function initProStore() {
         return `VIP-${p1}-${p2}`;
     };
 
-    // 1. بناء هيكل المتجر
     let headerRight = document.querySelector('.header-right');
     let storeBtn = document.createElement('button');
     storeBtn.className = 'icon-btn';
@@ -1231,13 +1229,11 @@ function initProStore() {
     let overlay = document.createElement('div'); overlay.className = 'sheet-overlay';
     let sheet = document.createElement('div'); sheet.className = 'bottom-sheet';
     
-    // واجهة المتجر تتضمن (شريط المدير إن وجد) + (حقل Redeem الموحد) + (الدوائر)
     sheet.innerHTML = `
         <div class="sheet-header" style="margin-bottom:15px;"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Premium Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div>
         
         <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
         
-        <!-- حقل التفعيل الموحد (Redeem) 🌟 -->
         <div style="padding:0 5px; margin-bottom:10px;">
             <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:6px;">
                 <input type="text" id="globalRedeemInput" placeholder="Paste License Key here..." style="flex:1; min-width:0; background:transparent; border:none; color:#10b981; font-family:monospace; font-size:13px; font-weight:bold; padding:8px 12px; outline:none; text-transform:uppercase;">
@@ -1251,19 +1247,14 @@ function initProStore() {
     let grid = sheet.querySelector('#animStoreGrid');
     let adminBarContainer = sheet.querySelector('#adminBarContainer');
 
-    // العداد التنازلي
     window.previewCountdown = document.createElement('div');
     window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:40px; height:40px; line-height:40px; font-size:20px; font-weight:900; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
     document.body.appendChild(window.previewCountdown);
 
-    // النوافذ الزجاجية المحسنة (إصلاح تداخل CSS)
     let customModalOverlay = document.createElement('div');
     customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s ease; padding:15px;';
-    
     let customModalBox = document.createElement('div');
-    // إضافة box-sizing: border-box لحماية الشاشة من التمدد العشوائي
     customModalBox.style.cssText = 'box-sizing:border-box; background:linear-gradient(145deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.08); width:100%; max-width:340px; max-height:90vh; overflow-y:auto; border-radius:24px; padding:25px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff; transform:scale(0.95); opacity:0; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); margin:auto;';
-    
     customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
 
     window.showCustomModal = (html) => { 
@@ -1287,16 +1278,13 @@ function initProStore() {
     };
 
     window.stopAllEffects = () => {
-        if(window.activeStopScript) {
-            try { new Function(window.activeStopScript)(); } catch(e){}
-            window.activeStopScript = null;
-        }
+        if(window.activeStopScript) { try { new Function(window.activeStopScript)(); } catch(e){} window.activeStopScript = null; }
         document.querySelectorAll('div').forEach(e => { if(e.innerText === '🦋') e.remove(); });
         if(window.bfly) clearInterval(window.bfly);
         document.body.style.background = ''; document.body.style.filter = '';
     };
 
-    // 🌟 دالة التحقق من الكود الموحدة 🌟
+    // 🌟 دالة التفعيل الموحدة من الحقل 🌟
     window.globalRedeemAction = () => {
         let inputField = document.getElementById('globalRedeemInput');
         let inputCode = inputField.value.trim().toUpperCase();
@@ -1305,21 +1293,8 @@ function initProStore() {
         let allAnims = window.currentAllAnims || [];
         let foundAnim = null;
 
-        // 1. فحص الباقة الشاملة
-        let sIdAll = window.getScrambledId(baseId, 'ALL');
-        let expectedAll = window.generateLicenseKey(sIdAll, 'ALL');
-        if (inputCode === expectedAll) {
-            localStorage.setItem('unlocked_all', 'true');
-            inputField.value = '';
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            alert('🌟 SUCCESS! ALL PREMIUM EFFECTS UNLOCKED!');
-            window.renderAnimStore();
-            return;
-        }
-
-        // 2. فحص العناصر الفردية
         for(let anim of allAnims) {
-            if(anim.id === '0') continue;
+            if(anim.id === '0' || anim.id === '1') continue; // الأساسيات لا تُشترى
             let sId = window.getScrambledId(baseId, anim.id);
             let expected = window.generateLicenseKey(sId, anim.id);
             if (inputCode === expected) {
@@ -1336,59 +1311,31 @@ function initProStore() {
             window.renderAnimStore();
         } else {
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            inputField.style.border = '1px solid #ef4444';
-            inputField.style.color = '#ef4444';
+            inputField.style.border = '1px solid #ef4444'; inputField.style.color = '#ef4444';
             setTimeout(()=> { inputField.style.border = 'none'; inputField.style.color = '#10b981'; }, 1000);
             alert('❌ Invalid License Key! Please check your code.');
         }
     };
 
-    window.showBundleModal = () => {
-        window.stopAllEffects();
-        let sId = window.getScrambledId(baseId, 'ALL');
-        let msg = `Hi!\nName: ${userName}\nID: ${sId}\nI want to buy the [UNLOCK ALL] Bundle 🌟`;
-        let chatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(msg)}`;
-
-        let html = `
-            <div style="font-size:50px; margin-bottom:5px; filter:drop-shadow(0 0 10px rgba(245,158,11,0.5));">🌟</div>
-            <h3 style="margin:0 0 5px 0; font-size:18px; font-weight:800; color:#f59e0b;">Unlock ALL Effects</h3>
-            <div style="font-size:12px; color:var(--text-sub); margin-bottom:15px;">Get permanent access to every current and future effect.</div>
-            <div style="font-size:24px; color:#10b981; font-weight:900; margin-bottom:20px;">€10.00</div>
-            
-            <button onclick="window.open('${STRIPE_LINK}', '_blank')" style="width:100%; box-sizing:border-box; background:linear-gradient(135deg, #635bff, #4f46e5); color:#fff; border:none; padding:14px; border-radius:14px; font-weight:700; font-size:14px; margin-bottom:12px; box-shadow:0 6px 15px rgba(99,91,255,0.4);"><i class="fab fa-stripe-s"></i> Pay with Stripe (€10)</button>
-            <button onclick="let u='${chatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.05); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:12px; border-radius:12px; font-weight:600; font-size:13px; margin-bottom:20px;"><i class="fab fa-telegram-plane"></i> Send Request to Developer</button>
-            
-            <div style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">After receiving your key, paste it in the Redeem box above the store grid.</div>
-            <button onclick="window.hideCustomModal()" style="background:transparent; border:none; color:var(--text-sub); font-size:13px; font-weight:600;">Close</button>
-        `;
-        window.showCustomModal(html);
-    };
-
+    // 3. جلب ועرض المتجر
     window.renderAnimStore = async () => {
         let isAdmin = !!localStorage.getItem('my_master_key');
-        let isAllUnlocked = localStorage.getItem('unlocked_all') === 'true'; 
-        
         grid.innerHTML = '<div style="color:var(--text-sub); margin:auto; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
         adminBarContainer.innerHTML = '';
         
         if (isAdmin) {
             adminBarContainer.innerHTML = `
                 <div style="display:flex; flex-wrap:wrap; gap:8px; background:rgba(0,0,0,0.3); padding:10px; border-radius:14px; border:1px dashed #10b981;">
-                    <button onclick="window.adminActionAdd()" style="flex:1; min-width:80px; box-sizing:border-box; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;">➕ Add</button>
-                    <button onclick="window.adminGenKeyDialog('ALL')" style="flex:1; min-width:80px; box-sizing:border-box; background:#8b5cf6; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-star"></i> Gen ALL</button>
-                    <button onclick="window.adminActionNuke()" style="flex:1; min-width:80px; box-sizing:border-box; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-skull"></i> Wipe</button>
+                    <button onclick="window.adminActionAdd()" style="flex:1; min-width:80px; box-sizing:border-box; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;">➕ Add Effect</button>
+                    <button onclick="window.adminActionNuke()" style="flex:1; min-width:80px; box-sizing:border-box; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-skull"></i> Wipe Store</button>
                     <button onclick="localStorage.removeItem('my_master_key'); window.renderAnimStore();" style="flex:1; min-width:50px; box-sizing:border-box; background:#64748b; color:#fff; border:none; padding:8px; border-radius:8px;"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
-            `;
-        } else if (!isAllUnlocked) {
-            adminBarContainer.innerHTML = `
-                <button onclick="window.showBundleModal()" style="width:100%; box-sizing:border-box; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:none; padding:12px; border-radius:12px; font-weight:800; font-size:13px; box-shadow:0 4px 15px rgba(245,158,11,0.3); cursor:pointer;">🌟 Unlock ALL Premium Effects (€10)</button>
             `;
         }
 
         let defaultAnims = [
-            { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "window.stopAllEffects();" },
-            { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),5000);}, 400);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
+            { icon: '🚫', id: '0', isFree: true, playScript: "", stopScript: "window.stopAllEffects();" },
+            { icon: '🦋', id: '1', isFree: true, playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),5000);}, 400);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
         ];
 
         let cloudAnims = [];
@@ -1406,7 +1353,13 @@ function initProStore() {
         grid.innerHTML = '';
 
         window.currentAllAnims.forEach((anim) => {
-            let isUnlocked = anim.isFree || isAllUnlocked || localStorage.getItem('unlocked_' + anim.id) === 'true';
+            let sId = window.getScrambledId(baseId, anim.id);
+            
+            // 🌟 القائمة السوداء (Revoke): التأكد هل هذا المستخدم ممنوع من هذا التأثير 🌟
+            let isBlacklisted = anim.blacklist && anim.blacklist.includes(sId);
+            if (isBlacklisted) localStorage.removeItem('unlocked_' + anim.id); // قفل إجباري
+            
+            let isUnlocked = !isBlacklisted && (anim.isFree || localStorage.getItem('unlocked_' + anim.id) === 'true');
             
             let wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;';
@@ -1415,26 +1368,30 @@ function initProStore() {
             item.className = 'studio-item'; 
             item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:28px; background:rgba(255,255,255,0.05); transition: 0.2s; cursor:pointer; margin:0; width:60px; height:60px; ${(isUnlocked || isAdmin) ? 'border:2px solid #10b981;' : 'border:2px solid rgba(255,255,255,0.1); filter:grayscale(1); opacity:0.6;'}`;
             item.innerHTML = anim.icon;
+            
             if(!isUnlocked && !isAdmin) item.innerHTML += `<div style="position:absolute; top:-3px; right:-3px; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-lock"></i></div>`;
 
-            let priceText = anim.isFree ? 'FREE' : (isUnlocked ? 'ACTIVE' : (anim.price || '€1.00'));
+            // توحيد المجانية باللون الأخضر والمدفوع باللون الرمادي
+            let priceText = (isUnlocked || anim.isFree) ? 'FREE' : (anim.price || '€1.00');
+            let priceColor = (isUnlocked || anim.isFree) ? '#10b981' : 'var(--text-sub)';
             let priceLabel = document.createElement('div');
             priceLabel.innerText = priceText;
-            priceLabel.style.cssText = `font-size:9px; font-weight:800; color:${(isUnlocked || anim.isFree) ? '#10b981' : 'var(--text-sub)'}; background:rgba(0,0,0,0.4); padding:3px 10px; border-radius:10px;`;
+            priceLabel.style.cssText = `font-size:9px; font-weight:800; color:${priceColor}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:10px;`;
 
             item.onclick = () => {
                 if (window.isPreviewing) return;
 
-                if (isAdmin && anim.id !== '0') {
+                if (isAdmin && anim.id !== '0' && anim.id !== '1') {
                     window.adminSelectedAnim = anim;
                     let adminItemHTML = `
                         <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
                         <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:15px;">Admin Panel • ID #${anim.id}</div>
                         <div style="display:flex; flex-direction:column; gap:8px;">
                             <button onclick="window.hideCustomModal(); window.stopAllEffects(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="width:100%; box-sizing:border-box; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-play"></i> Test</button>
-                            <button onclick="window.adminActionEditCode()" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-pen"></i> Edit</button>
-                            <button onclick="window.adminGenKeyDialog('${anim.id}')" style="width:100%; box-sizing:border-box; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-key"></i> Key</button>
-                            ${anim.id !== '1' ? `<button onclick="window.adminActionDelete()" style="width:100%; box-sizing:border-box; background:#ef4444; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-trash"></i> Delete</button>` : ''}
+                            <button onclick="window.adminActionEditCode()" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-pen"></i> Edit Product</button>
+                            <button onclick="window.adminGenKeyDialog('${anim.id}')" style="width:100%; box-sizing:border-box; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-key"></i> Gen Key</button>
+                            <button onclick="window.adminActionRevoke()" style="width:100%; box-sizing:border-box; background:rgba(245,158,11,0.2); color:#f59e0b; border:1px solid #f59e0b; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-ban"></i> Revoke User</button>
+                            <button onclick="window.adminActionDelete()" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-trash"></i> Delete Globally</button>
                         </div>
                         <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px;">Close</button>
                     `;
@@ -1444,12 +1401,13 @@ function initProStore() {
                 sheet.classList.remove('open'); overlay.classList.remove('open');
                 window.stopAllEffects();
 
-                if (isUnlocked || anim.isFree) {
+                if (isUnlocked) {
                     if (anim.id !== '0') {
                         try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     }
                     if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 } else {
+                    // تجربة 5 ثواني
                     window.isPreviewing = true;
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     
@@ -1468,23 +1426,24 @@ function initProStore() {
                             window.stopAllEffects();
                             
                             let buyLink = anim.buyLink || STRIPE_LINK;
-                            let sId = window.getScrambledId(baseId, anim.id);
                             let userMsg = `Client: ${userName}\nItem: #${anim.id} (${anim.icon})\nID: ${sId}`;
                             let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(userMsg)}`;
 
-                            // نافذة الشراء المبسطة بدون حقل Redeem داخلي
                             let modalHTML = `
                                 <div style="font-size:45px; margin-bottom:5px;">${anim.icon}</div>
                                 <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:700;">Premium Effect</h3>
-                                <div style="font-size:20px; color:#10b981; font-weight:900; margin-bottom:15px;">${anim.price || '€1.00'}</div>
+                                <div style="font-size:20px; color:var(--text-sub); font-weight:900; margin-bottom:15px;">${anim.price || '€1.00'}</div>
                                 
                                 <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; box-sizing:border-box; background:#635bff; color:#fff; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; margin-bottom:10px;"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
                                 <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; box-sizing:border-box; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:10px; border-radius:12px; font-weight:600; font-size:13px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
                                 
                                 <div style="background:rgba(0,0,0,0.3); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.05); text-align:left;">
-                                    <div style="font-size:11px; color:#10b981; margin-bottom:8px; font-weight:bold;">Next Steps:</div>
-                                    <div style="font-size:11px; color:var(--text-sub); margin-bottom:4px;">1. Send the request to developer.</div>
-                                    <div style="font-size:11px; color:var(--text-sub); margin-bottom:4px;">2. Once you get the key, paste it in the <b>Redeem</b> box at the top of the store.</div>
+                                    <div style="font-size:11px; color:#10b981; margin-bottom:8px; font-weight:bold;">Copy your ID below to send it:</div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:10px; margin-bottom:5px;">
+                                        <span id="myIdSpan" style="font-family:monospace; font-weight:bold; color:#38bdf8; font-size:13px;">${sId}</span>
+                                        <button onclick="window.copyToClipboard('${sId}', 'cpyIdBtn')" id="cpyIdBtn" style="background:rgba(56,189,248,0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:bold;"><i class="fas fa-copy"></i></button>
+                                    </div>
+                                    <div style="font-size:10px; color:var(--text-sub); margin-top:8px; text-align:center;">After payment, redeem your key at the top of the store.</div>
                                 </div>
                                 <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold;">Close</button>
                             `;
@@ -1500,10 +1459,9 @@ function initProStore() {
     storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
     sheet.querySelector('#closeAnimStore').onclick = storeBtn.onclick; overlay.onclick = storeBtn.onclick;
 
-    // 🌟 واجهات الإدارة المصححة والمحمية من التداخل (Box-sizing applied) 🌟
+    // --- واجهات الإدارة (Add/Edit/Revoke) ---
     window.adminGenKeyDialog = (itemId) => {
-        let titleText = itemId === 'ALL' ? 'Gen ALL Key' : 'Gen Item Key';
-        let uId = prompt(`${titleText}\n\nEnter Client ID (e.g. TG-XXXX-X):`, "TG-"); 
+        let uId = prompt(`Enter Client ID (e.g. TG-XXXX-X):`, "TG-"); 
         if (!uId || uId === "TG-") return;
         let code = window.generateLicenseKey(uId.trim(), itemId);
         let html = `
@@ -1515,6 +1473,30 @@ function initProStore() {
             <button onclick="window.hideCustomModal()" style="width:100%; box-sizing:border-box; background:transparent; color:var(--text-sub); border:none; font-size:12px; padding:10px;">Close</button>
         `;
         window.showCustomModal(html);
+    };
+
+    // 🌟 ميزة إلغاء التفعيل للمستخدم المزعج 🌟
+    window.adminActionRevoke = async () => {
+        let uId = prompt("Enter the User ID to REVOKE access (e.g. TG-XXXX-X):");
+        if(!uId) return;
+        let mKey = localStorage.getItem('my_master_key');
+        let targetId = window.adminSelectedAnim.id;
+        window.hideCustomModal();
+        grid.innerHTML = '<div style="color:#f59e0b; margin:auto;">Revoking User...</div>';
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json();
+            let updated = data.map(x => {
+                if (x.id === targetId) {
+                    let bl = x.blacklist || [];
+                    if(!bl.includes(uId.trim())) bl.push(uId.trim());
+                    x.blacklist = bl;
+                }
+                return x;
+            });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
+            alert('🚫 User revoked successfully!'); window.renderAnimStore();
+        } catch(e) { window.renderAnimStore(); }
     };
 
     window.adminActionAdd = () => {
@@ -1532,8 +1514,8 @@ function initProStore() {
                 </select>
             </div>
             <input id="nLink" placeholder="Stripe Payment Link" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none; font-size:11px;">
-            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px;"></textarea>
-            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px;"></textarea>
+            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px;"></textarea>
+            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px;"></textarea>
             <button onclick="window.executeAdminAdd()" style="width:100%; box-sizing:border-box; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px;">Deploy</button>
             <button onclick="window.hideCustomModal()" style="width:100%; box-sizing:border-box; background:transparent; color:var(--text-sub); border:none; font-size:12px; font-weight:bold; padding:10px;">Cancel</button>
         `;
@@ -1573,7 +1555,7 @@ function initProStore() {
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = res.ok ? await res.json() : []; let filtered = data.filter(x => x.id !== id && x.id !== "empty");
-            filtered.push({ icon: i, id: id, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s });
+            filtered.push({ icon: i, id: id, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s, blacklist: [] });
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
             window.renderAnimStore();
         } catch(e) { window.renderAnimStore(); }
@@ -1586,7 +1568,7 @@ function initProStore() {
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = await res.json();
-            let updated = data.map(x => x.id === targetId ? { icon: i, id: targetId, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s } : x);
+            let updated = data.map(x => x.id === targetId ? { ...x, icon: i, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s } : x);
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
             window.renderAnimStore();
         } catch(e) { window.renderAnimStore(); }
@@ -1610,38 +1592,6 @@ function initProStore() {
         window.renderAnimStore();
     };
 
-    // التحقق الفوري للروابط (Deep Links)
-    let startParam = tg?.initDataUnsafe?.start_param;
-    if (startParam && startParam.startsWith("VIP-")) {
-        fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } })
-        .then(r => r.json())
-        .then(cloudAnims => {
-            let defaultAnims = [{ id: '1' }];
-            let all = [...defaultAnims, ...(Array.isArray(cloudAnims) ? cloudAnims : [])];
-            let found = false;
-
-            // فحص كود الباقة الشاملة أولاً
-            let expectedAll = window.generateLicenseKey(window.getScrambledId(baseId, 'ALL'), 'ALL');
-            if (startParam.toUpperCase() === expectedAll) {
-                localStorage.setItem('unlocked_all', 'true');
-                setTimeout(() => { alert(`🌟 BUNDLE ACTIVATED! All effects unlocked!`); window.renderAnimStore(); }, 800);
-                return;
-            }
-
-            // فحص العناصر الفردية
-            all.forEach(anim => {
-                let sId = window.getScrambledId(baseId, anim.id);
-                let expectedCode = window.generateLicenseKey(sId, anim.id);
-                if (startParam.toUpperCase() === expectedCode) {
-                    localStorage.setItem('unlocked_' + anim.id, 'true');
-                    found = anim.id;
-                }
-            });
-
-            if (found) { setTimeout(() => { alert(`🎉 Success! Effect #${found} unlocked.`); window.renderAnimStore(); }, 800); }
-        }).catch(e => {});
-    }
-
     // تسجيل الدخول
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = async () => {
@@ -1650,12 +1600,29 @@ function initProStore() {
         if (originalSaveNote) originalSaveNote();
     };
 
+    // تفعيل الروابط التلقائية
+    let startParam = tg?.initDataUnsafe?.start_param;
+    if (startParam && startParam.startsWith("VIP-")) {
+        fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Access-Key': ACCESS_KEY } })
+        .then(r => r.json())
+        .then(cloudAnims => {
+            let found = false;
+            (Array.isArray(cloudAnims) ? cloudAnims : []).forEach(anim => {
+                let sId = window.getScrambledId(baseId, anim.id);
+                if (startParam.toUpperCase() === window.generateLicenseKey(sId, anim.id)) {
+                    localStorage.setItem('unlocked_' + anim.id, 'true'); found = anim.id;
+                }
+            });
+            if(found) setTimeout(() => { alert(`🎉 Success! Effect #${found} unlocked.`); window.renderAnimStore(); }, 800);
+        }).catch(e => {});
+    }
+
     window.renderAnimStore();
 }
 initProStore();
 
 
-
+        
 
 
 
