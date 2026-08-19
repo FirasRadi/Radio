@@ -1175,7 +1175,587 @@
 
 // ===================================================
 
+// ======================================================
+// 🛒 VIP Premium Store (Global Redeem, Modern UI, Safe Core)
+// ======================================================
 
+(function () {
+    const CONFIG = {
+        BIN_ID: "6a821a3ada38895dfeec6ddc",
+        ACCESS_KEY: "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC",
+        STRIPE_LINK: "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800",
+        DEVELOPER_USERNAME: "developer_origins_bot",
+        SECRET_SALT: "TIME_WORLD_2026"
+    };
+
+    // تعريف كائن المتجر لحماية الـ Global Scope
+    window.PremiumStore = {
+        tg: window.Telegram?.WebApp || window.tg || null,
+        baseId: "",
+        userName: "Client",
+        currentAllAnims: [],
+        isPreviewing: false,
+        activeStopScript: null,
+        bflyInterval: null,
+        
+        init() {
+            this.setupUser();
+            this.injectStyles();
+            this.buildUI();
+            this.setupAdminTrigger();
+            this.renderStore();
+        },
+
+        setupUser() {
+            let tgUser = this.tg?.initDataUnsafe?.user;
+            this.baseId = localStorage.getItem('my_base_id');
+            if (!this.baseId) {
+                this.baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
+                localStorage.setItem('my_base_id', this.baseId);
+            }
+            this.userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
+        },
+
+        getScrambledId(itemId) {
+            let clean = this.baseId.toString().replace('TG-', '').replace('U-', '');
+            let prefix = this.baseId.toString().startsWith('TG-') ? 'TG-' : 'U-';
+            let shift = itemId === 'ALL' ? 5 : (parseInt(itemId) * 3) % 10;
+            let scrambled = clean.split('').map(c => isNaN(c) ? c : (parseInt(c) + shift) % 10).join('');
+            return `${prefix}${scrambled}-${itemId}`;
+        },
+
+        generateLicenseKey(scrambledId, scriptId) {
+            let raw = scrambledId + "|" + scriptId + "|" + CONFIG.SECRET_SALT;
+            let hash1 = 5381, hash2 = 52711;
+            for (let i = 0; i < raw.length; i++) {
+                let char = raw.charCodeAt(i);
+                hash1 = ((hash1 << 5) + hash1) + char;
+                hash2 = ((hash2 << 5) + hash2) ^ char;
+            }
+            let p1 = Math.abs(hash1).toString(36).toUpperCase().padStart(4, 'X').slice(0, 4);
+            let p2 = Math.abs(hash2).toString(36).toUpperCase().padStart(4, 'Y').slice(0, 4);
+            return `VIP-${p1}-${p2}`;
+        },
+
+        injectStyles() {
+            if (document.getElementById('premium-store-styles')) return;
+            const style = document.createElement('style');
+            style.id = 'premium-store-styles';
+            style.innerHTML = `
+                /* Store Variables & Base */
+                :root { --ps-primary: #10b981; --ps-bg: #1e293b; --ps-dark: #0f172a; --ps-text: #f8fafc; --ps-sub: #94a3b8; }
+                
+                /* Buttons & Modals */
+                .ps-btn { background: var(--ps-primary); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+                .ps-btn:active { transform: scale(0.95); }
+                .ps-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--ps-text); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 14px; outline: none; box-sizing: border-box; transition: 0.3s; }
+                .ps-input:focus { border-color: var(--ps-primary); box-shadow: 0 0 8px rgba(16,185,129,0.2); }
+                
+                /* Sheet & Overlays */
+                .ps-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9998; opacity: 0; pointer-events: none; transition: 0.3s ease; }
+                .ps-overlay.active { opacity: 1; pointer-events: auto; }
+                .ps-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: var(--ps-bg); border-radius: 24px 24px 0 0; z-index: 9999; padding: 20px; box-sizing: border-box; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
+                .ps-sheet.active { bottom: 0; }
+                
+                /* Grid & Items */
+                .ps-scroll-x { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scroll-behavior: smooth; scrollbar-width: none; }
+                .ps-scroll-x::-webkit-scrollbar { display: none; }
+                .ps-item-card { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; width: 70px; }
+                .ps-icon-box { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: rgba(255,255,255,0.05); border-radius: 16px; cursor: pointer; transition: 0.2s; position: relative; border: 2px solid transparent; }
+                .ps-icon-box.locked { filter: grayscale(1); opacity: 0.7; border-color: rgba(255,255,255,0.05); }
+                .ps-icon-box.unlocked { border-color: var(--ps-primary); background: rgba(16,185,129,0.1); }
+                .ps-icon-box:active { transform: scale(0.9); }
+                .ps-badge { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+                .ps-badge.locked { background: #ef4444; }
+                
+                /* Central Modal */
+                .ps-modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 20px; }
+                .ps-modal { background: var(--ps-bg); width: 100%; max-width: 340px; border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); }
+                
+                /* Countdown */
+                .ps-countdown { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; display: none; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: #fff; z-index: 10001; background: rgba(15,23,42,0.9); border-radius: 50%; border: 3px solid var(--ps-primary); box-shadow: 0 10px 25px rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+            `;
+            document.head.appendChild(style);
+        },
+
+        buildUI() {
+            // 1. زر المتجر في الهيدر (مع حماية في حال عدم وجود header-right)
+            let headerRight = document.querySelector('.header-right');
+            let storeBtn = document.createElement('button');
+            storeBtn.className = 'icon-btn';
+            storeBtn.innerHTML = '<i class="fas fa-store"></i>';
+            storeBtn.style.color = '#f59e0b';
+            storeBtn.onclick = () => this.toggleSheet();
+            
+            if (headerRight) {
+                headerRight.appendChild(storeBtn);
+            } else {
+                // بديل إذا لم يكن الكلاس موجوداً
+                storeBtn.style.cssText = "position:fixed; top:10px; right:10px; z-index:9000; background:#1e293b; border:1px solid #333; padding:10px; border-radius:8px;";
+                document.body.appendChild(storeBtn);
+            }
+
+            // 2. الواجهة السفلية (Bottom Sheet)
+            this.overlay = document.createElement('div');
+            this.overlay.className = 'ps-overlay';
+            this.overlay.onclick = () => this.toggleSheet();
+
+            this.sheet = document.createElement('div');
+            this.sheet.className = 'ps-sheet';
+            this.sheet.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 id="ps-title" style="margin:0; color:#f8fafc; font-size:18px; display:flex; gap:8px; align-items:center;">
+                        <i class="fas fa-store" style="color:#f59e0b;"></i> Premium FX
+                    </h3>
+                    <button onclick="PremiumStore.toggleSheet()" style="background:transparent; border:none; color:var(--ps-sub); font-size:20px; cursor:pointer;"><i class="fas fa-times-circle"></i></button>
+                </div>
+                
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <input type="text" id="ps-redeem-input" class="ps-input" placeholder="Paste License Key..." style="text-transform:uppercase;">
+                    <button class="ps-btn" onclick="PremiumStore.redeemCode()"><i class="fas fa-unlock"></i></button>
+                </div>
+
+                <div id="ps-admin-bar" style="margin-bottom:15px; display:none;"></div>
+                <div id="ps-grid" class="ps-scroll-x"></div>
+            `;
+            
+            document.body.appendChild(this.overlay);
+            document.body.appendChild(this.sheet);
+
+            // 3. نوافذ منبثقة وعداد (Modals & Countdown)
+            this.modalOverlay = document.createElement('div');
+            this.modalOverlay.className = 'ps-modal-overlay';
+            this.modalBox = document.createElement('div');
+            this.modalBox.className = 'ps-modal';
+            this.modalOverlay.appendChild(this.modalBox);
+            document.body.appendChild(this.modalOverlay);
+
+            this.countdownEl = document.createElement('div');
+            this.countdownEl.className = 'ps-countdown';
+            document.body.appendChild(this.countdownEl);
+        },
+
+        toggleSheet() {
+            const isActive = this.sheet.classList.contains('active');
+            if (isActive) {
+                this.sheet.classList.remove('active');
+                this.overlay.classList.remove('active');
+            } else {
+                this.renderStore();
+                this.sheet.classList.add('active');
+                this.overlay.classList.add('active');
+            }
+        },
+
+        showModal(html) {
+            this.modalBox.innerHTML = html;
+            this.modalOverlay.style.display = 'flex';
+        },
+
+        hideModal() {
+            this.modalOverlay.style.display = 'none';
+            this.modalBox.innerHTML = '';
+        },
+
+        haptic(type) {
+            if (this.tg && this.tg.HapticFeedback) {
+                this.tg.HapticFeedback.notificationOccurred(type);
+            }
+        },
+
+        copyText(text, btnId) {
+            navigator.clipboard.writeText(text).then(() => {
+                this.haptic('success');
+                let btn = document.getElementById(btnId);
+                if (btn) {
+                    let oldHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.style.background = '#10b981';
+                    setTimeout(() => { btn.innerHTML = oldHTML; btn.style.background = ''; }, 2000);
+                }
+            });
+        },
+
+        stopAllEffects() {
+            if (this.activeStopScript) {
+                try { new Function(this.activeStopScript)(); } catch (e) { console.error("Stop Script Error:", e); }
+                this.activeStopScript = null;
+            }
+            // تنظيف احتياطي
+            document.querySelectorAll('.ps-fx-element').forEach(e => e.remove());
+            if (this.bflyInterval) clearInterval(this.bflyInterval);
+            document.body.style.background = ''; 
+            document.body.style.filter = '';
+        },
+
+        redeemCode() {
+            let inputEl = document.getElementById('ps-redeem-input');
+            let inputCode = inputEl.value.trim().toUpperCase();
+            if (!inputCode) return;
+
+            let foundItem = null;
+            let isBundle = false;
+
+            let expectedAll = this.generateLicenseKey(this.getScrambledId('ALL'), 'ALL');
+            
+            if (inputCode === expectedAll) {
+                localStorage.setItem('unlocked_all', 'true');
+                isBundle = true;
+                foundItem = 'ALL';
+            } else {
+                this.currentAllAnims.forEach(anim => {
+                    let expected = this.generateLicenseKey(this.getScrambledId(anim.id), anim.id);
+                    if (inputCode === expected) {
+                        localStorage.setItem('unlocked_' + anim.id, 'true');
+                        foundItem = anim.id;
+                    }
+                });
+            }
+
+            if (foundItem) {
+                inputEl.value = '';
+                this.haptic('success');
+                alert(isBundle ? '🌟 All Premium Effects Unlocked!' : `✅ Effect #${foundItem} Unlocked Successfully!`);
+                this.renderStore();
+            } else {
+                this.haptic('error');
+                inputEl.style.borderColor = '#ef4444';
+                inputEl.style.color = '#ef4444';
+                setTimeout(() => { inputEl.style.borderColor = ''; inputEl.style.color = ''; }, 1000);
+            }
+        },
+
+        async renderStore() {
+            let grid = document.getElementById('ps-grid');
+            let adminBar = document.getElementById('ps-admin-bar');
+            let isAdmin = !!localStorage.getItem('my_master_key');
+            let isAllUnlocked = localStorage.getItem('unlocked_all') === 'true';
+            
+            grid.innerHTML = '<div style="width:100%; text-align:center; color:var(--ps-sub); padding:20px;"><i class="fas fa-circle-notch fa-spin"></i> Syncing with Server...</div>';
+            
+            let defaultAnims = [
+                { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "PremiumStore.stopAllEffects();" },
+                { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "PremiumStore.bflyInterval=setInterval(()=>{let e=document.createElement('div');e.className='ps-fx-element';e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9990;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 5s linear, transform 5s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),5000);}, 400);", stopScript: "clearInterval(PremiumStore.bflyInterval); document.querySelectorAll('.ps-fx-element').forEach(e=>e.remove());" }
+            ];
+
+            let cloudAnims = [];
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.BIN_ID}/latest?meta=false`, { 
+                    headers: { 'X-Access-Key': CONFIG.ACCESS_KEY } 
+                });
+                if (res.ok) cloudAnims = await res.json();
+            } catch (e) {
+                console.error("Store fetch failed", e);
+            }
+            
+            // دمج المصفوفات وتنظيف الفارغ
+            let animMap = new Map();
+            defaultAnims.forEach(a => animMap.set(a.id, a));
+            (Array.isArray(cloudAnims) ? cloudAnims : []).forEach(a => {
+                if(a && a.id && a.id !== "empty") animMap.set(a.id, a);
+            });
+            
+            this.currentAllAnims = Array.from(animMap.values());
+            grid.innerHTML = '';
+
+            // واجهة الأدمن
+            if (isAdmin) {
+                adminBar.style.display = 'flex';
+                adminBar.style.gap = '8px';
+                adminBar.innerHTML = `
+                    <button class="ps-btn" style="flex:1; background:#3b82f6; font-size:12px; padding:8px;" onclick="PremiumStore.adminAddModal()">➕ Add</button>
+                    <button class="ps-btn" style="flex:1; background:#8b5cf6; font-size:12px; padding:8px;" onclick="PremiumStore.adminKeyModal('ALL')">🌟 ALL Key</button>
+                    <button class="ps-btn" style="background:#ef4444; font-size:12px; padding:8px;" onclick="PremiumStore.adminLogout()"><i class="fas fa-sign-out-alt"></i></button>
+                `;
+            } else {
+                adminBar.style.display = 'none';
+            }
+
+            // بناء العناصر
+            this.currentAllAnims.forEach(anim => {
+                let isUnlocked = anim.isFree || isAllUnlocked || localStorage.getItem('unlocked_' + anim.id) === 'true';
+                
+                let card = document.createElement('div');
+                card.className = 'ps-item-card';
+                
+                let box = document.createElement('div');
+                box.className = `ps-icon-box ${isUnlocked || isAdmin ? 'unlocked' : 'locked'}`;
+                box.innerHTML = anim.icon;
+                
+                if (!isUnlocked && !isAdmin) {
+                    box.innerHTML += `<div class="ps-badge locked"><i class="fas fa-lock"></i></div>`;
+                }
+
+                let priceLabel = document.createElement('div');
+                priceLabel.innerText = anim.isFree ? 'FREE' : (isUnlocked ? 'ACTIVE' : (anim.price || '€1.00'));
+                priceLabel.style.cssText = `font-size:10px; font-weight:bold; color:${isUnlocked || anim.isFree ? 'var(--ps-primary)' : 'var(--ps-sub)'}; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:12px;`;
+
+                box.onclick = () => this.handleItemClick(anim, isUnlocked, isAdmin);
+
+                card.appendChild(box);
+                card.appendChild(priceLabel);
+                grid.appendChild(card);
+            });
+        },
+
+        handleItemClick(anim, isUnlocked, isAdmin) {
+            if (this.isPreviewing) return;
+
+            if (isAdmin && anim.id !== '0') {
+                this.adminEditModal(anim);
+                return;
+            }
+
+            this.toggleSheet();
+            this.stopAllEffects();
+
+            if (isUnlocked || anim.isFree) {
+                if (anim.id !== '0') {
+                    try { 
+                        new Function(anim.playScript)(); 
+                        this.activeStopScript = anim.stopScript; 
+                    } catch(e) { console.error("Script Error:", e); alert("Effect execution failed.");}
+                }
+                this.haptic('success');
+            } else {
+                this.startPreview(anim);
+            }
+        },
+
+        startPreview(anim) {
+            this.isPreviewing = true;
+            try { 
+                new Function(anim.playScript)(); 
+                this.activeStopScript = anim.stopScript; 
+            } catch(e) { console.error("Preview Script Error", e); }
+            
+            this.countdownEl.style.display = 'flex';
+            let timeLeft = 5;
+            this.countdownEl.innerText = timeLeft;
+            
+            let cdInt = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    this.countdownEl.innerText = timeLeft;
+                } else {
+                    clearInterval(cdInt);
+                    this.countdownEl.style.display = 'none';
+                    this.isPreviewing = false;
+                    this.stopAllEffects();
+                    this.showPurchaseModal(anim);
+                }
+            }, 1000);
+        },
+
+        showPurchaseModal(anim) {
+            let sId = this.getScrambledId(anim.id);
+            let buyLink = anim.buyLink || CONFIG.STRIPE_LINK;
+            let userMsg = `Hi!\nClient: ${this.userName}\nID: ${sId}\nI want to buy Item #${anim.id} (${anim.icon})`;
+            let directChatUrl = `https://t.me/${CONFIG.DEVELOPER_USERNAME}?text=${encodeURIComponent(userMsg)}`;
+
+            let html = `
+                <div style="font-size:50px; margin-bottom:10px;">${anim.icon}</div>
+                <h3 style="margin:0 0 5px 0; font-size:20px; color:var(--ps-text);">Premium Effect</h3>
+                <div style="font-size:22px; color:var(--ps-primary); font-weight:900; margin-bottom:20px;">${anim.price || '€1.00'}</div>
+                
+                <button class="ps-btn" style="width:100%; background:#635bff; margin-bottom:15px; font-size:16px;" onclick="window.open('${buyLink}', '_blank')">
+                    <i class="fab fa-stripe-s"></i> Pay with Stripe
+                </button>
+                
+                <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:16px; text-align:left; border:1px solid rgba(255,255,255,0.05); margin-bottom:15px;">
+                    <div style="font-size:12px; color:var(--ps-sub); margin-bottom:8px;">Send your ID to developer after payment:</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.4); padding:10px; border-radius:8px; margin-bottom:12px;">
+                        <span style="font-family:monospace; font-weight:bold; color:#38bdf8; font-size:14px;">${sId}</span>
+                        <button class="ps-btn" id="cpyIdBtn" style="padding:6px 12px; background:rgba(56,189,248,0.1); color:#38bdf8;" onclick="PremiumStore.copyText('${sId}', 'cpyIdBtn')"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <button class="ps-btn" style="width:100%; background:transparent; border:1px solid #0ea5e9; color:#0ea5e9;" onclick="window.open('${directChatUrl}','_blank')">
+                        <i class="fab fa-telegram-plane"></i> Send via Telegram
+                    </button>
+                </div>
+                
+                <button onclick="PremiumStore.hideModal(); PremiumStore.toggleSheet();" style="background:transparent; border:none; color:var(--ps-sub); font-size:14px; cursor:pointer;">Close</button>
+            `;
+            this.showModal(html);
+        },
+
+        // ==========================
+        // Admin Functions
+        // ==========================
+        
+        setupAdminTrigger() {
+            // ربط تسجيل الدخول بـ input خارجي إن وجد (كما في الكود الأصلي)
+            let extInput = typeof DOM !== 'undefined' && DOM.noteInput ? DOM.noteInput : null;
+            let extBtn = typeof DOM !== 'undefined' && DOM.saveNoteBtn ? DOM.saveNoteBtn : null;
+            
+            if (extInput && extBtn) {
+                let originalClick = extBtn.onclick;
+                extBtn.onclick = (e) => {
+                    let txt = extInput.value.trim();
+                    if (txt.startsWith(">admin |")) {
+                        localStorage.setItem('my_master_key', txt.split('|')[1].trim());
+                        extInput.value = '';
+                        alert('🔓 Admin Mode Unlocked!');
+                        this.renderStore();
+                        return;
+                    }
+                    if (originalClick) originalClick(e);
+                };
+            }
+
+            // بديل سري (اضغط مطولاً على عنوان المتجر لتسجيل الدخول)
+            setTimeout(() => {
+                let title = document.getElementById('ps-title');
+                if (title) {
+                    let pressTimer;
+                    title.addEventListener('touchstart', () => { pressTimer = setTimeout(() => this.secretAdminLogin(), 2000); });
+                    title.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+                    title.addEventListener('mousedown', () => { pressTimer = setTimeout(() => this.secretAdminLogin(), 2000); });
+                    title.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
+                }
+            }, 1000);
+        },
+
+        secretAdminLogin() {
+            if(localStorage.getItem('my_master_key')) return;
+            let key = prompt("Enter Master Key:");
+            if (key) {
+                localStorage.setItem('my_master_key', key.trim());
+                this.renderStore();
+            }
+        },
+
+        adminLogout() {
+            localStorage.removeItem('my_master_key');
+            this.renderStore();
+        },
+
+        adminKeyModal(itemId) {
+            let uId = prompt("Enter Client ID (e.g. TG-XXXXX):"); 
+            if (!uId) return;
+            let code = this.generateLicenseKey(uId.trim(), itemId);
+            let html = `
+                <h3 style="color:var(--ps-primary); margin-bottom:15px;">License Key generated</h3>
+                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:12px; margin-bottom:15px;">
+                    <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:20px;">${code}</span>
+                </div>
+                <button class="ps-btn" id="cpyKeyAd" style="width:100%; margin-bottom:10px;" onclick="PremiumStore.copyText('${code}', 'cpyKeyAd')">Copy Key</button>
+                <button onclick="PremiumStore.hideModal()" style="background:transparent; border:none; color:var(--ps-sub);">Close</button>
+            `;
+            this.showModal(html);
+        },
+
+        adminAddModal() {
+            let html = `
+                <h3 style="color:var(--ps-primary); margin-bottom:15px;">➕ Add Effect</h3>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+                    <input class="ps-input" id="nIcon" placeholder="Icon (e.g. 🍉)">
+                    <input class="ps-input" id="nId" placeholder="Unique ID (e.g. 5)">
+                    <input class="ps-input" id="nPrice" placeholder="Price (e.g. €1.00)">
+                    <select class="ps-input" id="nFree" style="appearance:none;">
+                        <option value="false">Paid 🔒</option><option value="true">Free 🆓</option>
+                    </select>
+                    <textarea class="ps-input" id="nPlay" placeholder="Play Script JS..." style="height:60px; font-size:11px; color:var(--ps-primary); border-color:rgba(16,185,129,0.3);"></textarea>
+                    <textarea class="ps-input" id="nStop" placeholder="Stop Script JS..." style="height:60px; font-size:11px; color:#ef4444; border-color:rgba(239,68,68,0.3);"></textarea>
+                </div>
+                <button class="ps-btn" style="width:100%; margin-bottom:10px;" onclick="PremiumStore.executeAdminAction('ADD')">🚀 Deploy to Cloud</button>
+                <button onclick="PremiumStore.hideModal()" style="background:transparent; border:none; color:var(--ps-sub);">Cancel</button>
+            `;
+            this.showModal(html);
+        },
+
+        adminEditModal(anim) {
+            let html = `
+                <div style="font-size:30px;">${anim.icon}</div>
+                <h3 style="color:#3b82f6; margin:bottom:15px;">Edit ID #${anim.id}</h3>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+                    <button class="ps-btn" style="background:#10b981;" onclick="PremiumStore.adminKeyModal('${anim.id}')"><i class="fas fa-key"></i> Generate Key</button>
+                    <button class="ps-btn" style="background:#ef4444;" onclick="PremiumStore.executeAdminAction('DELETE', '${anim.id}')"><i class="fas fa-trash"></i> Delete from Cloud</button>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+                    <input class="ps-input" id="eIcon" value="${anim.icon}">
+                    <input class="ps-input" id="ePrice" value="${anim.price || '€1.00'}">
+                    <select class="ps-input" id="eFree" style="appearance:none;">
+                        <option value="false" ${!anim.isFree ? 'selected' : ''}>Paid 🔒</option>
+                        <option value="true" ${anim.isFree ? 'selected' : ''}>Free 🆓</option>
+                    </select>
+                    <textarea class="ps-input" id="ePlay" style="height:60px; font-size:11px; color:var(--ps-primary);">${anim.playScript}</textarea>
+                    <textarea class="ps-input" id="eStop" style="height:60px; font-size:11px; color:#ef4444;">${anim.stopScript}</textarea>
+                </div>
+                <button class="ps-btn" style="width:100%; background:#3b82f6; margin-bottom:10px;" onclick="PremiumStore.executeAdminAction('EDIT', '${anim.id}')">💾 Update</button>
+                <button onclick="PremiumStore.hideModal()" style="background:transparent; border:none; color:var(--ps-sub);">Close</button>
+            `;
+            this.showModal(html);
+        },
+
+        async executeAdminAction(action, targetId = null) {
+            let mKey = localStorage.getItem('my_master_key');
+            if (!mKey) return;
+            
+            this.hideModal();
+            let grid = document.getElementById('ps-grid');
+            grid.innerHTML = `<div style="width:100%; text-align:center; color:var(--ps-primary); padding:20px;"><i class="fas fa-cog fa-spin"></i> Processing ${action}...</div>`;
+
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+                let data = res.ok ? await res.json() : [];
+                if (!Array.isArray(data)) data = [];
+
+                let newData = [...data];
+
+                if (action === 'ADD') {
+                    let i = document.getElementById('nIcon').value.trim();
+                    let id = document.getElementById('nId').value.trim();
+                    if (!i || !id) { alert("Missing ID or Icon"); return this.renderStore(); }
+                    newData = newData.filter(x => x.id !== id && x.id !== "empty");
+                    newData.push({
+                        icon: i, id: id, 
+                        price: document.getElementById('nPrice').value.trim(), 
+                        isFree: document.getElementById('nFree').value === 'true', 
+                        playScript: document.getElementById('nPlay').value.trim(), 
+                        stopScript: document.getElementById('nStop').value.trim()
+                    });
+                } 
+                else if (action === 'EDIT') {
+                    newData = newData.map(x => x.id === targetId ? {
+                        icon: document.getElementById('eIcon').value.trim(), id: targetId,
+                        price: document.getElementById('ePrice').value.trim(),
+                        isFree: document.getElementById('eFree').value === 'true',
+                        playScript: document.getElementById('ePlay').value.trim(),
+                        stopScript: document.getElementById('eStop').value.trim()
+                    } : x);
+                } 
+                else if (action === 'DELETE') {
+                    if (!confirm("Delete this effect globally?")) return this.renderStore();
+                    newData = newData.filter(x => x.id !== targetId);
+                    if (newData.length === 0) newData = [{"id":"empty"}];
+                }
+
+                let putRes = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.BIN_ID}`, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, 
+                    body: JSON.stringify(newData) 
+                });
+                
+                if(!putRes.ok) throw new Error("PUT request failed");
+
+                setTimeout(() => this.renderStore(), 1000);
+            } catch (e) {
+                console.error("Admin Action Error", e);
+                alert("Database Error! Check Master Key or Network.");
+                this.renderStore();
+            }
+        }
+    };
+
+    // تشغيل المتجر
+    document.addEventListener("DOMContentLoaded", () => {
+        PremiumStore.init();
+    });
+    // إذا كان السكربت يتم تحميله بعد الـ DOM
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        setTimeout(() => PremiumStore.init(), 100);
+    }
+})();
 
 
 
