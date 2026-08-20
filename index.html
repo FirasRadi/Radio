@@ -1175,14 +1175,8 @@
 
 // ===================================================
 
-
 // ======================================================
-// 🛒 VIP Premium Store (Minimalist UX, Smart Crypto, Linear Flow)
-// ======================================================
-
-
-// ======================================================
-// 🛒 VIP Premium Store (Flawless UX, Ultimate Users Panel)
+// 🛒 VIP Premium Store (User-Centric CRM, Strict Security, Free/Paid Fixed)
 // ======================================================
 
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
@@ -1190,6 +1184,7 @@ const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC
 const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
 const DEVELOPER_USERNAME = "developer_origins_bot"; 
 const SECRET_SALT = "TIME_WORLD_2026"; 
+const MY_ADMIN_TG_ID = 5350129816; // 🔒 قفل الإدارة برقمك الشخصي فقط
 
 function initProStore() {
     let tgUser = tg?.initDataUnsafe?.user;
@@ -1200,7 +1195,7 @@ function initProStore() {
     }
     let userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
 
-    window.getRequestCode = (bId, itemId) => {
+    window.getScrambledId = (bId, itemId) => {
         let clean = bId.toString().replace(/TG-|U-/g, '');
         let prefix = bId.toString().startsWith('TG-') ? 'TG-' : 'U-';
         let shift = itemId === 'ALL' ? 5 : (parseInt(itemId) * 3) % 10;
@@ -1208,8 +1203,8 @@ function initProStore() {
         return `${prefix}${scrambled}-${itemId}`;
     };
 
-    window.generateLicenseKey = (requestCode, scriptId) => {
-        let raw = requestCode + "|" + scriptId + "|" + SECRET_SALT;
+    window.generateLicenseKey = (scrambledId, scriptId) => {
+        let raw = scrambledId + "|" + scriptId + "|" + SECRET_SALT;
         let hash1 = 5381, hash2 = 52711;
         for (let i = 0; i < raw.length; i++) {
             let char = raw.charCodeAt(i);
@@ -1229,7 +1224,12 @@ function initProStore() {
     headerRight.appendChild(storeBtn);
 
     let style = document.createElement('style');
-    style.innerHTML = `.h-scroll::-webkit-scrollbar { display: none; } .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }`;
+    style.innerHTML = `
+        .h-scroll::-webkit-scrollbar { display: none; } 
+        .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+    `;
     document.head.appendChild(style);
 
     let overlay = document.createElement('div'); overlay.className = 'sheet-overlay';
@@ -1237,13 +1237,17 @@ function initProStore() {
     
     sheet.innerHTML = `
         <div class="sheet-header" style="margin-bottom:15px;"><div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Premium Store</div><button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button></div>
+        
         <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
+        
         <div style="padding:0 5px; margin-bottom:10px;">
+            <div style="font-size:10px; color:var(--text-sub); text-align:center; margin-bottom:6px; font-weight:bold; letter-spacing:0.5px;">Contact developer to purchase effects</div>
             <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:6px;">
                 <input type="text" id="globalRedeemInput" placeholder="Paste License Key..." style="flex:1; min-width:0; background:transparent; border:none; color:#10b981; font-family:monospace; font-size:13px; font-weight:bold; padding:8px 12px; outline:none; text-transform:uppercase;">
                 <button onclick="window.globalRedeemAction()" style="background:#10b981; color:#fff; border:none; padding:8px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer;">Redeem</button>
             </div>
         </div>
+
         <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding:5px; scroll-behavior:smooth;"></div>
     `;
     document.body.appendChild(overlay); document.body.appendChild(sheet);
@@ -1251,13 +1255,13 @@ function initProStore() {
     let adminBarContainer = sheet.querySelector('#adminBarContainer');
 
     window.previewCountdown = document.createElement('div');
-    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:44px; height:44px; line-height:44px; font-size:22px; font-weight:900; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
+    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:40px; height:40px; line-height:40px; font-size:20px; font-weight:900; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
     document.body.appendChild(window.previewCountdown);
 
     let customModalOverlay = document.createElement('div');
-    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s ease; padding:15px; overflow-y:auto;';
+    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s ease; padding:15px;';
     let customModalBox = document.createElement('div');
-    customModalBox.style.cssText = 'box-sizing:border-box; background:linear-gradient(145deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.08); width:100%; max-width:340px; border-radius:24px; padding:25px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff; transform:scale(0.95); opacity:0; transition:all 0.3s ease; margin:auto;';
+    customModalBox.style.cssText = 'box-sizing:border-box; background:linear-gradient(145deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.08); width:100%; max-width:340px; max-height:90vh; overflow-y:auto; border-radius:24px; padding:25px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff; transform:scale(0.95); opacity:0; transition:all 0.3s ease; margin:auto;';
     customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
 
     window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; setTimeout(() => { customModalBox.style.transform = 'scale(1)'; customModalBox.style.opacity = '1'; }, 10); };
@@ -1268,8 +1272,8 @@ function initProStore() {
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             let btn = document.getElementById(btnId);
             if(btn) {
-                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.color='#10b981';
-                setTimeout(() => { btn.innerHTML = old; btn.style.color=''; }, 1500);
+                let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.background = '#10b981'; btn.style.color='#fff';
+                setTimeout(() => { btn.innerHTML = old; btn.style.background = 'rgba(56,189,248,0.1)'; btn.style.color='#38bdf8'; }, 2000);
             }
         });
     };
@@ -1302,102 +1306,91 @@ function initProStore() {
         if(foundAnim) {
             inputField.value = '';
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            alert(`✅ Activated! Effect #${foundAnim.id} (${foundAnim.icon}) is now permanently unlocked!`);
+            alert(`✅ Activated! Effect #${foundAnim.id} is now PERMANENTLY UNLOCKED.`);
             window.renderAnimStore();
         } else {
             if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             inputField.style.border = '1px solid #ef4444'; inputField.style.color = '#ef4444';
             setTimeout(()=> { inputField.style.border = 'none'; inputField.style.color = '#10b981'; }, 1000);
+            alert('❌ Invalid Key.');
         }
     };
 
-    window.saveBuyerToCloud = async (reqCode, itemId, buyerName) => {
-        let mKey = localStorage.getItem('my_master_key');
-        if(!mKey) return;
-        try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
-            let data = await res.json();
-            let updated = data.map(x => {
-                if (x.id === itemId) {
-                    x.buyers = x.buyers || [];
-                    if(!x.buyers.find(b => b.reqCode === reqCode)) x.buyers.push({ reqCode: reqCode, name: buyerName, date: new Date().toLocaleDateString() });
-                }
-                return x;
-            });
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
-        } catch(e) {}
-    };
-
-    // 🌟 لوحة تحكم المستخدمين الخارقة (The Ultimate Users Dashboard) 🌟
+    // 🌟 لوحة إدارة المستخدمين الخارقة (User-Centric CRM Dashboard) 🌟
     window.adminShowUsers = () => {
         let allAnims = window.currentAllAnims || [];
-        let totalRev = 0, activeUsers = 0, revokedUsers = 0;
-        let listHTML = '';
+        let usersMap = {}; // تصنيف باليوزر وليس بالتأثير
+        let totalRev = 0;
 
+        // تجميع البيانات
         allAnims.forEach(anim => {
             let buyers = anim.buyers || [];
             let blacklist = anim.blacklist || [];
             let priceVal = parseFloat((anim.price||"1").replace(/[^0-9.]/g, '')) || 0;
 
-            if(buyers.length > 0) {
-                listHTML += `<div style="text-align:left; color:#10b981; font-weight:bold; font-size:12px; margin-top:15px; margin-bottom:5px; border-bottom:1px solid rgba(16,185,129,0.3); padding-bottom:3px;">${anim.icon} Effect #${anim.id}</div>`;
-                
-                buyers.forEach(b => {
-                    let isRevoked = blacklist.includes(b.reqCode);
-                    if(isRevoked) revokedUsers++; else { activeUsers++; totalRev += priceVal; }
-
-                    let statusColor = isRevoked ? '#ef4444' : '#10b981';
-                    let statusText = isRevoked ? 'BANNED' : 'ACTIVE';
-                    let actionIcon = isRevoked ? '<i class="fas fa-check-circle"></i> Restore' : '<i class="fas fa-ban"></i> Revoke';
-
-                    listHTML += `
-                        <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); padding:10px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                            <div style="text-align:left; overflow:hidden;">
-                                <div style="color:#fff; font-size:12px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">👤 ${b.name}</div>
-                                <div style="color:var(--text-sub); font-size:10px; font-family:monospace; margin-top:2px;">${b.reqCode}</div>
-                                <div style="color:${statusColor}; font-size:9px; font-weight:bold; margin-top:4px;">● ${statusText}</div>
-                            </div>
-                            <button onclick="window.toggleUserBan('${anim.id}', '${b.reqCode}')" style="background:rgba(255,255,255,0.05); color:${isRevoked ? '#10b981' : '#ef4444'}; border:1px solid ${isRevoked ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px 10px; border-radius:8px; font-size:10px; font-weight:bold; cursor:pointer; flex-shrink:0; transition:0.2s;">
-                                ${actionIcon}
-                            </button>
-                        </div>
-                    `;
-                });
-            }
+            buyers.forEach(b => {
+                if(!usersMap[b.reqCode]) {
+                    usersMap[b.reqCode] = { name: b.name, totalSpent: 0, items: [] };
+                }
+                let isRevoked = blacklist.includes(b.reqCode);
+                if(!isRevoked) {
+                    usersMap[b.reqCode].totalSpent += priceVal;
+                    totalRev += priceVal;
+                }
+                usersMap[b.reqCode].items.push({ id: anim.id, icon: anim.icon, isRevoked: isRevoked });
+            });
         });
+
+        let listHTML = '';
+        if (Object.keys(usersMap).length > 0) {
+            for (let [reqCode, user] of Object.entries(usersMap)) {
+                let itemsHTML = user.items.map(item => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
+                        <span style="font-size:12px; color:#fff;">${item.icon} Item #${item.id}</span>
+                        <button onclick="window.toggleUserBan('${item.id}', '${reqCode}')" style="background:${item.isRevoked ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}; color:${item.isRevoked ? '#ef4444' : '#10b981'}; border:1px solid ${item.isRevoked ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:60px;">
+                            ${item.isRevoked ? '🔴 Revoked' : '🟢 Active'}
+                        </button>
+                    </div>
+                `).join('');
+
+                listHTML += `
+                    <details style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); border-radius:12px; margin-bottom:10px; overflow:hidden;">
+                        <summary style="padding:12px; cursor:pointer; outline:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
+                            <div style="text-align:left;">
+                                <div style="color:#fff; font-size:13px; font-weight:bold;">👤 ${user.name}</div>
+                                <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">${reqCode}</div>
+                            </div>
+                            <div style="color:#10b981; font-weight:bold; font-size:12px; display:flex; align-items:center; gap:5px;">
+                                €${user.totalSpent.toFixed(2)} <i class="fas fa-chevron-down" style="font-size:10px; color:var(--text-sub);"></i>
+                            </div>
+                        </summary>
+                        <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.15);">
+                            ${itemsHTML}
+                        </div>
+                    </details>
+                `;
+            }
+        }
 
         let html = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="color:#3b82f6; margin:0; font-size:16px;"><i class="fas fa-users-cog"></i> Users Dashboard</h3>
+                <h3 style="color:#3b82f6; margin:0; font-size:16px;"><i class="fas fa-users-cog"></i> Clients CRM</h3>
+                <div style="background:rgba(16,185,129,0.1); color:#10b981; padding:4px 8px; border-radius:8px; font-weight:bold; font-size:12px;">Total: €${totalRev.toFixed(2)}</div>
             </div>
             
-            <div style="display:flex; gap:8px; margin-bottom:15px;">
-                <div style="flex:1; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:10px;">
-                    <div style="font-size:10px; color:var(--text-sub);">Revenue</div>
-                    <div style="font-size:16px; color:#10b981; font-weight:bold;">€${totalRev.toFixed(2)}</div>
-                </div>
-                <div style="flex:1; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); border-radius:10px; padding:10px;">
-                    <div style="font-size:10px; color:var(--text-sub);">Active</div>
-                    <div style="font-size:16px; color:#3b82f6; font-weight:bold;">${activeUsers}</div>
-                </div>
-                <div style="flex:1; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:10px;">
-                    <div style="font-size:10px; color:var(--text-sub);">Banned</div>
-                    <div style="font-size:16px; color:#ef4444; font-weight:bold;">${revokedUsers}</div>
-                </div>
+            <div style="max-height:50vh; overflow-y:auto; padding-right:5px; margin-bottom:15px;" id="usersListContainer">
+                ${listHTML || `<div style="color:var(--text-sub); font-size:11px; padding:20px;">No clients found in records.</div>`}
             </div>
 
-            <div style="max-height:45vh; overflow-y:auto; padding-right:5px;" id="usersListContainer">
-                ${listHTML || `<div style="color:var(--text-sub); font-size:12px; margin-top:20px;">No buyers found yet. Generate keys to add them.</div>`}
-            </div>
-            
-            <button onclick="window.hideCustomModal()" style="width:100%; margin-top:15px; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:12px; border-radius:10px; font-weight:bold;">Close Panel</button>
+            <button onclick="window.adminClearLedger()" style="width:100%; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:10px; font-weight:bold; margin-bottom:10px;"><i class="fas fa-trash-alt"></i> Clear All Records</button>
+            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:1px solid var(--text-sub); color:var(--text-sub); padding:10px; border-radius:10px; font-weight:bold;">Close</button>
         `;
         window.showCustomModal(html);
     };
 
     window.toggleUserBan = async (animId, reqCode) => {
         let mKey = localStorage.getItem('my_master_key');
-        document.getElementById('usersListContainer').innerHTML = '<div style="color:#f59e0b; margin-top:20px; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Updating database...</div>';
+        document.getElementById('usersListContainer').innerHTML = '<div style="color:#f59e0b; margin-top:20px; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Updating access...</div>';
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = await res.json();
@@ -1411,42 +1404,70 @@ function initProStore() {
             });
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
             await window.renderAnimStore(); 
-            window.adminShowUsers(); // Refresh the panel
+            window.adminShowUsers(); 
         } catch(e) { window.adminShowUsers(); }
     };
 
+    // 🌟 مسح سجل المشتريات بالكامل 🌟
+    window.adminClearLedger = async () => {
+        if(!confirm("⚠️ Are you sure? This will wipe all user purchase records and bans. Elements will remain in store.")) return;
+        let mKey = localStorage.getItem('my_master_key');
+        document.getElementById('usersListContainer').innerHTML = '<div style="color:#ef4444; margin-top:20px; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Wiping records...</div>';
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json();
+            let updated = data.map(x => { x.buyers = []; x.blacklist = []; return x; });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
+            await window.renderAnimStore(); 
+            window.adminShowUsers(); 
+        } catch(e) { window.adminShowUsers(); }
+    };
+
+    // الصندوق الذكي للتوليد السريع
     window.processOmniBox = () => {
         let inputField = document.getElementById('omniInput');
         let text = inputField.value.trim();
         if(!text) return;
-        let isAdmin = !!localStorage.getItem('my_master_key');
+        
+        let reqMatch = text.match(/(TG|U)-[0-9A-Z]+-([0-9]+)/i);
+        if (!reqMatch) return alert("❌ No valid User ID found!");
+        
+        let reqCode = reqMatch[0].toUpperCase();
+        let itemId = reqMatch[2].toUpperCase();
+        let nameMatch = text.match(/Name:\s*(.+)/i);
+        let clientName = nameMatch ? nameMatch[1].trim() : "Client";
 
-        if (isAdmin && (text.includes('TG-') || text.includes('U-'))) {
-            let reqMatch = text.match(/(TG|U)-[0-9A-Z]+-([0-9]+|ALL)/i);
-            if (!reqMatch) return alert("❌ No valid User ID found!");
-            
-            let reqCode = reqMatch[0].toUpperCase();
-            let itemId = reqMatch[2].toUpperCase();
-            let nameMatch = text.match(/Name:\s*(.+)/i);
-            let clientName = nameMatch ? nameMatch[1].trim() : "Client";
+        let actKey = window.generateLicenseKey(reqCode, itemId);
+        window.saveBuyerToCloud(reqCode, itemId, clientName);
 
-            let actKey = window.generateLicenseKey(reqCode, itemId);
-            window.saveBuyerToCloud(reqCode, itemId, clientName);
+        let html = `
+            <h3 style="color:#10b981; margin-bottom:5px;">✅ Key Auto-Generated</h3>
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">For: <b>${clientName}</b> (Item #${itemId})</div>
+            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; margin-bottom:12px; border:1px dashed #10b981;">
+                <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:20px;">${actKey}</span>
+            </div>
+            <button id="cpyGenBtn" onclick="window.copyToClipboard('${actKey}', 'cpyGenBtn')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:12px; margin-bottom:5px;">Copy Key</button>
+            <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold; padding:10px;">Close</button>
+        `;
+        window.showCustomModal(html);
+        inputField.value = '';
+    };
 
-            let html = `
-                <h3 style="color:#10b981; margin-bottom:5px;">✅ Key Generated</h3>
-                <div style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">For: <b>${clientName}</b> (Item #${itemId})</div>
-                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; margin-bottom:12px; border:1px dashed #10b981;">
-                    <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:20px;">${actKey}</span>
-                </div>
-                <button id="cpyGenBtn" onclick="window.copyToClipboard('${actKey}', 'cpyGenBtn')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:13px; margin-bottom:5px;">Copy Key</button>
-                <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold; padding:10px;">Close</button>
-            `;
-            window.showCustomModal(html);
-            inputField.value = '';
-            return;
-        }
-        alert("❌ As Admin, paste the client's message here to generate a key.");
+    window.saveBuyerToCloud = async (reqCode, itemId, buyerName) => {
+        let mKey = localStorage.getItem('my_master_key');
+        if(!mKey) return;
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json();
+            let updated = data.map(x => {
+                if (x.id === itemId) {
+                    x.buyers = x.buyers || [];
+                    if(!x.buyers.find(b => b.reqCode === reqCode)) x.buyers.push({ reqCode: reqCode, name: buyerName });
+                }
+                return x;
+            });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
+        } catch(e) {}
     };
 
     window.renderAnimStore = async () => {
@@ -1456,20 +1477,16 @@ function initProStore() {
         
         if (isAdmin) {
             adminBarContainer.innerHTML = `
-                <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); padding:8px; border-radius:14px;">
-                    <button onclick="window.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:10px; font-weight:600; font-size:12px;">➕ Add</button>
-                    <button onclick="window.adminShowUsers()" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:10px; font-weight:600; font-size:12px;">👥 Users Panel</button>
-                    <button onclick="localStorage.removeItem('my_master_key'); window.renderAnimStore();" style="flex:0.5; background:#64748b; color:#fff; border:none; padding:8px; border-radius:10px;"><i class="fas fa-sign-out-alt"></i></button>
+                <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); padding:8px; border-radius:14px; margin-bottom:5px;">
+                    <button onclick="window.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px;">➕ Add</button>
+                    <button onclick="window.adminShowUsers()" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px;">👥 CRM Panel</button>
+                    <button onclick="localStorage.removeItem('my_master_key'); window.renderAnimStore();" style="flex:0.5; background:#64748b; color:#fff; border:none; padding:8px; border-radius:8px;"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:8px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:6px;">
-                    <input type="text" id="omniInput" placeholder="Paste Client Message here..." style="flex:1; min-width:0; background:transparent; border:none; color:#10b981; font-family:monospace; font-size:12px; font-weight:bold; padding:8px 12px; outline:none;">
-                    <button onclick="window.processOmniBox()" style="background:#10b981; color:#fff; border:none; padding:8px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer;"><i class="fas fa-bolt"></i> Generate</button>
+                <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:6px;">
+                    <input type="text" id="omniInput" placeholder="Paste Client Message here..." style="flex:1; min-width:0; background:transparent; border:none; color:#10b981; font-family:monospace; font-size:11px; padding:8px 12px; outline:none;">
+                    <button onclick="window.processOmniBox()" style="background:#10b981; color:#fff; border:none; padding:8px 15px; border-radius:10px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-bolt"></i> Gen</button>
                 </div>
             `;
-            document.getElementById('globalRedeemInput').parentElement.style.display = 'none'; // إخفاء Redeem للمدير
-        } else {
-            let rInp = document.getElementById('globalRedeemInput');
-            if(rInp) rInp.parentElement.style.display = 'flex';
         }
 
         let defaultAnims = [
@@ -1493,6 +1510,7 @@ function initProStore() {
 
         window.currentAllAnims.forEach((anim) => {
             let reqCode = window.getRequestCode(baseId, anim.id);
+            // 🌟 إصلاح كود الـ Free 🌟 (الآن يقرأ True بشكل صارم ويفتح فوراً)
             let isFreeStrict = (String(anim.isFree) === 'true' || anim.isFree === true);
             
             let isBlacklisted = anim.blacklist && anim.blacklist.includes(reqCode);
@@ -1514,39 +1532,42 @@ function initProStore() {
             }
             item.innerHTML += anim.icon;
 
+            // توحيد كلمة FREE للجميع إذا كان مجانياً أو مفتوحاً
             let priceText = (isUnlocked || isFreeStrict) ? 'FREE' : (anim.price || '€1.00');
             let priceColor = (isUnlocked || isFreeStrict) ? '#10b981' : 'var(--text-sub)';
             let priceLabel = document.createElement('div');
             priceLabel.innerText = priceText;
-            priceLabel.style.cssText = `font-size:10px; font-weight:800; color:${priceColor}; background:rgba(0,0,0,0.4); padding:3px 10px; border-radius:12px;`;
+            priceLabel.style.cssText = `font-size:10px; font-weight:800; color:${priceColor}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:10px;`;
 
             item.onclick = () => {
                 if (window.isPreviewing) return;
 
-                if (isAdmin && !isFreeStrict && anim.id !== '0') {
+                if (isAdmin && anim.id !== '0') {
                     window.adminSelectedAnim = anim;
-                    let adminHTML = `
+                    let adminItemHTML = `
                         <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
                         <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:15px; letter-spacing:1px; text-transform:uppercase;">Admin Panel • ID #${anim.id}</div>
                         <div style="display:flex; flex-direction:column; gap:8px;">
-                            <button onclick="window.hideCustomModal(); window.stopAllEffects(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:13px;"><i class="fas fa-play"></i> Test Effect</button>
-                            <button onclick="window.adminActionEditCode()" style="background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:13px;"><i class="fas fa-pen"></i> Edit Product</button>
-                            <button onclick="window.adminActionDelete()" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:12px; border-radius:10px; font-weight:bold; font-size:13px;"><i class="fas fa-trash"></i> Delete Globally</button>
+                            <button onclick="window.hideCustomModal(); window.stopAllEffects(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="width:100%; box-sizing:border-box; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:13px;"><i class="fas fa-play"></i> Test Effect</button>
+                            <button onclick="window.adminActionEditCode()" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:13px;"><i class="fas fa-pen"></i> Edit Effect</button>
+                            ${anim.id !== '1' ? `<button onclick="window.adminActionDelete()" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:12px; border-radius:10px; font-weight:bold; font-size:13px;"><i class="fas fa-trash"></i> Delete Globally</button>` : ''}
                         </div>
                         <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold;">Close</button>
                     `;
-                    window.showCustomModal(adminHTML); return;
+                    window.showCustomModal(adminItemHTML); return;
                 }
 
                 sheet.classList.remove('open'); overlay.classList.remove('open');
                 window.stopAllEffects();
 
-                if (isUnlocked) {
+                // 🌟 إذا كان مفتوحاً أو مجانياً، يشتغل بدون عداد وبدون نوافذ 🌟
+                if (isUnlocked || isFreeStrict) {
                     if (anim.id !== '0') {
                         try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     }
                     if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 } else {
+                    // تجربة العناصر المدفوعة مع العداد
                     window.isPreviewing = true;
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     
@@ -1565,8 +1586,7 @@ function initProStore() {
                             window.stopAllEffects();
                             
                             let buyLink = anim.buyLink || STRIPE_LINK;
-                            // 🌟 الرسالة المنسقة (تجنبنا كلمة ID لكي لا يختلط عليه الأمر مع License Key)
-                            let userMsg = `Name: ${userName}\nRequest Code: ${reqCode}\nI want to buy item #${anim.id} (${anim.icon})`;
+                            let userMsg = `Name: ${userName}\nRequest Code: ${reqCode}`;
                             let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(userMsg)}`;
 
                             let modalHTML = `
@@ -1576,16 +1596,7 @@ function initProStore() {
                                 
                                 <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; box-sizing:border-box; background:#635bff; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:700; font-size:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(99,91,255,0.3);"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
                                 <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; box-sizing:border-box; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:12px; border-radius:12px; font-weight:700; font-size:13px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
-                                
-                                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.05); text-align:left;">
-                                    <div style="font-size:12px; color:#10b981; margin-bottom:6px; font-weight:bold;">1. Send your Request Code</div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:10px; margin-bottom:12px;">
-                                        <span id="myIdSpan" style="font-family:monospace; font-weight:bold; color:#38bdf8; font-size:12px;">${reqCode}</span>
-                                        <button onclick="window.copyToClipboard('${reqCode}', 'cpyIdBtn')" id="cpyIdBtn" style="background:rgba(56,189,248,0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold;"><i class="fas fa-copy"></i></button>
-                                    </div>
-                                    <div style="font-size:11px; color:var(--text-sub); line-height:1.4;">2. When you receive your License Key, paste it in the Redeem box at the top of the store.</div>
-                                </div>
-                                <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:13px; font-weight:bold;">Close</button>
+                                <button onclick="window.hideCustomModal()" style="background:transparent; border:none; color:var(--text-sub); font-size:13px; font-weight:bold;">Cancel</button>
                             `;
                             window.showCustomModal(modalHTML);
                         }
@@ -1599,7 +1610,7 @@ function initProStore() {
     storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
     sheet.querySelector('#closeAnimStore').onclick = storeBtn.onclick; overlay.onclick = storeBtn.onclick;
 
-    // --- أوامر إضافة وتعديل المتجر ---
+    // --- واجهات تعديل وإضافة الأكواد ---
     window.adminActionAdd = () => {
         window.stopAllEffects();
         let formHTML = `
@@ -1686,18 +1697,39 @@ function initProStore() {
         } catch(e) { window.renderAnimStore(); }
     };
 
+    // 🔒 نظام الحماية المشدد (قفل الإدارة برقم تليجرام المطور فقط)
     let originalSaveNote = DOM.saveNoteBtn.onclick;
     DOM.saveNoteBtn.onclick = async () => {
         let txt = DOM.noteInput.value.trim();
-        if (txt.startsWith(">admin |")) { localStorage.setItem('my_master_key', txt.split('|')[1].trim()); DOM.noteInput.value = ''; alert('🔓 Admin Mode Unlocked!'); window.renderAnimStore(); return; }
+        if (txt.startsWith(">admin |")) {
+            if (tgUser && tgUser.id && tgUser.id !== MY_ADMIN_TG_ID) {
+                alert('⛔ Security Alert: Unauthorized Telegram account.');
+                DOM.noteInput.value = ''; return;
+            }
+            let inputKey = txt.split('|')[1].trim();
+            DOM.noteInput.placeholder = "🔐 Verifying..."; DOM.noteInput.value = '';
+            try {
+                let testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': inputKey } });
+                if (testRes.ok) {
+                    localStorage.setItem('my_master_key', inputKey);
+                    alert('🔓 Verified: Welcome Admin!'); window.renderAnimStore();
+                } else {
+                    localStorage.removeItem('my_master_key');
+                    alert('❌ Access Denied: Invalid Master Key!'); window.renderAnimStore();
+                }
+            } catch (e) { alert('❌ Network verification failed.'); }
+            DOM.noteInput.placeholder = "Type your note here..."; return;
+        }
         if (originalSaveNote) originalSaveNote();
     };
 
     window.renderAnimStore();
 }
 initProStore();
-        
 
+
+
+        
 
 
 
