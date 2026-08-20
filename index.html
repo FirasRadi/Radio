@@ -1174,13 +1174,9 @@
 
 
 // ===================================================
-
 // ======================================================
-// 🛒 VIP Premium Store (User-Centric CRM, Strict Security, Free/Paid Fixed)
-// ======================================================
-
- // ======================================================
 // 🛒 VIP Premium Store (Clean UI, Smart CRM, Hidden Redeem for Admin)
+// 🔧 LOGIC FIXED & FULLY OPTIMIZED
 // ======================================================
 
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
@@ -1191,7 +1187,7 @@ const SECRET_SALT = "TIME_WORLD_2026";
 const MY_ADMIN_TG_ID = 5350129816; // 🔒 قفل الإدارة برقمك الشخصي فقط
 
 function initProStore() {
-    let tgUser = tg?.initDataUnsafe?.user;
+    let tgUser = typeof tg !== 'undefined' ? tg?.initDataUnsafe?.user : window.Telegram?.WebApp?.initDataUnsafe?.user;
     let baseId = localStorage.getItem('my_base_id');
     if (!baseId) {
         baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
@@ -1199,7 +1195,8 @@ function initProStore() {
     }
     let userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
 
-    window.getScrambledId = (bId, itemId) => {
+    // 🟢 المنطق السليم: تصحيح اسم الدالة لتعمل مع استدعاءات الكود بشكل صحيح
+    window.getRequestCode = (bId, itemId) => {
         let clean = bId.toString().replace(/TG-|U-/g, '');
         let prefix = bId.toString().startsWith('TG-') ? 'TG-' : 'U-';
         let shift = itemId === 'ALL' ? 5 : (parseInt(itemId) * 3) % 10;
@@ -1207,8 +1204,8 @@ function initProStore() {
         return `${prefix}${scrambled}-${itemId}`;
     };
 
-    window.generateLicenseKey = (scrambledId, scriptId) => {
-        let raw = scrambledId + "|" + scriptId + "|" + SECRET_SALT;
+    window.generateLicenseKey = (reqCode, scriptId) => {
+        let raw = reqCode + "|" + scriptId + "|" + SECRET_SALT;
         let hash1 = 5381, hash2 = 52711;
         for (let i = 0; i < raw.length; i++) {
             let char = raw.charCodeAt(i);
@@ -1221,11 +1218,20 @@ function initProStore() {
     };
 
     let headerRight = document.querySelector('.header-right');
-    let storeBtn = document.createElement('button');
-    storeBtn.className = 'icon-btn';
-    storeBtn.innerHTML = '<i class="fas fa-store"></i>';
-    storeBtn.style.color = '#f59e0b';
-    headerRight.appendChild(storeBtn);
+    if (headerRight && !document.getElementById('proStoreBtnKey')) {
+        let storeBtn = document.createElement('button');
+        storeBtn.id = 'proStoreBtnKey';
+        storeBtn.className = 'icon-btn';
+        storeBtn.innerHTML = '<i class="fas fa-store"></i>';
+        storeBtn.style.color = '#f59e0b';
+        headerRight.appendChild(storeBtn);
+
+        storeBtn.onclick = () => { 
+            window.renderAnimStore(); 
+            document.querySelector('.bottom-sheet').classList.toggle('open'); 
+            document.querySelector('.sheet-overlay').classList.toggle('open'); 
+        };
+    }
 
     let style = document.createElement('style');
     style.innerHTML = `
@@ -1244,7 +1250,6 @@ function initProStore() {
         
         <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
         
-        <!-- أعطينا هذا الحقل ID لنتحكم بإخفائه للمدير -->
         <div id="userRedeemContainer" style="padding:0 5px; margin-bottom:10px;">
             <div style="font-size:10px; color:var(--text-sub); text-align:center; margin-bottom:6px; font-weight:bold; letter-spacing:0.5px;">Contact developer to purchase effects</div>
             <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:6px;">
@@ -1275,7 +1280,7 @@ function initProStore() {
 
     window.copyToClipboard = (text, btnId) => {
         navigator.clipboard.writeText(text).then(() => {
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             let btn = document.getElementById(btnId);
             if(btn) {
                 let old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.background = '#10b981'; btn.style.color='#fff';
@@ -1311,18 +1316,17 @@ function initProStore() {
 
         if(foundAnim) {
             inputField.value = '';
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             alert(`✅ Activated! Effect #${foundAnim.id} is now PERMANENTLY UNLOCKED.`);
             window.renderAnimStore();
         } else {
-            if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             inputField.style.border = '1px solid #ef4444'; inputField.style.color = '#ef4444';
             setTimeout(()=> { inputField.style.border = 'none'; inputField.style.color = '#10b981'; }, 1000);
             alert('❌ Invalid License Key!');
         }
     };
 
-    // 🌟 الدالة السحرية لتوليد الكود من الصندوق الذكي (Omnibox) 🌟
     window.processOmniBox = () => {
         let inputField = document.getElementById('omniInput');
         let text = inputField.value.trim();
@@ -1338,7 +1342,6 @@ function initProStore() {
 
         let actKey = window.generateLicenseKey(reqCode, itemId);
         
-        // حفظ المشتري في السحابة
         let mKey = localStorage.getItem('my_master_key');
         if(mKey) {
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } })
@@ -1451,7 +1454,7 @@ function initProStore() {
     };
 
     window.adminClearLedger = async () => {
-        if(!confirm("⚠️ Wipe all user records?")) return;
+        if(!confirm("⚠️ Wipe all user records? This logic is irreversible.")) return;
         let mKey = localStorage.getItem('my_master_key');
         document.getElementById('usersListContainer').innerHTML = '<div style="color:#ef4444; margin-top:20px; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Wiping records...</div>';
         try {
@@ -1468,7 +1471,6 @@ function initProStore() {
         grid.innerHTML = '<div style="color:var(--text-sub); margin:auto; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Syncing...</div>';
         adminBarContainer.innerHTML = '';
         
-        // 🌟 إخفاء חقل الـ Redeem للمدير وإظهار أدوات الإدارة 🌟
         if (isAdmin) {
             userRedeemContainer.style.display = 'none';
             adminBarContainer.innerHTML = `
@@ -1521,9 +1523,9 @@ function initProStore() {
             item.className = 'studio-item'; 
             
             if (isUnlocked || isAdmin) {
-                item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.2s; cursor:pointer; margin:0; width:60px; height:60px; border:2px solid #10b981; box-shadow:0 0 10px rgba(16,185,129,0.3);`;
+                item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.2s; cursor:pointer; margin:0; width:60px; height:60px; border:2px solid #10b981; border-radius:18px; box-shadow:0 0 10px rgba(16,185,129,0.3);`;
             } else {
-                item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.2s; cursor:pointer; margin:0; width:60px; height:60px; border:2px solid rgba(255,255,255,0.1); filter:grayscale(1); opacity:0.6;`;
+                item.style.cssText = `display:flex; align-items:center; justify-content:center; font-size:30px; background:rgba(255,255,255,0.05); transition: 0.2s; cursor:pointer; margin:0; width:60px; height:60px; border:2px solid rgba(255,255,255,0.1); border-radius:18px; filter:grayscale(1); opacity:0.6;`;
                 item.innerHTML = `<div style="position:absolute; bottom:-3px; right:-3px; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-lock"></i></div>`;
             }
             item.innerHTML += anim.icon;
@@ -1539,14 +1541,16 @@ function initProStore() {
 
                 if (isAdmin && !isFreeStrict && anim.id !== '0') {
                     window.adminSelectedAnim = anim;
+                    // 🟢 المنطق السليم: إضافة دالة الحذف (Delete) التي كانت منسية بالكامل في الواجهة!
                     let adminItemHTML = `
                         <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
                         <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:15px; text-transform:uppercase;">Admin Panel • ID #${anim.id}</div>
                         <div style="display:flex; flex-direction:column; gap:8px;">
                             <button onclick="window.hideCustomModal(); window.stopAllEffects(); new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript;" style="width:100%; box-sizing:border-box; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-play"></i> Test Effect</button>
                             <button onclick="window.adminActionEditCode()" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-pen"></i> Edit Effect</button>
+                            <button onclick="window.adminActionDelete()" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px; border-radius:10px; font-weight:600;"><i class="fas fa-trash-alt"></i> Delete Effect</button>
                         </div>
-                        <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px;">Close</button>
+                        <button onclick="window.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold;">Close</button>
                     `;
                     window.showCustomModal(adminItemHTML); return;
                 }
@@ -1558,7 +1562,7 @@ function initProStore() {
                     if (anim.id !== '0') {
                         try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     }
-                    if(tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 } else {
                     window.isPreviewing = true;
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
@@ -1587,7 +1591,7 @@ function initProStore() {
                                 <div style="font-size:22px; color:#10b981; font-weight:900; margin-bottom:20px;">${anim.price || '€1.00'}</div>
                                 
                                 <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; box-sizing:border-box; background:#635bff; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:700; font-size:14px; margin-bottom:12px; box-shadow:0 4px 15px rgba(99,91,255,0.3);"><i class="fab fa-stripe-s"></i> Pay with Stripe</button>
-                                <button onclick="let u='${directChatUrl}'; tg&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; box-sizing:border-box; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:12px; border-radius:12px; font-weight:700; font-size:13px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
+                                <button onclick="let u='${directChatUrl}'; typeof tg !== 'undefined'&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; box-sizing:border-box; background:transparent; color:#0ea5e9; border:1px solid #0ea5e9; padding:12px; border-radius:12px; font-weight:700; font-size:13px; margin-bottom:15px;"><i class="fab fa-telegram-plane"></i> Send Request</button>
                                 
                                 <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:16px; border:1px solid rgba(255,255,255,0.05); text-align:left;">
                                     <div style="font-size:12px; color:#10b981; margin-bottom:6px; font-weight:bold;">1. Send your Request Code</div>
@@ -1608,10 +1612,18 @@ function initProStore() {
         });
     };
 
-    storeBtn.onclick = () => { window.renderAnimStore(); sheet.classList.toggle('open'); overlay.classList.toggle('open'); };
-    sheet.querySelector('#closeAnimStore').onclick = storeBtn.onclick; overlay.onclick = storeBtn.onclick;
+    let closeSheetBtn = sheet.querySelector('#closeAnimStore');
+    if(closeSheetBtn) {
+        closeSheetBtn.onclick = () => {
+            sheet.classList.remove('open');
+            overlay.classList.remove('open');
+        };
+    }
+    overlay.onclick = () => {
+        sheet.classList.remove('open');
+        overlay.classList.remove('open');
+    };
 
-    // --- Admin Add/Edit Forms ---
     window.adminActionAdd = () => {
         window.stopAllEffects();
         let formHTML = `
@@ -1687,8 +1699,11 @@ function initProStore() {
         } catch(e) { window.renderAnimStore(); }
     };
 
+    // 🟢 المنطق السليم: ربط دالة الحذف بالواجهة وحمايتها برسالة تأكيد منطقية لمنع الحذف العشوائي
     window.adminActionDelete = async () => {
+        if(!confirm("⚠️ Are you sure you want to PERMANENTLY delete this effect?")) return;
         let mKey = localStorage.getItem('my_master_key'); let id = window.adminSelectedAnim.id; window.hideCustomModal();
+        grid.innerHTML = '<div style="color:#ef4444; margin:auto;"><i class="fas fa-spinner fa-spin"></i> Deleting...</div>';
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = await res.json(); let filtered = data.filter(x => x.id !== id);
@@ -1698,38 +1713,36 @@ function initProStore() {
         } catch(e) { window.renderAnimStore(); }
     };
 
-    // تسجيل الدخول المحمي بالـ ID الخاص بك فقط
-    let originalSaveNote = DOM.saveNoteBtn.onclick;
-    DOM.saveNoteBtn.onclick = async () => {
-        let txt = DOM.noteInput.value.trim();
-        if (txt.startsWith(">admin |")) {
-            let inputKey = txt.split('|')[1].trim();
-            if (tgUser && tgUser.id && tgUser.id !== MY_ADMIN_TG_ID) {
-                alert('⛔ Security Alert: Unauthorized Telegram account.');
-                DOM.noteInput.value = ''; return;
-            }
-            DOM.noteInput.placeholder = "🔐 Verifying..."; DOM.noteInput.value = '';
-            try {
-                let testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': inputKey } });
-                if (testRes.ok) {
-                    localStorage.setItem('my_master_key', inputKey);
-                    alert('🔓 Verified: Welcome Admin!'); window.renderAnimStore();
-                } else {
-                    localStorage.removeItem('my_master_key');
-                    alert('❌ Access Denied: Invalid Master Key!'); window.renderAnimStore();
+    if (typeof DOM !== 'undefined' && DOM.saveNoteBtn) {
+        let originalSaveNote = DOM.saveNoteBtn.onclick;
+        DOM.saveNoteBtn.onclick = async () => {
+            let txt = DOM.noteInput.value.trim();
+            if (txt.startsWith(">admin |")) {
+                let inputKey = txt.split('|')[1].trim();
+                if (tgUser && tgUser.id && tgUser.id !== MY_ADMIN_TG_ID) {
+                    alert('⛔ Security Alert: Unauthorized Telegram account.');
+                    DOM.noteInput.value = ''; return;
                 }
-            } catch (e) { alert('❌ Network verification failed.'); }
-            DOM.noteInput.placeholder = "Type your note here..."; return;
-        }
-        if (originalSaveNote) originalSaveNote();
-    };
+                DOM.noteInput.placeholder = "🔐 Verifying..."; DOM.noteInput.value = '';
+                try {
+                    let testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': inputKey } });
+                    if (testRes.ok) {
+                        localStorage.setItem('my_master_key', inputKey);
+                        alert('🔓 Verified: Welcome Admin!'); window.renderAnimStore();
+                    } else {
+                        localStorage.removeItem('my_master_key');
+                        alert('❌ Access Denied: Invalid Master Key!'); window.renderAnimStore();
+                    }
+                } catch (e) { alert('❌ Network verification failed.'); }
+                DOM.noteInput.placeholder = "Type your note here..."; return;
+            }
+            if (originalSaveNote) originalSaveNote();
+        };
+    }
 
     window.renderAnimStore();
 }
 initProStore();
-
-
-        
 
 
 
