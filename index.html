@@ -1181,6 +1181,10 @@
 // 👑 MASTERPIECE EDITION (Akaberi UX)
 // ======================================================
 
+// ======================================================
+// 🛒 VIP Premium Store (Clean UI, Smart CRM, Cloud Inbox, Active State)
+// ======================================================
+
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
 const ACCESS_KEY = "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC"; 
 const STRIPE_LINK = "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800"; 
@@ -1190,7 +1194,6 @@ const MY_ADMIN_TG_ID = 5350129816;
 
 const DEFAULT_ANIMS = [
     { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "window.stopAllEffects();" },
-    // 🟢 تم تبطيء الفراشات لتصبح ناعمة وراقية (12 ثانية بدلاً من 5)
     { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 12s linear, transform 12s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),12000);}, 600);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
 ];
 
@@ -1230,9 +1233,9 @@ function initProStore() {
     sheet.innerHTML = `
         <div class="sheet-header" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
             <div><i class="fas fa-store" style="color:#f59e0b; margin-right:5px;"></i> Premium Store</div>
-            <div style="display:flex; gap:15px;">
-                <button id="inboxBtn" style="background:transparent; border:none; color:#38bdf8; font-size:16px; position:relative; cursor:pointer;"><i class="fas fa-envelope"></i><span id="inboxBadge" style="display:none; position:absolute; top:-3px; right:-5px; background:#ef4444; width:8px; height:8px; border-radius:50%;"></span></button>
-                <button class="close-sheet" id="closeAnimStore"><i class="fas fa-times"></i></button>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button id="inboxBtn" style="background:rgba(56, 189, 248, 0.1); border:1px solid rgba(56, 189, 248, 0.3); color:#38bdf8; font-size:12px; font-weight:bold; padding:6px 12px; border-radius:15px; position:relative; cursor:pointer; display:flex; align-items:center; gap:6px;"><i class="fas fa-inbox"></i> Inbox<span id="inboxBadge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; width:10px; height:10px; border-radius:50%; border:2px solid #0f172a;"></span></button>
+                <button class="close-sheet" id="closeAnimStore" style="margin:0;"><i class="fas fa-times"></i></button>
             </div>
         </div>
         <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
@@ -1270,9 +1273,8 @@ function initProStore() {
     `;
     document.head.appendChild(style);
 
-    // 🟢 تصميم شريط التجربة (Preview) الذي يوجه المستخدم للتفاعل مع الشاشة
     window.previewCountdown = document.createElement('div');
-    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); padding:10px 20px; font-size:14px; font-weight:bold; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.9); border-radius:30px; border:1px solid #38bdf8; backdrop-filter:blur(10px); display:none; text-align:center; box-shadow:0 8px 25px rgba(0,0,0,0.5); pointer-events:none; white-space:nowrap;';
+    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:40px; height:40px; line-height:40px; font-size:20px; font-weight:900; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
     document.body.appendChild(window.previewCountdown);
 
     let customModalOverlay = document.createElement('div');
@@ -1325,43 +1327,53 @@ function initProStore() {
         }
     };
 
-    // 🟢 صندوق بريد المستخدم (User Inbox UI)
     inboxBtn.onclick = () => {
         let myMail = [];
         let allAnims = window.currentAllAnims || [];
         let serverInbox = window.mailServerData?.inbox || [];
         
-        // البحث عن أي رسالة مرسلة لأي كود يخص هذا المستخدم
         allAnims.forEach(anim => {
             let myReq = window.getRequestCode(baseId, anim.id);
             let found = serverInbox.filter(m => m.reqCode === myReq);
             myMail = myMail.concat(found);
         });
 
+        localStorage.setItem('read_mail_count_' + baseId, myMail.length);
+        document.getElementById('inboxBadge').style.display = 'none';
+
         let mailHTML = '';
         if(myMail.length === 0) {
             mailHTML = `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 Your inbox is empty.</div>`;
         } else {
-            mailHTML = myMail.map(m => `
-                <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(56, 189, 248, 0.2); padding:12px; border-radius:12px; margin-bottom:10px; text-align:left;">
-                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px;">📅 ${m.date}</div>
-                    <div style="font-family:monospace; font-size:14px; font-weight:bold; color:#10b981;">${m.msg}</div>
-                </div>
-            `).join('');
+            mailHTML = myMail.map((m, idx) => {
+                let keyText = m.key || (m.msg ? m.msg.replace('🎁 License Key: ', '') : '');
+                let iconText = m.icon || '🎁';
+                return `
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(56, 189, 248, 0.2); padding:12px; border-radius:12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                        <div style="font-size:24px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">${iconText}</div>
+                        <div style="flex:1; text-align:left;">
+                            <div style="font-size:9px; color:var(--text-sub); margin-bottom:4px;">${m.date}</div>
+                            <div style="font-family:monospace; font-size:14px; font-weight:bold; color:#10b981;">${keyText}</div>
+                        </div>
+                        <button onclick="window.copyToClipboard('${keyText}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:10px; border-radius:8px; cursor:pointer;"><i class="far fa-copy"></i></button>
+                    </div>
+                `;
+            }).join('');
         }
 
+        let descHTML = `<div style="font-size:11px; color:#94a3b8; margin-bottom:15px; line-height:1.4; text-align:center;">Once you receive a License Key from the developer, it will securely appear here.</div>`;
+
         let html = `
-            <h3 style="color:#38bdf8; margin-bottom:15px; font-size:16px;"><i class="fas fa-envelope"></i> My Inbox</h3>
+            <h3 style="color:#38bdf8; margin-bottom:5px; font-size:16px;"><i class="fas fa-envelope"></i> My Inbox</h3>
+            ${descHTML}
             <div style="max-height:50vh; overflow-y:auto; padding-right:5px; margin-bottom:15px;">
                 ${mailHTML}
             </div>
             <button onclick="window.hideCustomModal()" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
         `;
         window.showCustomModal(html);
-        document.getElementById('inboxBadge').style.display = 'none'; // إخفاء النقطة الحمراء بعد القراءة
     };
 
-    // 🟢 معالجة توليد الكود وإرساله للبريد (Admin Side)
     window.processOmniBox = () => {
         let inputField = document.getElementById('omniInput');
         let text = inputField.value.trim(); if(!text) return;
@@ -1371,7 +1383,9 @@ function initProStore() {
         let nameMatch = text.match(/Name:\s*(.+)/i); let clientName = nameMatch ? nameMatch[1].trim() : "Client";
         let actKey = window.generateLicenseKey(reqCode, itemId);
         
-        // حفظ المشتري في السحابة
+        let foundA = window.currentAllAnims.find(a => a.id === itemId);
+        let itemIcon = foundA ? foundA.icon : '✨';
+
         let mKey = localStorage.getItem('my_master_key');
         if(mKey) {
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } })
@@ -1385,8 +1399,7 @@ function initProStore() {
             }).catch(e=>{});
         }
 
-        // 🟢 الزر الجديد لإرسال الكود بريدياً
-        window.sendKeyToUserMail = async (rCode, aKey, btnId) => {
+        window.sendKeyToUserMail = async (rCode, aKey, icn, btnId) => {
             document.getElementById(btnId).innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             try {
                 let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
@@ -1395,7 +1408,7 @@ function initProStore() {
                 let mailServer = data.find(x => x.id === 'mail_server');
                 if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
                 
-                mailServer.inbox.push({ reqCode: rCode, msg: `🎁 License Key: ${aKey}`, date: new Date().toLocaleDateString() });
+                mailServer.inbox.push({ reqCode: rCode, key: aKey, icon: icn, date: new Date().toLocaleDateString() });
                 
                 await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(data) });
                 document.getElementById(btnId).innerHTML = '<i class="fas fa-check"></i> Sent to Inbox!';
@@ -1411,7 +1424,7 @@ function initProStore() {
             </div>
             <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
                 <button id="cpyGenBtn" onclick="window.copyToClipboard('${actKey}', 'cpyGenBtn')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">Copy Key</button>
-                <button id="sendMailBtn" onclick="window.sendKeyToUserMail('${reqCode}', '${actKey}', 'sendMailBtn')" style="width:100%; background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-paper-plane"></i> Send to User's Inbox</button>
+                <button id="sendMailBtn" onclick="window.sendKeyToUserMail('${reqCode}', '${actKey}', '${itemIcon}', 'sendMailBtn')" style="width:100%; background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-paper-plane"></i> Send to User's Inbox</button>
             </div>
             <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold; padding:10px;">Close</button>
         `;
@@ -1419,7 +1432,6 @@ function initProStore() {
     };
 
     window.adminShowUsers = () => {
-        // (الكود الخاص بعرض المستخدمين بقي كما هو بدون تغيير)
         let allAnims = window.currentAllAnims || [];
         let usersMap = {}; let totalRev = 0;
         allAnims.forEach(anim => {
@@ -1497,7 +1509,6 @@ function initProStore() {
         } catch(e) { window.adminShowUsers(); }
     };
 
-    // 🟢 زر المسح الشامل لكل التأثيرات المضافة (Reset)
     window.adminWipeCustoms = async () => {
         if(!confirm("🧨 WARNING: This will delete ALL custom effects and CRM records! Only default items and Mail will remain. Proceed?")) return;
         let mKey = localStorage.getItem('my_master_key');
@@ -1505,7 +1516,6 @@ function initProStore() {
         try {
             let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
             let data = await res.json();
-            // نحتفظ فقط بخادم البريد إن وجد
             let filtered = data.filter(x => x.id === 'mail_server');
             if(filtered.length === 0) filtered = [{"id":"empty"}];
             await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
@@ -1542,7 +1552,6 @@ function initProStore() {
             if(res.ok) cloudData = await res.json();
         } catch(e) {}
         
-        // استخراج صندوق البريد وباقي التأثيرات
         window.mailServerData = cloudData.find(x => x.id === 'mail_server') || { inbox: [] };
         let cloudAnims = cloudData.filter(a => a.id && a.id !== "empty" && a.id !== "mail_server");
 
@@ -1551,13 +1560,14 @@ function initProStore() {
         cloudAnims.forEach(a => animMap.set(a.id, a));
         window.currentAllAnims = Array.from(animMap.values()).filter(a => !a.deleted);
         
-        // 🟢 تفعيل النقطة الحمراء للبريد إذا كان هناك رسائل تخصني
-        let hasMail = false;
+        let myMailList = [];
         window.currentAllAnims.forEach(anim => {
             let myReq = window.getRequestCode(baseId, anim.id);
-            if (window.mailServerData.inbox.some(m => m.reqCode === myReq)) hasMail = true;
+            myMailList = myMailList.concat(window.mailServerData.inbox.filter(m => m.reqCode === myReq));
         });
-        document.getElementById('inboxBadge').style.display = hasMail ? 'block' : 'none';
+        
+        let readCount = parseInt(localStorage.getItem('read_mail_count_' + baseId) || '0');
+        document.getElementById('inboxBadge').style.display = (myMailList.length > readCount) ? 'block' : 'none';
 
         grid.innerHTML = '';
 
@@ -1583,7 +1593,6 @@ function initProStore() {
             
             let baseStyles = `display:flex; align-items:center; justify-content:center; font-size:30px; transition: 0.3s ease; cursor:pointer; margin:0; width:60px; height:60px; border-radius:18px; position:relative;`;
             
-            // 🟢 ألوان الإدارة (تظهر رمادية إن لم تكن مجانية لك كشخص، وتصفر عند التفعيل)
             if (isUnlocked) {
                 item.style.cssText = baseStyles + `background:rgba(255,255,255,0.05); border:2px solid #10b981; box-shadow:0 0 10px rgba(16,185,129,0.3);`;
             } else {
@@ -1613,7 +1622,7 @@ function initProStore() {
                         <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
                         <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:15px; text-transform:uppercase;">Admin Panel • ID #${anim.id}</div>
                         <div style="display:flex; flex-direction:column; gap:8px;">
-                            <button onclick="window.hideCustomModal(); window.stopAllEffects(); window.activeAnimId='${anim.id}'; new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript; window.renderAnimStore();" style="width:100%; box-sizing:border-box; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Test Effect</button>
+                            <button onclick="window.hideCustomModal(); document.getElementById('vipStoreSheetUnique').classList.remove('open'); document.getElementById('vipStoreOverlayUnique').classList.remove('open'); window.stopAllEffects(); window.activeAnimId='${anim.id}'; new Function(window.adminSelectedAnim.playScript)(); window.activeStopScript=window.adminSelectedAnim.stopScript; window.renderAnimStore();" style="width:100%; box-sizing:border-box; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Test Effect</button>
                             <button onclick="window.adminActionEditCode()" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-pen"></i> Edit Effect</button>
                             <button onclick="window.adminActionDelete()" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-trash-alt"></i> Delete Effect</button>
                         </div>
@@ -1627,7 +1636,6 @@ function initProStore() {
                     return;
                 }
 
-                // 🟢 إغلاق القائمة فوراً للخيارات المملوكة
                 if (isUnlocked || isFreeStrict) {
                     sheet.classList.remove('open'); overlay.classList.remove('open');
                     window.stopAllEffects();
@@ -1640,13 +1648,13 @@ function initProStore() {
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     
                     window.previewCountdown.style.display = 'block';
-                    let timeLeft = 10; // 🟢 زيادة الوقت لـ 10 ثواني
-                    window.previewCountdown.innerHTML = `🖐️ Interact with screen! <span style="color:#eab308; margin-left:5px;">${timeLeft}s</span>`;
+                    let timeLeft = 5; 
+                    window.previewCountdown.innerText = timeLeft;
                     
                     let cdInt = setInterval(() => {
                         timeLeft--;
                         if(timeLeft > 0) {
-                            window.previewCountdown.innerHTML = `🖐️ Interact with screen! <span style="color:#eab308; margin-left:5px;">${timeLeft}s</span>`;
+                            window.previewCountdown.innerText = timeLeft;
                         } else {
                             clearInterval(cdInt); window.previewCountdown.style.display = 'none'; window.isPreviewing = false; window.stopAllEffects();
                             
@@ -1799,7 +1807,6 @@ function initProStore() {
     window.renderAnimStore();
 }
 initProStore();
-
 
 
 
