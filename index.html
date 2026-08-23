@@ -1174,9 +1174,9 @@
 
 
 // ===================================================
-        
+
 /**
- * 🚀 Premium Store Manager - CRM & User-Centric Edition
+ * 🚀 Premium Store Manager - CRM & User-Centric Edition (v3.0 - Ultimate UX)
  */
 
 const StoreConfig = {
@@ -1222,15 +1222,14 @@ class StoreAPI {
         let mKey = this.getMasterKey();
         let headers = mKey ? { 'X-Master-Key': mKey } : { 'X-Access-Key': StoreConfig.ACCESS_KEY };
         try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false`, { headers });
+            // Adding timestamp to bypass aggressive caching and ensure instant message delivery
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false&t=${Date.now()}`, { headers });
             return res.ok ? await res.json() : [];
         } catch(e) { return []; }
     }
 
     static async updateCloudData(data) {
         let mKey = this.getMasterKey();
-        // Fallback: If no master key but we need to register user, use API Key with write access if your DB allows, 
-        // OR in this setup we use master key for simplicity. We pass access key if mKey is null.
         let headers = mKey ? { 'X-Master-Key': mKey } : { 'X-Access-Key': StoreConfig.ACCESS_KEY };
         try {
             await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}`, { 
@@ -1257,9 +1256,8 @@ class PremiumStore {
         this.initUI();
         this.exposeGlobals();
         this.renderAnimStore();
-        
-        // 🟢 تسجيل المستخدم فوراً عند فتح الراديو
         this.registerUserInCloud();
+        this.notifyActivity('radio'); // إشعار دخول الراديو
     }
 
     initUser() {
@@ -1273,10 +1271,9 @@ class PremiumStore {
         this.tgId = tgUser?.id || null;
     }
 
-    // 🟢 الأتمتة: تسجيل المستخدم في قاعدة البيانات وإرسال إشعار للأدمن
+    // التسجيل الهادئ
     async registerUserInCloud() {
         if (localStorage.getItem('cloud_registered_' + this.baseId)) return;
-        
         let data = await StoreAPI.fetchCloudData();
         if(!data || data.length === 0) return;
         
@@ -1286,41 +1283,59 @@ class PremiumStore {
         let exists = registry.users.find(u => u.baseId === this.baseId);
         if (!exists) {
             registry.users.push({ baseId: this.baseId, name: this.userName, tgId: this.tgId, date: new Date().toLocaleDateString() });
-            
-            // إرسال بريد للأدمن
-            let mailServer = data.find(x => x.id === 'mail_server');
-            if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
-            
-            let adminId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
-            mailServer.inbox.push({
-                to: adminId,
-                msg: `New User Joined: ${this.userName} [${this.baseId}]`,
-                icon: '👤',
-                date: new Date().toLocaleDateString(),
-                timestamp: Date.now()
-            });
-            
             await StoreAPI.updateCloudData(data);
         }
         localStorage.setItem('cloud_registered_' + this.baseId, 'true');
+    }
+
+    // نظام الإشعارات (لكي لا يزعجك ويخرب الداتا، يرسل مرة واحدة في الجلسة لكل حدث)
+    async notifyActivity(action) {
+        let sessionKey = 'notified_' + action + '_' + this.baseId;
+        if (sessionStorage.getItem(sessionKey)) return;
+
+        let data = await StoreAPI.fetchCloudData();
+        let mailServer = data.find(x => x.id === 'mail_server');
+        if (!mailServer) return;
+
+        let msgText = action === 'radio' ? `Joined Radio: ${this.userName} [${this.baseId}]` : `Opened Store: ${this.userName} [${this.baseId}]`;
+        let iconType = action === 'radio' ? '📻' : '🏪';
+        
+        mailServer.inbox.push({
+            to: 'TG-' + StoreConfig.MY_ADMIN_TG_ID,
+            msg: msgText,
+            icon: iconType,
+            date: new Date().toLocaleDateString(),
+            timestamp: Date.now()
+        });
+        
+        await StoreAPI.updateCloudData(data);
+        sessionStorage.setItem(sessionKey, 'true');
     }
 
     initUI() {
         if (!document.getElementById('store-core-styles')) {
             let style = document.createElement('style');
             style.id = 'store-core-styles';
+            // Z-index Hierarchy & Tap Highlight Fixes
             style.innerHTML = `
-                * { -webkit-tap-highlight-color: transparent !important; }
+                * { -webkit-tap-highlight-color: transparent !important; outline: none !important; }
+                button, a, div { -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
                 .h-scroll::-webkit-scrollbar { display: none; } .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
                 details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }
                 .active-anim-glow { border: 2px solid #eab308 !important; box-shadow: 0 0 15px rgba(234, 179, 8, 0.4), inset 0 0 10px rgba(234, 179, 8, 0.2) !important; background: rgba(234, 179, 8, 0.1) !important; }
+                
+                #standaloneInboxBtn { z-index: 900 !important; }
+                .sheet-overlay { z-index: 9998 !important; }
+                .bottom-sheet { z-index: 9999 !important; }
+                .custom-modal-overlay { z-index: 10000 !important; }
+                #previewCountdownUnique { z-index: 10001 !important; }
             `;
             document.head.appendChild(style);
         }
 
-        this.overlay = document.createElement('div'); this.overlay.className = 'sheet-overlay'; this.overlay.id = 'vipStoreOverlayUnique';
-        this.sheet = document.createElement('div'); this.sheet.className = 'bottom-sheet'; this.sheet.id = 'vipStoreSheetUnique';
-        this.checkoutSheet = document.createElement('div'); this.checkoutSheet.className = 'bottom-sheet'; this.checkoutSheet.id = 'checkoutSheetUnique';
+        this.overlay = document.createElement('div'); this.overlay.className = 'sheet-overlay';
+        this.sheet = document.createElement('div'); this.sheet.className = 'bottom-sheet';
+        this.checkoutSheet = document.createElement('div'); this.checkoutSheet.className = 'bottom-sheet';
         
         this.sheet.innerHTML = `
             <div class="sheet-header" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
@@ -1344,26 +1359,32 @@ class PremiumStore {
         if (headerRight && !document.getElementById('proStoreBtnKey')) {
             let storeBtn = document.createElement('button'); storeBtn.id = 'proStoreBtnKey'; storeBtn.className = 'icon-btn';
             storeBtn.innerHTML = '<i class="fas fa-store"></i>'; storeBtn.style.color = '#f59e0b';
-            storeBtn.onclick = () => { this.renderAnimStore(); this.sheet.classList.add('open'); this.overlay.classList.add('open'); };
+            storeBtn.onclick = () => { 
+                this.notifyActivity('store'); // إشعار فتح المتجر
+                this.renderAnimStore(); 
+                this.sheet.classList.add('open'); 
+                this.overlay.classList.add('open'); 
+            };
             headerRight.appendChild(storeBtn);
         }
 
-        // 🟢 تحديث مكان أيقونة البريد (أسفل اليسار بشكل ثابت)
+        // Inbox Button (Fixed at Bottom Left, under sheets Z-index)
         if (!document.getElementById('standaloneInboxBtn')) {
             let inboxBtn = document.createElement('button');
             inboxBtn.id = 'standaloneInboxBtn';
-            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; z-index:9000; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer; transition: transform 0.2s ease;';
+            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer; transition: transform 0.2s ease;';
             inboxBtn.innerHTML = '<i class="fas fa-envelope"></i><span id="standaloneInboxBadge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; width:14px; height:14px; border-radius:50%; border:2px solid #0f172a;"></span>';
             inboxBtn.onclick = () => this.openUserInbox();
             document.body.appendChild(inboxBtn);
         }
 
         this.previewCountdown = document.createElement('div');
-        this.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:40px; height:40px; line-height:40px; font-size:20px; font-weight:900; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
+        this.previewCountdown.id = 'previewCountdownUnique';
+        this.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:40px; height:40px; line-height:40px; font-size:20px; font-weight:900; color:#fff; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
         document.body.appendChild(this.previewCountdown);
 
         this.customModalOverlay = document.createElement('div'); 
-        this.customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s ease; padding:15px;';
+        this.customModalOverlay.className = 'custom-modal-overlay';
         this.customModalBox = document.createElement('div'); 
         this.customModalBox.style.cssText = 'box-sizing:border-box; background:linear-gradient(145deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.08); width:100%; max-width:340px; max-height:90vh; overflow-y:auto; border-radius:24px; padding:25px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff; transform:scale(0.95); opacity:0; transition:all 0.3s ease; margin:auto;';
         this.customModalOverlay.appendChild(this.customModalBox); document.body.appendChild(this.customModalOverlay);
@@ -1421,11 +1442,13 @@ class PremiumStore {
         }
     }
 
-    openUserInbox() {
+    async openUserInbox() {
         let isAdmin = !!StoreAPI.getMasterKey();
         let adminTgId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
         
-        // 🟢 إظهار بريد المستخدم، وإذا كان أدمن يظهر له بريد الأدمن أيضاً
+        let data = await StoreAPI.fetchCloudData(); // Sync on open for instant messages
+        this.state.mailServerData = data.find(x => x.id === 'mail_server') || { inbox: [] };
+
         let myMail = this.state.mailServerData.inbox.filter(m => m.to === this.baseId || (isAdmin && m.to === adminTgId));
         
         let clearedAt = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
@@ -1433,7 +1456,7 @@ class PremiumStore {
         localStorage.setItem('read_mail_count_' + this.baseId, myMail.length);
         document.getElementById('standaloneInboxBadge').style.display = 'none';
 
-        let mailHTML = myMail.length === 0 ? `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 صندوق البريد فارغ.</div>` : 
+        let mailHTML = myMail.length === 0 ? `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 Your inbox is empty.</div>` : 
             myMail.map((m, idx) => {
                 let isKey = m.msg.includes('VIP-');
                 let copyBtn = isKey ? `<button onclick="window.StoreApp.copyToClipboard('${m.msg}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;"><i class="far fa-copy"></i> Copy</button>` : '';
@@ -1498,10 +1521,16 @@ class PremiumStore {
         this.state.currentAllAnims.forEach((anim) => {
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
             let isFreeStrict = (String(anim.isFree) === 'true' || anim.isFree === true);
-            let isBlacklisted = anim.blacklist && anim.blacklist.includes(reqCode);
-            if (isBlacklisted) localStorage.removeItem('unlocked_' + anim.id);
-            if (anim.buyers && anim.buyers.some(b => b.reqCode === reqCode) && !isBlacklisted) localStorage.setItem('unlocked_' + anim.id, 'true');
-            let isUnlocked = !isBlacklisted && (isFreeStrict || localStorage.getItem('unlocked_' + anim.id) === 'true');
+            
+            // 🟢 التزامن الصارم (Strict Sync) للـ LocalStorage
+            let isBuyer = anim.buyers && anim.buyers.some(b => b.reqCode === reqCode);
+            if (isBuyer) {
+                localStorage.setItem('unlocked_' + anim.id, 'true');
+            } else {
+                localStorage.removeItem('unlocked_' + anim.id);
+            }
+
+            let isUnlocked = isFreeStrict || localStorage.getItem('unlocked_' + anim.id) === 'true';
 
             let wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; position:relative;';
             let item = document.createElement('div'); item.className = 'studio-item'; 
@@ -1596,13 +1625,12 @@ class PremiumStore {
         this.checkoutSheet.classList.add('open'); this.overlay.classList.add('open');
     }
 
-    // 🟢 نظام إدارة المستخدمين الجديد (User DB - CRM)
     async adminShowUsers() {
         this.showCustomModal('<div style="color:#f59e0b; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading Users...</div>');
         
         let data = await StoreAPI.fetchCloudData();
         let registry = data.find(x => x.id === 'users_registry') || { users: [] };
-        let animsList = this.state.currentAllAnims.filter(a => a.id !== '0' && String(a.isFree) !== 'true'); // جلب التأثيرات المدفوعة فقط
+        let animsList = this.state.currentAllAnims.filter(a => a.id !== '0' && String(a.isFree) !== 'true'); 
         
         let listHTML = '';
         registry.users.reverse().forEach(user => {
@@ -1611,17 +1639,19 @@ class PremiumStore {
                 let dbAnim = data.find(x => x.id === anim.id) || anim;
                 let isActive = dbAnim.buyers && dbAnim.buyers.some(b => b.reqCode === reqCode);
                 
+                // 🟢 Inline Button Update HTML
                 return `
                 <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
                     <span style="font-size:12px; color:#fff;">${anim.icon} Effect #${anim.id}</span>
-                    <button onclick="window.StoreApp.toggleUserAccess('${anim.id}', '${user.baseId}', '${user.name}')" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:80px; transition:0.2s;">
+                    <button onclick="window.StoreApp.toggleUserAccessInline('${anim.id}', '${user.baseId}', '${user.name}', this)" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:80px; transition:0.2s;">
                         ${isActive ? '🟢 Active' : '🔴 Revoked'}
                     </button>
                 </div>`;
             }).join('');
 
+            // 🟢 استخدام details name لمنع فتح أكثر من مستخدم في نفس الوقت
             listHTML += `
-                <details style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); border-radius:12px; margin-bottom:10px; overflow:hidden;">
+                <details name="crm-users" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); border-radius:12px; margin-bottom:10px; overflow:hidden;">
                     <summary style="padding:12px; cursor:pointer; outline:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
                         <div style="text-align:left;">
                             <div style="color:#fff; font-size:13px; font-weight:bold;">👤 ${user.name}</div>
@@ -1647,33 +1677,43 @@ class PremiumStore {
         `);
     }
 
-    // 🟢 تبديل صلاحيات المستخدم بضغطة زر دون أكواد
-    async toggleUserAccess(animId, userBaseId, userName) {
-        document.getElementById('usersListContainer').innerHTML = '<div style="color:#f59e0b; text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Applying Permissions...</div>';
+    // 🟢 التحديث السلس (Inline Update) للزر دون إغلاق القائمة المنسدلة
+    async toggleUserAccessInline(animId, userBaseId, userName, btnElement) {
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btnElement.style.pointerEvents = 'none';
         
         let reqCode = StoreSecurity.getRequestCode(userBaseId, animId);
+        let isActiveNow = false;
+
         try {
             let data = await StoreAPI.fetchCloudData();
             let updated = data.map(x => {
                 if (x.id === animId) {
                     x.buyers = x.buyers || [];
-                    x.blacklist = x.blacklist || [];
                     
                     let isBuyer = x.buyers.some(b => b.reqCode === reqCode);
                     if (isBuyer) {
-                        x.buyers = x.buyers.filter(b => b.reqCode !== reqCode); // Revoke
+                        x.buyers = x.buyers.filter(b => b.reqCode !== reqCode); // إيقاف
+                        isActiveNow = false;
                     } else {
-                        x.buyers.push({ reqCode: reqCode, name: userName }); // Activate
-                        x.blacklist = x.blacklist.filter(id => id !== reqCode);
+                        x.buyers.push({ reqCode: reqCode, name: userName }); // تفعيل
+                        isActiveNow = true;
                     }
                 }
                 return x;
             });
             await StoreAPI.updateCloudData(updated);
-            this.adminShowUsers(); // إعادة فتح القائمة بعد التحديث
+            
+            // تعديل الزر برمجياً دون تدمير الـ HTML
+            btnElement.style.background = isActiveNow ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
+            btnElement.style.color = isActiveNow ? '#10b981' : '#ef4444';
+            btnElement.style.border = isActiveNow ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
+            btnElement.innerHTML = isActiveNow ? '🟢 Active' : '🔴 Revoked';
+            btnElement.style.pointerEvents = 'auto';
+
         } catch(e) {
-            alert("❌ Failed to update permissions.");
-            this.adminShowUsers();
+            btnElement.innerHTML = '❌ Error';
+            btnElement.style.pointerEvents = 'auto';
         }
     }
 
@@ -1689,7 +1729,6 @@ class PremiumStore {
         } catch(e) { alert("❌ Error sending message."); }
     }
 
-    // --- Add/Edit/Delete Logic ---
     adminActionAdd() {
         this.stopAllEffects();
         this.showCustomModal(`
@@ -1762,13 +1801,11 @@ window.onload = () => {
                 let inputKey = txt.split('|')[1].trim();
                 DOM.noteInput.placeholder = "🔐 Verifying..."; DOM.noteInput.value = '';
                 try {
-                    let testRes = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': inputKey } });
+                    let testRes = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false&t=${Date.now()}`, { headers: { 'X-Master-Key': inputKey } });
                     if (testRes.ok) { 
                         localStorage.setItem('my_master_key', inputKey); 
                         alert('🔓 Verified: Welcome Admin!'); 
                         window.StoreAppInstance.renderAnimStore(); 
-                        // إعادة تهيئة أيقونة البريد لتحديث حالة الأدمن فوراً
-                        window.StoreAppInstance.renderAnimStore();
                     } else { 
                         localStorage.removeItem('my_master_key'); 
                         alert('❌ Access Denied!'); 
@@ -1782,6 +1819,13 @@ window.onload = () => {
     }
 };
 
+
+
+
+
+
+
+        
 
         
 // ======================================================
