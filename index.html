@@ -1175,8 +1175,8 @@
 
 // ===================================================
         
-  /**
- * 🚀 Premium Store Manager - Pro Edition (Fully Refactored & Drop-in Ready)
+/**
+ * 🚀 Premium Store Manager - CRM & User-Centric Edition
  */
 
 const StoreConfig = {
@@ -1199,14 +1199,6 @@ class StoreSecurity {
         let shift = itemId === 'ALL' ? 5 : (parseInt(itemId) * 3) % 10;
         let scrambled = clean.split('').map(c => isNaN(c) ? c : (parseInt(c) + shift) % 10).join('');
         return `${prefix}${scrambled}-${itemId}`;
-    }
-
-    static getTrueBaseId(reqCode, itemId) {
-        let match = reqCode.match(/^(TG|U)-([0-9A-Z]+)-/i);
-        if (!match) return reqCode;
-        let shift = itemId === 'ALL' ? 5 : (parseInt(itemId) * 3) % 10;
-        let descrambled = match[2].split('').map(c => isNaN(c) ? c : (parseInt(c) - shift + 10) % 10).join('');
-        return `${match[1]}-${descrambled}`;
     }
 
     static generateLicenseKey(reqCode, scriptId) {
@@ -1237,11 +1229,13 @@ class StoreAPI {
 
     static async updateCloudData(data) {
         let mKey = this.getMasterKey();
-        if (!mKey) return false;
+        // Fallback: If no master key but we need to register user, use API Key with write access if your DB allows, 
+        // OR in this setup we use master key for simplicity. We pass access key if mKey is null.
+        let headers = mKey ? { 'X-Master-Key': mKey } : { 'X-Access-Key': StoreConfig.ACCESS_KEY };
         try {
             await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}`, { 
                 method: 'PUT', 
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, 
+                headers: { 'Content-Type': 'application/json', ...headers }, 
                 body: JSON.stringify(data) 
             });
             return true;
@@ -1261,8 +1255,11 @@ class PremiumStore {
             adminSelectedAnim: null
         };
         this.initUI();
-        this.exposeGlobals(); // للسماح لأزرار HTML المدمجة بالعمل
+        this.exposeGlobals();
         this.renderAnimStore();
+        
+        // 🟢 تسجيل المستخدم فوراً عند فتح الراديو
+        this.registerUserInCloud();
     }
 
     initUser() {
@@ -1273,10 +1270,42 @@ class PremiumStore {
             localStorage.setItem('my_base_id', this.baseId);
         }
         this.userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
+        this.tgId = tgUser?.id || null;
+    }
+
+    // 🟢 الأتمتة: تسجيل المستخدم في قاعدة البيانات وإرسال إشعار للأدمن
+    async registerUserInCloud() {
+        if (localStorage.getItem('cloud_registered_' + this.baseId)) return;
+        
+        let data = await StoreAPI.fetchCloudData();
+        if(!data || data.length === 0) return;
+        
+        let registry = data.find(x => x.id === 'users_registry');
+        if (!registry) { registry = { id: 'users_registry', users: [] }; data.push(registry); }
+        
+        let exists = registry.users.find(u => u.baseId === this.baseId);
+        if (!exists) {
+            registry.users.push({ baseId: this.baseId, name: this.userName, tgId: this.tgId, date: new Date().toLocaleDateString() });
+            
+            // إرسال بريد للأدمن
+            let mailServer = data.find(x => x.id === 'mail_server');
+            if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
+            
+            let adminId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
+            mailServer.inbox.push({
+                to: adminId,
+                msg: `New User Joined: ${this.userName} [${this.baseId}]`,
+                icon: '👤',
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now()
+            });
+            
+            await StoreAPI.updateCloudData(data);
+        }
+        localStorage.setItem('cloud_registered_' + this.baseId, 'true');
     }
 
     initUI() {
-        // Fix Styles
         if (!document.getElementById('store-core-styles')) {
             let style = document.createElement('style');
             style.id = 'store-core-styles';
@@ -1289,7 +1318,6 @@ class PremiumStore {
             document.head.appendChild(style);
         }
 
-        // Create Overlays
         this.overlay = document.createElement('div'); this.overlay.className = 'sheet-overlay'; this.overlay.id = 'vipStoreOverlayUnique';
         this.sheet = document.createElement('div'); this.sheet.className = 'bottom-sheet'; this.sheet.id = 'vipStoreSheetUnique';
         this.checkoutSheet = document.createElement('div'); this.checkoutSheet.className = 'bottom-sheet'; this.checkoutSheet.id = 'checkoutSheetUnique';
@@ -1310,10 +1338,8 @@ class PremiumStore {
             <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding:5px; scroll-behavior:smooth;"></div>
         `;
         document.body.append(this.overlay, this.sheet, this.checkoutSheet);
-        
         this.overlay.onclick = () => this.closeStore();
 
-        // Header Button
         let headerRight = document.querySelector('.header-right');
         if (headerRight && !document.getElementById('proStoreBtnKey')) {
             let storeBtn = document.createElement('button'); storeBtn.id = 'proStoreBtnKey'; storeBtn.className = 'icon-btn';
@@ -1322,22 +1348,20 @@ class PremiumStore {
             headerRight.appendChild(storeBtn);
         }
 
-        // Inbox Button
+        // 🟢 تحديث مكان أيقونة البريد (أسفل اليسار بشكل ثابت)
         if (!document.getElementById('standaloneInboxBtn')) {
             let inboxBtn = document.createElement('button');
             inboxBtn.id = 'standaloneInboxBtn';
-            inboxBtn.style.cssText = 'position:fixed; left:15px; top:12vh; z-index:9000; background:rgba(15,23,42,0.75); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(0,0,0,0.5); backdrop-filter:blur(5px); cursor:pointer;';
-            inboxBtn.innerHTML = '<i class="fas fa-envelope"></i><span id="standaloneInboxBadge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; width:12px; height:12px; border-radius:50%; border:2px solid #0f172a;"></span>';
+            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; z-index:9000; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer; transition: transform 0.2s ease;';
+            inboxBtn.innerHTML = '<i class="fas fa-envelope"></i><span id="standaloneInboxBadge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; width:14px; height:14px; border-radius:50%; border:2px solid #0f172a;"></span>';
             inboxBtn.onclick = () => this.openUserInbox();
             document.body.appendChild(inboxBtn);
         }
 
-        // Preview CD
         this.previewCountdown = document.createElement('div');
         this.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:40px; height:40px; line-height:40px; font-size:20px; font-weight:900; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
         document.body.appendChild(this.previewCountdown);
 
-        // Custom Modal
         this.customModalOverlay = document.createElement('div'); 
         this.customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s ease; padding:15px;';
         this.customModalBox = document.createElement('div'); 
@@ -1391,22 +1415,25 @@ class PremiumStore {
         }
         if(foundAnim) {
             inputField.value = '';
-            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             alert(`✅ Activated! Effect #${foundAnim.id} is now PERMANENTLY UNLOCKED.`); this.renderAnimStore();
         } else {
-            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             inputField.style.border = '1px solid #ef4444'; inputField.style.color = '#ef4444'; setTimeout(()=> { inputField.style.border = 'none'; inputField.style.color = '#10b981'; }, 1000); alert('❌ Invalid License Key!');
         }
     }
 
     openUserInbox() {
-        let myMail = this.state.mailServerData.inbox.filter(m => m.to === this.baseId);
+        let isAdmin = !!StoreAPI.getMasterKey();
+        let adminTgId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
+        
+        // 🟢 إظهار بريد المستخدم، وإذا كان أدمن يظهر له بريد الأدمن أيضاً
+        let myMail = this.state.mailServerData.inbox.filter(m => m.to === this.baseId || (isAdmin && m.to === adminTgId));
+        
         let clearedAt = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
         myMail = myMail.filter(m => m.timestamp > clearedAt);
         localStorage.setItem('read_mail_count_' + this.baseId, myMail.length);
         document.getElementById('standaloneInboxBadge').style.display = 'none';
 
-        let mailHTML = myMail.length === 0 ? `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 بمجرد حصولك على رمز من المطور، سيظهر لك هنا.</div>` : 
+        let mailHTML = myMail.length === 0 ? `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 صندوق البريد فارغ.</div>` : 
             myMail.map((m, idx) => {
                 let isKey = m.msg.includes('VIP-');
                 let copyBtn = isKey ? `<button onclick="window.StoreApp.copyToClipboard('${m.msg}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;"><i class="far fa-copy"></i> Copy</button>` : '';
@@ -1423,7 +1450,7 @@ class PremiumStore {
 
         this.showCustomModal(`
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="color:#38bdf8; margin:0; font-size:16px;"><i class="fas fa-envelope"></i> My Inbox</h3>
+                <h3 style="color:#38bdf8; margin:0; font-size:16px;"><i class="fas fa-envelope"></i> Inbox</h3>
                 <button onclick="if(confirm('Clear inbox?')){localStorage.setItem('inbox_cleared_at_${this.baseId}', Date.now()); window.StoreApp.openUserInbox();}" style="background:rgba(239,68,68,0.1); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;"><i class="fas fa-trash"></i> Clear</button>
             </div>
             <div style="max-height:50vh; overflow-y:auto; padding-right:5px; margin-bottom:15px;">${mailHTML}</div>
@@ -1443,8 +1470,8 @@ class PremiumStore {
             redeemContainer.style.display = 'none';
             adminContainer.innerHTML = `
                 <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); padding:8px; border-radius:12px; margin-bottom:8px;">
-                    <button onclick="window.StoreApp.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-plus"></i> Add</button>
-                    <button onclick="window.StoreApp.adminShowUsers()" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-users"></i> CRM</button>
+                    <button onclick="window.StoreApp.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-plus"></i> Add Effect</button>
+                    <button onclick="window.StoreApp.adminShowUsers()" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-users"></i> User DB</button>
                     <button onclick="localStorage.removeItem('my_master_key'); window.StoreApp.renderAnimStore();" style="flex:0.5; background:#64748b; color:#fff; border:none; padding:8px; border-radius:8px;"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             `;
@@ -1455,13 +1482,14 @@ class PremiumStore {
         
         let animMap = new Map(); 
         StoreConfig.DEFAULT_ANIMS.forEach(a => animMap.set(a.id, a)); 
-        cloudData.filter(a => a.id && a.id !== "empty" && a.id !== "mail_server").forEach(a => animMap.set(a.id, a));
+        cloudData.filter(a => a.id && a.id !== "empty" && a.id !== "mail_server" && a.id !== "users_registry").forEach(a => animMap.set(a.id, a));
         this.state.currentAllAnims = Array.from(animMap.values()).filter(a => !a.deleted);
         
         let badge = document.getElementById('standaloneInboxBadge');
         if (badge) {
+            let adminTgId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
             let clearedAt = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
-            let newMail = this.state.mailServerData.inbox.filter(m => m.to === this.baseId && m.timestamp > clearedAt);
+            let newMail = this.state.mailServerData.inbox.filter(m => (m.to === this.baseId || (isAdmin && m.to === adminTgId)) && m.timestamp > clearedAt);
             let readCount = parseInt(localStorage.getItem('read_mail_count_' + this.baseId) || '0');
             badge.style.display = (newMail.length > readCount) ? 'block' : 'none';
         }
@@ -1524,7 +1552,6 @@ class PremiumStore {
         if (isUnlocked || isFreeStrict) {
             this.closeStore(); this.stopAllEffects();
             try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; this.state.activeAnimId = anim.id; } catch(e){}
-            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         } else {
             this.closeStore(); this.stopAllEffects(); this.state.isPreviewing = true;
             try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; } catch(e){}
@@ -1569,7 +1596,100 @@ class PremiumStore {
         this.checkoutSheet.classList.add('open'); this.overlay.classList.add('open');
     }
 
-    // --- Admin Logic ---
+    // 🟢 نظام إدارة المستخدمين الجديد (User DB - CRM)
+    async adminShowUsers() {
+        this.showCustomModal('<div style="color:#f59e0b; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading Users...</div>');
+        
+        let data = await StoreAPI.fetchCloudData();
+        let registry = data.find(x => x.id === 'users_registry') || { users: [] };
+        let animsList = this.state.currentAllAnims.filter(a => a.id !== '0' && String(a.isFree) !== 'true'); // جلب التأثيرات المدفوعة فقط
+        
+        let listHTML = '';
+        registry.users.reverse().forEach(user => {
+            let itemsHTML = animsList.map(anim => {
+                let reqCode = StoreSecurity.getRequestCode(user.baseId, anim.id);
+                let dbAnim = data.find(x => x.id === anim.id) || anim;
+                let isActive = dbAnim.buyers && dbAnim.buyers.some(b => b.reqCode === reqCode);
+                
+                return `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
+                    <span style="font-size:12px; color:#fff;">${anim.icon} Effect #${anim.id}</span>
+                    <button onclick="window.StoreApp.toggleUserAccess('${anim.id}', '${user.baseId}', '${user.name}')" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:80px; transition:0.2s;">
+                        ${isActive ? '🟢 Active' : '🔴 Revoked'}
+                    </button>
+                </div>`;
+            }).join('');
+
+            listHTML += `
+                <details style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); border-radius:12px; margin-bottom:10px; overflow:hidden;">
+                    <summary style="padding:12px; cursor:pointer; outline:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
+                        <div style="text-align:left;">
+                            <div style="color:#fff; font-size:13px; font-weight:bold;">👤 ${user.name}</div>
+                            <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">${user.baseId} • ${user.date}</div>
+                        </div>
+                    </summary>
+                    <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.15);">
+                        <button onclick="window.StoreApp.adminSendMsg('${user.baseId}')" style="width:100%; margin-bottom:10px; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:8px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-paper-plane"></i> Send Mail to User</button>
+                        ${itemsHTML || '<div style="font-size:10px; color:#64748b; text-align:center;">No paid effects available yet.</div>'}
+                    </div>
+                </details>
+            `;
+        });
+
+        this.showCustomModal(`
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="color:#3b82f6; margin:0; font-size:16px;"><i class="fas fa-users-cog"></i> Global Users DB</h3>
+            </div>
+            <div style="max-height:60vh; overflow-y:auto; padding-right:5px; margin-bottom:15px; text-align:left;" id="usersListContainer">
+                ${listHTML || `<div style="color:var(--text-sub); font-size:11px; padding:20px; text-align:center;">No users registered yet.</div>`}
+            </div>
+            <button onclick="window.StoreApp.hideCustomModal(); window.StoreApp.renderAnimStore();" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
+        `);
+    }
+
+    // 🟢 تبديل صلاحيات المستخدم بضغطة زر دون أكواد
+    async toggleUserAccess(animId, userBaseId, userName) {
+        document.getElementById('usersListContainer').innerHTML = '<div style="color:#f59e0b; text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Applying Permissions...</div>';
+        
+        let reqCode = StoreSecurity.getRequestCode(userBaseId, animId);
+        try {
+            let data = await StoreAPI.fetchCloudData();
+            let updated = data.map(x => {
+                if (x.id === animId) {
+                    x.buyers = x.buyers || [];
+                    x.blacklist = x.blacklist || [];
+                    
+                    let isBuyer = x.buyers.some(b => b.reqCode === reqCode);
+                    if (isBuyer) {
+                        x.buyers = x.buyers.filter(b => b.reqCode !== reqCode); // Revoke
+                    } else {
+                        x.buyers.push({ reqCode: reqCode, name: userName }); // Activate
+                        x.blacklist = x.blacklist.filter(id => id !== reqCode);
+                    }
+                }
+                return x;
+            });
+            await StoreAPI.updateCloudData(updated);
+            this.adminShowUsers(); // إعادة فتح القائمة بعد التحديث
+        } catch(e) {
+            alert("❌ Failed to update permissions.");
+            this.adminShowUsers();
+        }
+    }
+
+    async adminSendMsg(trueId) {
+        let msg = prompt("Write your message to this user:"); if(!msg) return;
+        try {
+            let data = await StoreAPI.fetchCloudData();
+            let mailServer = data.find(x => x.id === 'mail_server'); 
+            if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
+            mailServer.inbox.push({ to: trueId, msg: msg, icon: '💬', date: new Date().toLocaleDateString(), timestamp: Date.now() });
+            await StoreAPI.updateCloudData(data);
+            alert("✅ Message Sent to User's Inbox!");
+        } catch(e) { alert("❌ Error sending message."); }
+    }
+
+    // --- Add/Edit/Delete Logic ---
     adminActionAdd() {
         this.stopAllEffects();
         this.showCustomModal(`
@@ -1593,17 +1713,47 @@ class PremiumStore {
         this.renderAnimStore();
     }
 
-    // Expose specific methods to Window for inline HTML onclick handlers
+    adminActionEditCode() {
+        let anim = this.state.adminSelectedAnim; let isFr = String(anim.isFree) === 'true' ? 'selected' : ''; let isPd = String(anim.isFree) !== 'true' ? 'selected' : '';
+        this.showCustomModal(`
+            <h3 style="color:#3b82f6; margin-bottom:12px;">✏️ Edit Effect #${anim.id}</h3>
+            <div style="display:flex; gap:8px; margin-bottom:8px;"><input id="eIcon" value="${anim.icon}" style="flex:1; width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px;"><input id="eId" value="${anim.id}" readonly style="flex:1; width:100%; background:rgba(0,0,0,0.1); border:1px solid rgba(255,255,255,0.05); color:var(--text-sub); padding:8px; border-radius:8px;"></div>
+            <div style="display:flex; gap:8px; margin-bottom:8px;"><input id="ePrice" value="${anim.price || '€1.00'}" style="flex:1; width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px;"><select id="eFree" style="flex:1; width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:8px; border-radius:8px;"><option value="false" ${isPd}>Paid 🔒</option><option value="true" ${isFr}>Free 🆓</option></select></div>
+            <textarea id="ePlay" style="width:100%; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:8px; height:60px;">${anim.playScript}</textarea>
+            <textarea id="eStop" style="width:100%; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:12px; height:50px;">${anim.stopScript}</textarea>
+            <button onclick="window.StoreApp.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:6px;">Update</button>
+            <button onclick="window.StoreApp.hideCustomModal()" style="width:100%; background:transparent; color:var(--text-sub); border:none; font-weight:bold; padding:10px;">Cancel</button>
+        `);
+    }
+
+    async executeAdminEdit(targetId) {
+        let i=document.getElementById('eIcon').value, pr=document.getElementById('ePrice').value, fr=document.getElementById('eFree').value==='true', p=document.getElementById('ePlay').value, s=document.getElementById('eStop').value;
+        this.hideCustomModal(); 
+        let data = await StoreAPI.fetchCloudData();
+        let updated = data.map(x => x.id === targetId ? { ...x, icon: i, price: pr, isFree: fr, playScript: p, stopScript: s, deleted: false } : x);
+        await StoreAPI.updateCloudData(updated);
+        this.renderAnimStore();
+    }
+
+    async adminActionDelete() {
+        if(!confirm("⚠️ Are you sure you want to PERMANENTLY delete this effect?")) return;
+        let id = this.state.adminSelectedAnim.id; this.hideCustomModal();
+        let data = await StoreAPI.fetchCloudData();
+        let filtered = data.filter(x => x.id !== id); if (StoreConfig.DEFAULT_ANIMS.some(a => a.id === id)) filtered.push({ id: id, deleted: true });
+        if(filtered.length === 0) filtered = [{"id":"empty"}];
+        await StoreAPI.updateCloudData(filtered);
+        this.renderAnimStore();
+    }
+
     exposeGlobals() {
         window.StoreApp = this;
     }
 }
 
-// 🚀 Initialization & Security Hook
+// 🚀 Start Application
 window.onload = () => {
     window.StoreAppInstance = new PremiumStore();
     
-    // Login Hook for the hidden note field
     if (typeof DOM !== 'undefined' && DOM.saveNoteBtn) {
         let originalSaveNote = DOM.saveNoteBtn.onclick;
         DOM.saveNoteBtn.onclick = async () => {
@@ -1613,18 +1763,24 @@ window.onload = () => {
                 DOM.noteInput.placeholder = "🔐 Verifying..."; DOM.noteInput.value = '';
                 try {
                     let testRes = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': inputKey } });
-                    if (testRes.ok) { localStorage.setItem('my_master_key', inputKey); alert('🔓 Verified: Welcome Admin!'); window.StoreAppInstance.renderAnimStore(); }
-                    else { localStorage.removeItem('my_master_key'); alert('❌ Access Denied!'); window.StoreAppInstance.renderAnimStore(); }
+                    if (testRes.ok) { 
+                        localStorage.setItem('my_master_key', inputKey); 
+                        alert('🔓 Verified: Welcome Admin!'); 
+                        window.StoreAppInstance.renderAnimStore(); 
+                        // إعادة تهيئة أيقونة البريد لتحديث حالة الأدمن فوراً
+                        window.StoreAppInstance.renderAnimStore();
+                    } else { 
+                        localStorage.removeItem('my_master_key'); 
+                        alert('❌ Access Denied!'); 
+                        window.StoreAppInstance.renderAnimStore(); 
+                    }
                 } catch (e) { alert('❌ Network failed.'); }
                 DOM.noteInput.placeholder = "Type your note here..."; return;
             }
             if (originalSaveNote) originalSaveNote();
         };
     }
-};                                  
-
-        
-
+};
 
 
         
