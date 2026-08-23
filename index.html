@@ -1174,9 +1174,9 @@
 
 
 // ===================================================
-// ======================================================
-// ======================================================
-// 🛒 VIP Premium Store (Ultra Clean UX, Smart CRM Grouping, Global Inbox)
+
+  // ======================================================
+// 🛒 VIP Premium Store (Ultra UI, Master CRM, Floating Inbox)
 // ======================================================
 
 const BIN_ID = "6a821a3ada38895dfeec6ddc"; 
@@ -1198,7 +1198,6 @@ function initProStore() {
         baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
         localStorage.setItem('my_base_id', baseId);
     }
-    
     window.activeAnimId = '0';
 
     window.getRequestCode = (bId, itemId) => {
@@ -1209,36 +1208,40 @@ function initProStore() {
         return `${prefix}${scrambled}-${itemId}`;
     };
 
+    // استخراج المعرف الأساسي للمستخدم لتجميع مشترياته في الـ CRM
+    const getBaseCode = (reqCode) => reqCode.substring(0, reqCode.lastIndexOf('-'));
+    let myBaseReqCode = getBaseCode(window.getRequestCode(baseId, '0'));
+
     window.generateLicenseKey = (reqCode, scriptId) => {
         let raw = reqCode + "|" + scriptId + "|" + SECRET_SALT;
         let hash1 = 5381, hash2 = 52711;
-        for (let i = 0; i < raw.length; i++) {
-            let char = raw.charCodeAt(i); hash1 = ((hash1 << 5) + hash1) + char; hash2 = ((hash2 << 5) + hash2) ^ char;
-        }
+        for (let i = 0; i < raw.length; i++) { let char = raw.charCodeAt(i); hash1 = ((hash1 << 5) + hash1) + char; hash2 = ((hash2 << 5) + hash2) ^ char; }
         let p1 = Math.abs(hash1).toString(36).toUpperCase().padStart(4, 'X').slice(0,4);
         let p2 = Math.abs(hash2).toString(36).toUpperCase().padStart(4, 'Y').slice(0,4);
         return `VIP-${p1}-${p2}`;
     };
 
-    // 🟢 إصلاح الشاشة الزرقاء (Tap Highlight) وتنسيقات عامة
+    // 🟢 منع الشاشة الزرقاء عند الضغط
     let style = document.createElement('style');
     style.innerHTML = `
-        * { -webkit-tap-highlight-color: transparent !important; }
+        * { -webkit-tap-highlight-color: transparent; }
         .h-scroll::-webkit-scrollbar { display: none; } .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }
         .active-anim-glow { border: 2px solid #eab308 !important; box-shadow: 0 0 15px rgba(234, 179, 8, 0.4), inset 0 0 10px rgba(234, 179, 8, 0.2) !important; background: rgba(234, 179, 8, 0.1) !important; }
     `;
     document.head.appendChild(style);
 
-    // 🟢 زر البريد في الشاشة الرئيسية (أعلى اليسار)
-    let globalInboxBtn = document.createElement('div');
-    globalInboxBtn.style.cssText = 'position:fixed; top:20px; left:20px; z-index:9990; font-size:22px; color:#38bdf8; cursor:pointer; background:rgba(15,23,42,0.6); backdrop-filter:blur(5px); padding:8px 12px; border-radius:12px; border:1px solid rgba(56,189,248,0.3); display:flex; align-items:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);';
-    globalInboxBtn.innerHTML = `<i class="fas fa-envelope"></i><span id="globalInboxBadge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ef4444; width:12px; height:12px; border-radius:50%; border:2px solid #0f172a;"></span>`;
-    document.body.appendChild(globalInboxBtn);
+    // 🟢 أيقونة البريد العائمة (خارج المتجر، أعلى اليسار)
+    let standaloneInbox = document.createElement('div');
+    standaloneInbox.id = 'standaloneInboxBtn';
+    standaloneInbox.innerHTML = `
+        <i class="fas fa-envelope" style="font-size:22px; color:#38bdf8; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></i>
+        <span id="standaloneInboxBadge" style="display:none; position:absolute; top:-2px; right:-4px; background:#ef4444; width:12px; height:12px; border-radius:50%; border:2px solid #0f172a;"></span>
+    `;
+    standaloneInbox.style.cssText = 'position:fixed; top:20px; left:20px; z-index:9000; cursor:pointer; padding:5px;';
+    document.body.appendChild(standaloneInbox);
 
     let overlay = document.createElement('div'); overlay.className = 'sheet-overlay'; overlay.id = 'vipStoreOverlayUnique';
-    
-    // 🟢 اللوحة الرئيسية للمتجر
     let sheet = document.createElement('div'); sheet.className = 'bottom-sheet'; sheet.id = 'vipStoreSheetUnique';
     sheet.innerHTML = `
         <div class="sheet-header" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
@@ -1247,24 +1250,22 @@ function initProStore() {
         </div>
         <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
         <div id="userRedeemContainer" style="padding:0 5px; margin-bottom:10px;">
-            <div style="font-size:10px; color:var(--text-sub); text-align:center; margin-bottom:6px; font-weight:bold; letter-spacing:0.5px;">Paste your License Key below</div>
+            <div style="font-size:10px; color:var(--text-sub); text-align:center; margin-bottom:6px; font-weight:bold; letter-spacing:0.5px;">Contact developer to purchase effects</div>
             <div style="display:flex; gap:8px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:6px;">
-                <input type="text" id="globalRedeemInput" placeholder="VIP-XXXX-XXXX" style="flex:1; min-width:0; background:transparent; border:none; color:#10b981; font-family:monospace; font-size:13px; font-weight:bold; padding:8px 12px; outline:none; text-transform:uppercase;">
+                <input type="text" id="globalRedeemInput" placeholder="Paste License Key..." style="flex:1; min-width:0; background:transparent; border:none; color:#10b981; font-family:monospace; font-size:13px; font-weight:bold; padding:8px 12px; outline:none; text-transform:uppercase;">
                 <button onclick="window.globalRedeemAction()" style="background:#10b981; color:#fff; border:none; padding:8px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer;">Redeem</button>
             </div>
         </div>
         <div class="h-scroll" id="animStoreGrid" style="display:flex; flex-wrap:nowrap; overflow-x:auto; gap:12px; padding:5px; scroll-behavior:smooth;"></div>
     `;
     document.body.appendChild(overlay); document.body.appendChild(sheet);
-    
-    // 🟢 لوحة الشراء السفلية (بديل الشاشة السوداء)
-    let checkoutSheet = document.createElement('div'); checkoutSheet.className = 'bottom-sheet'; checkoutSheet.id = 'checkoutSheetUnique';
-    checkoutSheet.style.background = 'rgba(15, 23, 42, 0.85)'; checkoutSheet.style.backdropFilter = 'blur(15px)';
-    document.body.appendChild(checkoutSheet);
-
     let grid = sheet.querySelector('#animStoreGrid');
     let adminBarContainer = sheet.querySelector('#adminBarContainer');
     let userRedeemContainer = sheet.querySelector('#userRedeemContainer');
+
+    // 🟢 لوحة الشراء المستقلة (Bottom Sheet بدلاً من شاشة سوداء كاملة)
+    let buySheet = document.createElement('div'); buySheet.className = 'bottom-sheet'; buySheet.id = 'buySheetUnique';
+    document.body.appendChild(buySheet);
 
     let headerRight = document.querySelector('.header-right');
     if (headerRight && !document.getElementById('proStoreBtnKey')) {
@@ -1275,16 +1276,14 @@ function initProStore() {
 
     let closeSheetBtn = sheet.querySelector('#closeAnimStore');
     if(closeSheetBtn) closeSheetBtn.onclick = () => { sheet.classList.remove('open'); overlay.classList.remove('open'); };
-    overlay.onclick = () => { sheet.classList.remove('open'); overlay.classList.remove('open'); checkoutSheet.classList.remove('open'); };
+    overlay.onclick = () => { sheet.classList.remove('open'); overlay.classList.remove('open'); buySheet.classList.remove('open'); };
 
     window.previewCountdown = document.createElement('div');
-    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); width:40px; height:40px; line-height:40px; font-size:20px; font-weight:900; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.85); border-radius:50%; border:2px solid #10b981; backdrop-filter:blur(8px); display:none; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.4); pointer-events:none;';
+    window.previewCountdown.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); padding:10px 20px; font-size:14px; font-weight:bold; color:#fff; z-index:10000; font-family:sans-serif; background:rgba(15,23,42,0.9); border-radius:30px; border:1px solid #38bdf8; backdrop-filter:blur(10px); display:none; text-align:center; box-shadow:0 8px 25px rgba(0,0,0,0.5); pointer-events:none; white-space:nowrap;';
     document.body.appendChild(window.previewCountdown);
 
-    let customModalOverlay = document.createElement('div');
-    customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s ease; padding:15px;';
-    let customModalBox = document.createElement('div');
-    customModalBox.style.cssText = 'box-sizing:border-box; background:linear-gradient(145deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.08); width:100%; max-width:340px; max-height:90vh; overflow-y:auto; border-radius:24px; padding:25px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff; transform:scale(0.95); opacity:0; transition:all 0.3s ease; margin:auto;';
+    let customModalOverlay = document.createElement('div'); customModalOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(10,15,25,0.85); z-index:9999; display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition:0.3s ease; padding:15px;';
+    let customModalBox = document.createElement('div'); customModalBox.style.cssText = 'box-sizing:border-box; background:linear-gradient(145deg, #1e293b, #0f172a); border:1px solid rgba(255,255,255,0.08); width:100%; max-width:340px; max-height:90vh; overflow-y:auto; border-radius:24px; padding:25px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8); color:#fff; transform:scale(0.95); opacity:0; transition:all 0.3s ease; margin:auto;';
     customModalOverlay.appendChild(customModalBox); document.body.appendChild(customModalOverlay);
 
     window.showCustomModal = (html) => { customModalBox.innerHTML = html; customModalOverlay.style.display = 'flex'; setTimeout(() => { customModalBox.style.transform = 'scale(1)'; customModalBox.style.opacity = '1'; }, 10); };
@@ -1331,87 +1330,68 @@ function initProStore() {
         }
     };
 
-    // 🟢 البريد وتحديث النقطة الحمراء
-    window.updateMailBadge = () => {
-        let myMailList = [];
+    // 🟢 صندوق بريد المستخدم
+    standaloneInbox.onclick = () => {
         let serverInbox = window.mailServerData?.inbox || [];
-        (window.currentAllAnims || []).forEach(anim => {
-            let myReq = window.getRequestCode(baseId, anim.id);
-            myMailList = myMailList.concat(serverInbox.filter(m => m.reqTarget === myReq || m.reqTarget === baseId));
-        });
-        let readCount = parseInt(localStorage.getItem('read_mail_count_' + baseId) || '0');
-        document.getElementById('globalInboxBadge').style.display = (myMailList.length > readCount) ? 'block' : 'none';
-    };
+        let myMail = serverInbox.filter(m => m.reqCode.startsWith(myBaseReqCode));
 
-    window.clearMyInbox = async () => {
-        if(!confirm("Are you sure you want to delete all messages?")) return;
-        let mKey = localStorage.getItem('my_master_key'); 
-        try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`);
-            let data = await res.json();
-            let mailServer = data.find(x => x.id === 'mail_server');
-            if (mailServer) {
-                // فلترة وإزالة رسائل هذا المستخدم
-                let myReqCodes = (window.currentAllAnims || []).map(a => window.getRequestCode(baseId, a.id));
-                myReqCodes.push(baseId);
-                mailServer.inbox = mailServer.inbox.filter(m => !myReqCodes.includes(m.reqTarget));
-                
-                // إذا لم يكن المدير يملك المفتاح الماستر، نستخدم مفتاح الوصول للتعديل
-                let headers = mKey ? { 'X-Master-Key': mKey } : { 'X-Access-Key': ACCESS_KEY };
-                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(data) });
-            }
-            window.hideCustomModal();
-            localStorage.setItem('read_mail_count_' + baseId, '0');
-            window.renderAnimStore();
-        } catch(e) {}
-    };
-
-    globalInboxBtn.onclick = () => {
-        let myMail = [];
-        let serverInbox = window.mailServerData?.inbox || [];
-        (window.currentAllAnims || []).forEach(anim => {
-            let myReq = window.getRequestCode(baseId, anim.id);
-            myMail = myMail.concat(serverInbox.filter(m => m.reqTarget === myReq || m.reqTarget === baseId));
-        });
-
+        document.getElementById('standaloneInboxBadge').style.display = 'none';
         localStorage.setItem('read_mail_count_' + baseId, myMail.length);
-        document.getElementById('globalInboxBadge').style.display = 'none';
 
         let mailHTML = '';
         if(myMail.length === 0) {
-            mailHTML = `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 Your inbox is empty.</div>`;
+            mailHTML = `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 When you receive a code or message from the developer, it will appear here clearly and purely.</div>`;
         } else {
             mailHTML = myMail.map((m, idx) => {
-                let isKey = m.msg.includes('VIP-');
-                let iconText = m.icon || (isKey ? '🎁' : '💬');
-                let copyBtn = isKey ? `<button onclick="window.copyToClipboard('${m.msg}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:10px; border-radius:8px; cursor:pointer;"><i class="far fa-copy"></i></button>` : '';
+                let keyText = m.key || '';
+                let msgText = m.msg || '';
+                let contentHTML = keyText ? `
+                    <div style="font-family:monospace; font-size:14px; font-weight:bold; color:#10b981; margin-bottom:5px;">${keyText}</div>
+                    <button onclick="window.copyToClipboard('${keyText}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="far fa-copy"></i> Copy</button>
+                ` : `<div style="font-size:13px; color:#e2e8f0; line-height:1.4;">${msgText}</div>`;
+
                 return `
-                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(56, 189, 248, 0.2); padding:12px; border-radius:12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                        <div style="font-size:24px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">${iconText}</div>
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(56, 189, 248, 0.2); padding:12px; border-radius:12px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px;">
+                        <div style="font-size:24px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; flex-shrink:0;">${m.icon || '💬'}</div>
                         <div style="flex:1; text-align:left;">
-                            <div style="font-size:9px; color:var(--text-sub); margin-bottom:4px;">${m.date}</div>
-                            <div style="font-family:${isKey?'monospace':'sans-serif'}; font-size:13px; font-weight:bold; color:#10b981; word-break:break-word;">${m.msg}</div>
+                            <div style="font-size:9px; color:var(--text-sub); margin-bottom:6px;">${m.date}</div>
+                            ${contentHTML}
                         </div>
-                        ${copyBtn}
                     </div>
                 `;
-            }).join('');
+            }).reverse().join('');
         }
 
-        let descHTML = `<div style="font-size:11px; color:#94a3b8; margin-bottom:15px; line-height:1.4; text-align:center;">Once you receive a code or message from the developer, it will appear here securely.</div>`;
-
         let html = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <h3 style="color:#38bdf8; margin:0; font-size:16px;"><i class="fas fa-envelope"></i> My Inbox</h3>
-                ${myMail.length > 0 ? `<button onclick="window.clearMyInbox()" style="background:transparent; border:none; color:#ef4444; font-size:12px; cursor:pointer;"><i class="fas fa-trash"></i> Clear</button>` : ''}
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="color:#38bdf8; margin:0; font-size:16px;"><i class="fas fa-envelope"></i> Inbox</h3>
+                <button onclick="window.clearUserInbox()" style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:4px 8px; border-radius:6px; font-size:10px; font-weight:bold;"><i class="fas fa-trash"></i> Clear</button>
             </div>
-            ${descHTML}
             <div style="max-height:50vh; overflow-y:auto; padding-right:5px; margin-bottom:15px;">
                 ${mailHTML}
             </div>
             <button onclick="window.hideCustomModal()" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
         `;
         window.showCustomModal(html);
+    };
+
+    // 🟢 مسح المستخدم لبريده
+    window.clearUserInbox = async () => {
+        if(!confirm("Delete all messages?")) return;
+        let mKey = localStorage.getItem('my_master_key'); 
+        let fetchHeader = mKey ? { 'X-Master-Key': mKey } : { 'X-Access-Key': ACCESS_KEY };
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: fetchHeader });
+            let data = await res.json();
+            let mailServer = data.find(x => x.id === 'mail_server');
+            if (mailServer && mailServer.inbox) {
+                mailServer.inbox = mailServer.inbox.filter(m => !m.reqCode.startsWith(myBaseReqCode));
+                // التحديث للسحابة يتطلب X-Master-Key.. إذا لم يكن أدمن، لا يمكنه التعديل السحابي مباشرة من المتصفح بدون الماستر كي. 
+                // سأحاكي مسحها محلياً فقط إذا كان مستخدم عادي (حماية أمنية)
+                if (mKey) await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(data) });
+            }
+            localStorage.setItem('read_mail_count_' + baseId, '0'); window.hideCustomModal(); alert("Inbox cleared locally.");
+        } catch(e) {}
     };
 
     window.processOmniBox = () => {
@@ -1422,10 +1402,7 @@ function initProStore() {
         let reqCode = reqMatch[0].toUpperCase(); let itemId = reqMatch[2].toUpperCase();
         let nameMatch = text.match(/Name:\s*(.+)/i); let clientName = nameMatch ? nameMatch[1].trim() : "Client";
         let actKey = window.generateLicenseKey(reqCode, itemId);
-        
-        let foundA = window.currentAllAnims.find(a => a.id === itemId);
-        let itemIcon = foundA ? foundA.icon : '✨';
-
+        let foundA = window.currentAllAnims.find(a => a.id === itemId); let itemIcon = foundA ? foundA.icon : '✨';
         let mKey = localStorage.getItem('my_master_key');
         if(mKey) {
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } })
@@ -1438,56 +1415,34 @@ function initProStore() {
                 fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
             }).catch(e=>{});
         }
-
+        window.sendKeyToUserMail = async (rCode, aKey, icn, btnId) => {
+            document.getElementById(btnId).innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+                let data = await res.json();
+                let mailServer = data.find(x => x.id === 'mail_server');
+                if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
+                mailServer.inbox.push({ reqCode: rCode, key: aKey, icon: icn, date: new Date().toLocaleDateString() });
+                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(data) });
+                document.getElementById(btnId).innerHTML = '<i class="fas fa-check"></i> Sent'; document.getElementById(btnId).style.background = '#10b981';
+            } catch(e) { document.getElementById(btnId).innerHTML = '❌ Error'; }
+        };
         let html = `
             <h3 style="color:#10b981; margin-bottom:5px;">✅ Key Generated</h3>
             <div style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">For: <b>${clientName}</b> (Item #${itemId})</div>
             <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; margin-bottom:12px; border:1px dashed #10b981;">
                 <span style="font-family:monospace; font-weight:bold; color:#f59e0b; font-size:20px;">${actKey}</span>
             </div>
-            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
-                <button id="cpyGenBtn" onclick="window.copyToClipboard('${actKey}', 'cpyGenBtn')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">Copy Key</button>
-                <button id="sendMailBtn" onclick="window.adminSendMail('${reqCode}', '${actKey}', '${itemIcon}', 'sendMailBtn')" style="width:100%; background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-paper-plane"></i> Send to User's Inbox</button>
+            <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <button id="cpyGenBtn" onclick="window.copyToClipboard('${actKey}', 'cpyGenBtn')" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">Copy Key</button>
+                <button id="sendMailBtn" onclick="window.sendKeyToUserMail('${reqCode}', '${actKey}', '${itemIcon}', 'sendMailBtn')" style="flex:1; background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:10px; border-radius:8px; font-weight:bold; font-size:12px;"><i class="fas fa-paper-plane"></i> Send Inbox</button>
             </div>
             <button onclick="window.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold; padding:10px;">Close</button>
         `;
         window.showCustomModal(html); inputField.value = '';
     };
 
-    window.adminSendMail = async (targetReq, msg, icon, btnId) => {
-        let mKey = localStorage.getItem('my_master_key');
-        let btn = document.getElementById(btnId); if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
-            let data = await res.json();
-            let mailServer = data.find(x => x.id === 'mail_server');
-            if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
-            
-            mailServer.inbox.push({ reqTarget: targetReq, msg: msg, icon: icon, date: new Date().toLocaleDateString() });
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(data) });
-            if(btn) { btn.innerHTML = '<i class="fas fa-check"></i> Sent!'; btn.style.background = '#10b981'; btn.style.color = '#fff'; }
-        } catch(e) { if(btn) btn.innerHTML = '❌ Error'; }
-    };
-
-    window.adminClearUserHistory = async (userName) => {
-        if(!confirm(`🧨 Are you sure you want to wipe all records for ${userName}?`)) return;
-        let mKey = localStorage.getItem('my_master_key');
-        document.getElementById('usersListContainer').innerHTML = '<div style="color:#ef4444; margin-top:20px; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Deleting User Data...</div>';
-        try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
-            let data = await res.json();
-            
-            // تنظيف المشتريات
-            let updated = data.map(x => {
-                if (x.buyers) x.buyers = x.buyers.filter(b => b.name !== userName);
-                return x;
-            });
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
-            await window.renderAnimStore(); window.adminShowUsers();
-        } catch(e) { window.adminShowUsers(); }
-    };
-
-    // 🟢 تجميع ذكي وصحيح للمستخدمين (بناءً على الاسم كمرجع أساسي للمستخدم الواحد)
+    // 🟢 الفرز الذكي للمستخدمين (مستخدم واحد، تحته مشترياته)
     window.adminShowUsers = () => {
         let allAnims = window.currentAllAnims || [];
         let usersMap = {}; let totalRev = 0;
@@ -1496,14 +1451,11 @@ function initProStore() {
             let buyers = anim.buyers || []; let blacklist = anim.blacklist || [];
             let priceVal = parseFloat((anim.price||"1").replace(/[^0-9.]/g, '')) || 0;
             buyers.forEach(b => {
-                let uName = b.name || "Unknown"; // 🟢 التجميع هنا
-                if(!usersMap[uName]) usersMap[uName] = { name: uName, totalSpent: 0, items: [], reqCodes: [] };
-                
+                let uBase = getBaseCode(b.reqCode);
+                if(!usersMap[uBase]) usersMap[uBase] = { name: b.name, totalSpent: 0, items: [], baseCode: uBase };
                 let isRevoked = blacklist.includes(b.reqCode);
-                if(!isRevoked) { usersMap[uName].totalSpent += priceVal; totalRev += priceVal; }
-                
-                usersMap[uName].items.push({ id: anim.id, icon: anim.icon, isRevoked: isRevoked, reqCode: b.reqCode });
-                usersMap[uName].reqCodes.push(b.reqCode);
+                if(!isRevoked) { usersMap[uBase].totalSpent += priceVal; totalRev += priceVal; }
+                usersMap[uBase].items.push({ id: anim.id, icon: anim.icon, isRevoked: isRevoked, fullReq: b.reqCode });
             });
         });
 
@@ -1515,31 +1467,18 @@ function initProStore() {
                 let itemsHTML = user.items.map(item => `
                     <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
                         <span style="font-size:12px; color:#fff;">${item.icon} Item #${item.id}</span>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="window.toggleUserBan('${item.id}', '${item.reqCode}')" style="background:${item.isRevoked ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}; color:${item.isRevoked ? '#ef4444' : '#10b981'}; border:1px solid ${item.isRevoked ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer;">
-                                ${item.isRevoked ? '🔴 Revoked' : '🟢 Active'}
-                            </button>
-                        </div>
+                        <button onclick="window.toggleUserBan('${item.id}', '${item.fullReq}')" style="background:${item.isRevoked ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}; color:${item.isRevoked ? '#ef4444' : '#10b981'}; border:1px solid ${item.isRevoked ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:60px;">
+                            ${item.isRevoked ? '🔴 Revoked' : '🟢 Active'}
+                        </button>
                     </div>
                 `).join('');
                 
-                // 🟢 حقل المراسلة وزر مسح العميل
-                let userActionsHTML = `
-                    <div style="margin-top:10px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:10px;">
-                        <div style="display:flex; gap:5px; margin-bottom:5px;">
-                            <input type="text" id="customMsg_${index}" placeholder="Type a message..." style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:6px 10px; border-radius:6px; font-size:11px; outline:none;">
-                            <button id="sendBtn_${index}" onclick="window.adminSendMail('${user.reqCodes[0]}', document.getElementById('customMsg_${index}').value, '💬', 'sendBtn_${index}')" style="background:#3b82f6; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
-                        </div>
-                        <button onclick="window.adminClearUserHistory('${user.name}')" style="width:100%; background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:6px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-user-times"></i> Delete User History</button>
-                    </div>
-                `;
-
                 listHTML += `
                     <details style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); border-radius:12px; margin-bottom:10px; overflow:hidden;">
                         <summary style="padding:12px; cursor:pointer; outline:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
                             <div style="text-align:left;">
-                                <div style="color:#fff; font-size:13px; font-weight:bold;">${badge} ${user.name} <span style="font-size:10px; color:#64748b; font-weight:normal;">(${user.items.length} items)</span></div>
-                                <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">Base: ${user.reqCodes[0].split('-')[1]}</div>
+                                <div style="color:#fff; font-size:13px; font-weight:bold;">${badge} ${user.name} <span style="font-size:10px; color:#64748b; font-weight:normal;">(${user.items.length} purchases)</span></div>
+                                <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">${user.baseCode}</div>
                             </div>
                             <div style="color:#10b981; font-weight:bold; font-size:12px; display:flex; align-items:center; gap:5px;">
                                 €${user.totalSpent.toFixed(2)} <i class="fas fa-chevron-down" style="font-size:10px; color:var(--text-sub);"></i>
@@ -1547,7 +1486,11 @@ function initProStore() {
                         </summary>
                         <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.15);">
                             ${itemsHTML}
-                            ${userActionsHTML}
+                            <div style="display:flex; gap:5px; margin-top:10px;">
+                                <input type="text" id="msgInput_${user.baseCode}" placeholder="Custom msg..." style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:6px; border-radius:6px; font-size:11px; outline:none;">
+                                <button onclick="window.sendCustomAdminMsg('${user.baseCode}')" style="background:#3b82f6; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                            <button onclick="window.adminWipeSingleUser('${user.baseCode}')" style="width:100%; background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:8px; border-radius:6px; font-size:11px; font-weight:bold; margin-top:5px; cursor:pointer;"><i class="fas fa-user-times"></i> Purge User Records</button>
                         </div>
                     </details>
                 `;
@@ -1559,12 +1502,66 @@ function initProStore() {
                 <h3 style="color:#3b82f6; margin:0; font-size:16px;"><i class="fas fa-users-cog"></i> Smart CRM</h3>
                 <div style="background:rgba(16,185,129,0.1); color:#10b981; padding:4px 8px; border-radius:8px; font-weight:bold; font-size:12px;">Rev: €${totalRev.toFixed(2)}</div>
             </div>
-            <div style="max-height:55vh; overflow-y:auto; padding-right:5px; margin-bottom:15px; text-align:left;" id="usersListContainer">
+            <div style="max-height:45vh; overflow-y:auto; padding-right:5px; margin-bottom:15px; text-align:left;" id="usersListContainer">
                 ${listHTML || `<div style="color:var(--text-sub); font-size:11px; padding:20px; text-align:center;">No active clients found.</div>`}
             </div>
             <button onclick="window.hideCustomModal()" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close Window</button>
         `;
         window.showCustomModal(html);
+    };
+
+    // 🟢 إرسال رسالة مخصصة للمستخدم
+    window.sendCustomAdminMsg = async (uBase) => {
+        let txt = document.getElementById(`msgInput_${uBase}`).value.trim();
+        if(!txt) return;
+        let mKey = localStorage.getItem('my_master_key');
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json();
+            let mailServer = data.find(x => x.id === 'mail_server');
+            if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
+            mailServer.inbox.push({ reqCode: uBase + '-MSG', msg: txt, icon: '💬', date: new Date().toLocaleDateString() });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(data) });
+            document.getElementById(`msgInput_${uBase}`).value = ''; alert('Message sent!');
+        } catch(e) {}
+    };
+
+    // 🟢 مسح مستخدم واحد بالكامل من قاعدة البيانات
+    window.adminWipeSingleUser = async (uBase) => {
+        if(!confirm("Purge all records for this user?")) return;
+        let mKey = localStorage.getItem('my_master_key');
+        document.getElementById('usersListContainer').innerHTML = '<div style="color:#ef4444; margin:auto;"><i class="fas fa-spinner fa-spin"></i> Purging...</div>';
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json();
+            data = data.map(anim => {
+                if (anim.buyers) anim.buyers = anim.buyers.filter(b => !b.reqCode.startsWith(uBase));
+                if (anim.blacklist) anim.blacklist = anim.blacklist.filter(req => !req.startsWith(uBase));
+                if (anim.id === 'mail_server') anim.inbox = anim.inbox.filter(m => !m.reqCode.startsWith(uBase));
+                return anim;
+            });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(data) });
+            window.adminShowUsers(); window.renderAnimStore();
+        } catch(e) {}
+    };
+
+    window.toggleUserBan = async (animId, fullReqCode) => {
+        let mKey = localStorage.getItem('my_master_key');
+        document.getElementById('usersListContainer').innerHTML = '<div style="color:#f59e0b; margin-top:20px; font-size:12px;"><i class="fas fa-spinner fa-spin"></i> Updating...</div>';
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json();
+            let updated = data.map(x => {
+                if (x.id === animId) {
+                    x.blacklist = x.blacklist || [];
+                    if (x.blacklist.includes(fullReqCode)) x.blacklist = x.blacklist.filter(id => id !== fullReqCode); 
+                    else x.blacklist.push(fullReqCode);
+                }
+                return x;
+            });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
+            await window.renderAnimStore(); window.adminShowUsers(); 
+        } catch(e) { window.adminShowUsers(); }
     };
 
     window.renderAnimStore = async () => {
@@ -1603,7 +1600,9 @@ function initProStore() {
         cloudAnims.forEach(a => animMap.set(a.id, a));
         window.currentAllAnims = Array.from(animMap.values()).filter(a => !a.deleted);
         
-        window.updateMailBadge();
+        let myMailList = window.mailServerData.inbox.filter(m => m.reqCode.startsWith(myBaseReqCode));
+        let readCount = parseInt(localStorage.getItem('read_mail_count_' + baseId) || '0');
+        document.getElementById('standaloneInboxBadge').style.display = (myMailList.length > readCount) ? 'block' : 'none';
 
         grid.innerHTML = '';
 
@@ -1613,6 +1612,7 @@ function initProStore() {
             let isBlacklisted = anim.blacklist && anim.blacklist.includes(reqCode);
             
             if (isBlacklisted) localStorage.removeItem('unlocked_' + anim.id);
+
             let isBuyerInCloud = anim.buyers && anim.buyers.some(b => b.reqCode === reqCode);
             if (isBuyerInCloud && !isBlacklisted) localStorage.setItem('unlocked_' + anim.id, 'true');
             
@@ -1620,9 +1620,8 @@ function initProStore() {
 
             let wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; position:relative;';
-            let item = document.createElement('div');
-            item.className = 'studio-item'; 
             
+            let item = document.createElement('div'); item.className = 'studio-item'; 
             let baseStyles = `display:flex; align-items:center; justify-content:center; font-size:30px; transition: 0.3s ease; cursor:pointer; margin:0; width:60px; height:60px; border-radius:18px; position:relative;`;
             
             if (isUnlocked) {
@@ -1636,6 +1635,7 @@ function initProStore() {
                 item.className += ' active-anim-glow';
                 item.innerHTML += `<div style="position:absolute; top:-6px; background:#eab308; color:#000; font-size:8px; font-weight:bold; padding:2px 6px; border-radius:6px; letter-spacing:0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">ACTIVE</div>`;
             }
+
             item.innerHTML += anim.icon;
 
             let priceText = isFreeStrict ? 'FREE' : (isUnlocked ? 'FREE' : (anim.price || '€1.00'));
@@ -1675,12 +1675,11 @@ function initProStore() {
                     try{ new Function(anim.playScript)(); window.activeStopScript = anim.stopScript; } catch(e){}
                     
                     window.previewCountdown.style.display = 'block';
-                    let timeLeft = 5; 
-                    window.previewCountdown.innerText = timeLeft;
+                    let timeLeft = 10; window.previewCountdown.innerHTML = `🖐️ Interact with screen! <span style="color:#eab308; margin-left:5px;">${timeLeft}s</span>`;
                     
                     let cdInt = setInterval(() => {
                         timeLeft--;
-                        if(timeLeft > 0) { window.previewCountdown.innerText = timeLeft; } 
+                        if(timeLeft > 0) window.previewCountdown.innerHTML = `🖐️ Interact with screen! <span style="color:#eab308; margin-left:5px;">${timeLeft}s</span>`;
                         else {
                             clearInterval(cdInt); window.previewCountdown.style.display = 'none'; window.isPreviewing = false; window.stopAllEffects();
                             
@@ -1688,34 +1687,30 @@ function initProStore() {
                             let userMsg = `Name: ${userName}\nRequest Code: ${reqCode}`;
                             let directChatUrl = `https://t.me/${DEVELOPER_USERNAME}?text=${encodeURIComponent(userMsg)}`;
                             
-                            // 🟢 اللوحة السفلية البديلة للشاشة السوداء
-                            let modalHTML = `
-                                <div style="text-align:center; padding: 20px;">
-                                    <div style="width:65px; height:65px; margin:0 auto 12px; background:rgba(255,255,255,0.05); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 25px rgba(0,0,0,0.4);">
-                                        ${anim.icon}
-                                    </div>
-                                    <h3 style="margin:0 0 4px; font-size:18px; font-weight:600; color:#fff; letter-spacing:0.5px;">Premium Effect</h3>
-                                    <div style="font-size:18px; color:#10b981; font-weight:700; margin-bottom:25px;">${anim.price || '€1.00'}</div>
+                            // 🟢 تصميم الـ Bottom Sheet بدلاً من الشاشة الكاملة
+                            buySheet.innerHTML = `
+                                <div class="sheet-header" style="margin-bottom:15px;"><div>Premium Item</div><button class="close-sheet" onclick="document.getElementById('buySheetUnique').classList.remove('open'); document.getElementById('vipStoreOverlayUnique').classList.remove('open');"><i class="fas fa-times"></i></button></div>
+                                <div style="text-align:center; padding: 5px 0;">
+                                    <div style="width:60px; height:60px; margin:0 auto 10px; background:rgba(255,255,255,0.05); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 25px rgba(0,0,0,0.4);">${anim.icon}</div>
+                                    <h3 style="margin:0 0 4px; font-size:16px; font-weight:600; color:#fff;">Effect #${anim.id}</h3>
+                                    <div style="font-size:18px; color:#10b981; font-weight:700; margin-bottom:20px;">${anim.price || '€1.00'}</div>
 
-                                    <div style="margin-bottom:25px; text-align:left;">
-                                        <div style="font-size:10px; color:#94a3b8; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px; font-weight:bold;">Your Request Code</div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0, 0, 0, 0.4); padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-                                            <span id="myIdSpan" style="font-family:monospace; font-weight:bold; color:#e2e8f0; font-size:14px; letter-spacing:1px;">${reqCode}</span>
+                                    <div style="margin-bottom:20px; text-align:left;">
+                                        <div style="font-size:10px; color:#94a3b8; margin-bottom:6px; text-transform:uppercase; font-weight:bold;">Your Request Code</div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0, 0, 0, 0.4); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                                            <span id="myIdSpan" style="font-family:monospace; font-weight:bold; color:#e2e8f0; font-size:14px;">${reqCode}</span>
                                             <button onclick="window.copyToClipboard('${reqCode}', 'cpyIdBtn')" id="cpyIdBtn" style="background:transparent; color:#38bdf8; border:none; font-size:16px; cursor:pointer; padding:0;"><i class="far fa-copy"></i></button>
                                         </div>
                                     </div>
 
-                                    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-                                        <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; padding:12px; border-radius:10px; background:#fff; color:#0f172a; border:none; font-weight:600; font-size:14px; cursor:pointer;"><i class="fas fa-credit-card" style="margin-right:5px;"></i> Pay securely</button>
-                                        <button onclick="let u='${directChatUrl}'; typeof tg !== 'undefined'&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; padding:12px; border-radius:10px; background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.2); font-weight:600; font-size:13px; cursor:pointer;"><i class="fab fa-telegram-plane"></i> Send Request</button>
+                                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+                                        <button onclick="window.open('${buyLink}', '_blank')" style="width:100%; padding:12px; border-radius:10px; background:#fff; color:#0f172a; border:none; font-weight:600; font-size:13px; cursor:pointer;"><i class="fas fa-credit-card" style="margin-right:5px;"></i> Pay securely</button>
+                                        <button onclick="let u='${directChatUrl}'; typeof tg !== 'undefined'&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="width:100%; padding:12px; border-radius:10px; background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.2); font-weight:600; font-size:12px; cursor:pointer;"><i class="fab fa-telegram-plane"></i> Send via Telegram</button>
                                     </div>
-                                    
-                                    <button onclick="document.getElementById('checkoutSheetUnique').classList.remove('open'); document.getElementById('vipStoreOverlayUnique').classList.remove('open');" style="margin-top:10px; width:100%; background:transparent; border:none; color:#64748b; font-size:13px; font-weight:600; cursor:pointer;">Cancel</button>
+                                    <div style="font-size:11px; color:#ef4444; font-weight:bold; line-height:1.4;">After payment, you will receive a License Key. Paste it in the store header to unlock.</div>
                                 </div>
                             `;
-                            checkoutSheet.innerHTML = modalHTML;
-                            overlay.classList.add('open');
-                            checkoutSheet.classList.add('open');
+                            overlay.classList.add('open'); buySheet.classList.add('open');
                         }
                     }, 1000);
                 }
@@ -1724,12 +1719,94 @@ function initProStore() {
         });
     };
 
-    // دوال إضافة وتعديل وحذف للإدارة (كما هي تعمل بكفاءة)
-    window.adminActionAdd = () => { /* ... نفس الكود السابق ... */ };
-    window.adminActionEditCode = () => { /* ... نفس الكود السابق ... */ };
-    window.executeAdminAdd = async () => { /* ... نفس الكود السابق ... */ };
-    window.executeAdminEdit = async () => { /* ... نفس الكود السابق ... */ };
-    window.adminActionDelete = async () => { /* ... نفس الكود السابق ... */ };
+    window.adminActionAdd = () => {
+        window.stopAllEffects();
+        let formHTML = `
+            <h3 style="color:#10b981; margin-bottom:15px; font-size:16px;">Add Effect</h3>
+            <div style="display:flex; gap:8px; margin-bottom:8px; width:100%;">
+                <input id="nIcon" placeholder="Icon 🍉" style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
+                <input id="nId" placeholder="ID 5" style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:8px; width:100%;">
+                <input id="nPrice" placeholder="€1.00" value="€1.00" style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; outline:none;">
+                <select id="nFree" style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:10px; border-radius:8px; outline:none; font-size:12px; font-weight:bold;">
+                    <option value="false">Paid 🔒</option><option value="true">Free 🆓</option>
+                </select>
+            </div>
+            <input id="nLink" placeholder="Payment Link" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none; font-size:11px;">
+            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px;"></textarea>
+            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px;"></textarea>
+            <button onclick="window.executeAdminAdd()" style="width:100%; box-sizing:border-box; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px;">Deploy</button>
+            <button onclick="window.hideCustomModal()" style="width:100%; box-sizing:border-box; background:transparent; color:var(--text-sub); border:none; font-size:12px; font-weight:bold; padding:10px;">Cancel</button>
+        `;
+        window.showCustomModal(formHTML);
+    };
+
+    window.adminActionEditCode = () => {
+        window.stopAllEffects(); let anim = window.adminSelectedAnim;
+        let isFr = String(anim.isFree) === 'true' ? 'selected' : '';
+        let isPd = String(anim.isFree) !== 'true' ? 'selected' : '';
+        let editHTML = `
+            <h3 style="color:#3b82f6; margin-bottom:12px; font-size:16px;">✏️ Edit Effect #${anim.id}</h3>
+            <div style="display:flex; gap:8px; margin-bottom:8px; width:100%;">
+                <input id="eIcon" value="${anim.icon}" style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; outline:none;">
+                <input id="eId" value="${anim.id}" readonly style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:rgba(0,0,0,0.1); border:1px solid rgba(255,255,255,0.05); color:var(--text-sub); padding:8px; border-radius:8px; text-align:center; outline:none;">
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:8px; width:100%;">
+                <input id="ePrice" value="${anim.price || '€1.00'}" style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; outline:none;">
+                <select id="eFree" style="flex:1; width:100%; min-width:0; box-sizing:border-box; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:8px; border-radius:8px; outline:none; font-size:12px; font-weight:bold;">
+                    <option value="false" ${isPd}>Paid 🔒</option><option value="true" ${isFr}>Free 🆓</option>
+                </select>
+            </div>
+            <input id="eLink" value="${anim.buyLink || STRIPE_LINK}" placeholder="Payment Link" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; margin-bottom:8px; text-align:center; outline:none; font-size:11px;">
+            <textarea id="ePlay" style="width:100%; box-sizing:border-box; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:8px; outline:none; font-family:monospace; font-size:11px; height:60px;">${anim.playScript}</textarea>
+            <textarea id="eStop" style="width:100%; box-sizing:border-box; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:12px; outline:none; font-family:monospace; font-size:11px; height:50px;">${anim.stopScript}</textarea>
+            <button onclick="window.executeAdminEdit('${anim.id}')" style="width:100%; box-sizing:border-box; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:6px;">Update</button>
+            <button onclick="window.hideCustomModal()" style="width:100%; box-sizing:border-box; background:transparent; color:var(--text-sub); border:none; font-size:12px; font-weight:bold; padding:10px;">Cancel</button>
+        `;
+        window.showCustomModal(editHTML);
+    };
+
+    window.executeAdminAdd = async () => {
+        let mKey = localStorage.getItem('my_master_key');
+        let i=document.getElementById('nIcon').value.trim(), id=document.getElementById('nId').value.trim(), pr=document.getElementById('nPrice').value.trim(), fr=document.getElementById('nFree').value==='true', lnk=document.getElementById('nLink').value.trim(), p=document.getElementById('nPlay').value.trim(), s=document.getElementById('nStop').value.trim();
+        if(!i||!id) return; window.hideCustomModal(); grid.innerHTML = '<div style="color:#10b981; margin:auto;">Deploying...</div>';
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = res.ok ? await res.json() : []; let filtered = data.filter(x => x.id !== id && x.id !== "empty");
+            filtered.push({ icon: i, id: id, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s, buyers: [], blacklist: [] });
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
+            window.renderAnimStore();
+        } catch(e) { window.renderAnimStore(); }
+    };
+
+    window.executeAdminEdit = async (targetId) => {
+        let i=document.getElementById('eIcon').value.trim(), pr=document.getElementById('ePrice').value.trim(), fr=document.getElementById('eFree').value==='true', lnk=document.getElementById('eLink').value.trim(), p=document.getElementById('ePlay').value.trim(), s=document.getElementById('eStop').value.trim();
+        window.hideCustomModal(); grid.innerHTML = '<div style="color:#3b82f6; margin:auto;">Updating...</div>';
+        let mKey = localStorage.getItem('my_master_key');
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json();
+            let updated = data.map(x => x.id === targetId ? { ...x, icon: i, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s, deleted: false } : x);
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(updated) });
+            window.renderAnimStore();
+        } catch(e) { window.renderAnimStore(); }
+    };
+
+    window.adminActionDelete = async () => {
+        if(!confirm("⚠️ Are you sure you want to PERMANENTLY delete this effect?")) return;
+        let mKey = localStorage.getItem('my_master_key'); let id = window.adminSelectedAnim.id; window.hideCustomModal();
+        grid.innerHTML = '<div style="color:#ef4444; margin:auto;"><i class="fas fa-spinner fa-spin"></i> Deleting...</div>';
+        try {
+            let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?meta=false`, { headers: { 'X-Master-Key': mKey } });
+            let data = await res.json(); 
+            let filtered = data.filter(x => x.id !== id);
+            if (DEFAULT_ANIMS.some(a => a.id === id)) filtered.push({ id: id, deleted: true });
+            if(filtered.length === 0) filtered = [{"id":"empty"}];
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, body: JSON.stringify(filtered) });
+            window.renderAnimStore();
+        } catch(e) { window.renderAnimStore(); }
+    };
 
     if (typeof DOM !== 'undefined' && DOM.saveNoteBtn) {
         let originalSaveNote = DOM.saveNoteBtn.onclick;
@@ -1752,8 +1829,9 @@ function initProStore() {
 
     window.renderAnimStore();
 }
-initProStore();
+initProStore();  
 
+                                    
 
         
 
