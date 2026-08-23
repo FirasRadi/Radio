@@ -1341,7 +1341,8 @@ class PremiumStore {
                 }
                 
                 #standaloneInboxBtn { z-index: 100 !important; }
-                .sheet-overlay { z-index: 9990 !important; }
+                .premium-store-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 9990; opacity: 0; visibility: hidden; transition: 0.3s ease; }
+.premium-store-overlay.open { opacity: 1; visibility: visible; }
                 
                 /* Lowering the Premium Store Sheet */
                 #vipStoreSheetUnique, #checkoutSheetUnique { 
@@ -1359,7 +1360,7 @@ class PremiumStore {
             document.head.appendChild(style);
         }
 
-        this.overlay = document.createElement('div'); this.overlay.className = 'sheet-overlay'; this.overlay.id = 'vipStoreOverlayUnique';
+        this.overlay = document.createElement('div'); this.overlay.className = 'premium-store-overlay'; this.overlay.id = 'vipStoreOverlayUnique';
         this.sheet = document.createElement('div'); this.sheet.className = 'bottom-sheet'; this.sheet.id = 'vipStoreSheetUnique';
         this.checkoutSheet = document.createElement('div'); this.checkoutSheet.className = 'bottom-sheet'; this.checkoutSheet.id = 'checkoutSheetUnique';
         
