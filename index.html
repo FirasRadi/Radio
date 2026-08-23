@@ -1174,7 +1174,10 @@
 
 
 // ===================================================
-                        
+
+/**
+ * 🚀 Premium Store Manager - CRM & User-Centric Edition (v6.0 - Ultimate Stability)
+ */
 
 const StoreConfig = {
     BIN_ID: "6a821a3ada38895dfeec6ddc",
@@ -1191,8 +1194,8 @@ const StoreConfig = {
 
 class StoreSecurity {
     static getRequestCode(baseId, itemId) {
-        let clean = baseId.toString().replace(/TG-|U-/g, '');
-        let prefix = baseId.toString().startsWith('TG-') ? 'TG-' : 'U-';
+        let clean = String(baseId).replace(/TG-|U-/g, '');
+        let prefix = String(baseId).startsWith('TG-') ? 'TG-' : 'U-';
         let shift = itemId === 'ALL' ? 5 : (parseInt(itemId) * 3) % 10;
         let scrambled = clean.split('').map(c => isNaN(c) ? c : (parseInt(c) + shift) % 10).join('');
         return `${prefix}${scrambled}-${itemId}`;
@@ -1286,7 +1289,7 @@ class PremiumStore {
         let registry = data.find(x => x.id === 'users_registry');
         if (!registry) { registry = { id: 'users_registry', users: [] }; data.push(registry); }
         
-        let exists = registry.users.find(u => u.baseId === this.baseId);
+        let exists = registry.users.find(u => String(u.baseId) === String(this.baseId));
         if (!exists) {
             registry.users.push({ baseId: this.baseId, name: this.userName, tgId: this.tgId, date: StoreSecurity.formatCustomDate(Date.now()) });
             await StoreAPI.updateCloudData(data);
@@ -1321,18 +1324,32 @@ class PremiumStore {
         if (!document.getElementById('store-core-styles')) {
             let style = document.createElement('style');
             style.id = 'store-core-styles';
+            // Z-index hierarchy fixes & 7s pulsing animation & Lowering the bottom-sheet
             style.innerHTML = `
                 * { -webkit-tap-highlight-color: transparent !important; outline: none !important; }
                 .h-scroll::-webkit-scrollbar { display: none; } .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
                 details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }
                 .active-anim-glow { border: 2px solid #eab308 !important; box-shadow: 0 0 15px rgba(234, 179, 8, 0.4), inset 0 0 10px rgba(234, 179, 8, 0.2) !important; background: rgba(234, 179, 8, 0.1) !important; }
                 
-                .store-btn-pulse { border: 1px solid #ef4444 !important; border-radius: 50% !important; animation: pulseRed 1.5s infinite; }
-                @keyframes pulseRed { 0% { box-shadow: 0 0 5px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 15px rgba(239,68,68,0.9); } 100% { box-shadow: 0 0 5px rgba(239,68,68,0.4); } }
+                /* Pulse Animation every 7 seconds */
+                .store-btn-pulse { border: 1px solid rgba(239,68,68,0.5) !important; border-radius: 50% !important; animation: pulseRed 7s infinite ease-in-out; }
+                @keyframes pulseRed { 
+                    0% { box-shadow: 0 0 0px rgba(239,68,68,0); } 
+                    5% { box-shadow: 0 0 15px rgba(239,68,68,0.9); } 
+                    10% { box-shadow: 0 0 0px rgba(239,68,68,0); } 
+                    100% { box-shadow: 0 0 0px rgba(239,68,68,0); } 
+                }
                 
                 #standaloneInboxBtn { z-index: 100 !important; }
                 .sheet-overlay { z-index: 9990 !important; }
-                .bottom-sheet { z-index: 9995 !important; }
+                
+                /* Lowering the Premium Store Sheet */
+                #vipStoreSheetUnique, #checkoutSheetUnique { 
+                    z-index: 9995 !important; 
+                    max-height: 60vh !important; 
+                    padding-bottom: 25px !important;
+                }
+                
                 .custom-modal-overlay { 
                     position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; 
                     background: rgba(10,15,25,0.85) !important; z-index: 10000 !important; display: none; align-items: center; justify-content: center; 
@@ -1342,9 +1359,9 @@ class PremiumStore {
             document.head.appendChild(style);
         }
 
-        this.overlay = document.createElement('div'); this.overlay.className = 'sheet-overlay';
-        this.sheet = document.createElement('div'); this.sheet.className = 'bottom-sheet';
-        this.checkoutSheet = document.createElement('div'); this.checkoutSheet.className = 'bottom-sheet';
+        this.overlay = document.createElement('div'); this.overlay.className = 'sheet-overlay'; this.overlay.id = 'vipStoreOverlayUnique';
+        this.sheet = document.createElement('div'); this.sheet.className = 'bottom-sheet'; this.sheet.id = 'vipStoreSheetUnique';
+        this.checkoutSheet = document.createElement('div'); this.checkoutSheet.className = 'bottom-sheet'; this.checkoutSheet.id = 'checkoutSheetUnique';
         
         this.sheet.innerHTML = `
             <div class="sheet-header" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
@@ -1381,7 +1398,7 @@ class PremiumStore {
         if (!document.getElementById('standaloneInboxBtn')) {
             let inboxBtn = document.createElement('button');
             inboxBtn.id = 'standaloneInboxBtn';
-            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer;';
+            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer; transition: transform 0.2s ease;';
             inboxBtn.innerHTML = '<i class="fas fa-envelope"></i><span id="standaloneInboxBadge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; width:14px; height:14px; border-radius:50%; border:2px solid #0f172a;"></span>';
             inboxBtn.onclick = () => this.openUserInbox();
             document.body.appendChild(inboxBtn);
@@ -1437,7 +1454,7 @@ class PremiumStore {
         if(!inputCode) return;
         let foundAnim = null;
         for(let anim of this.state.currentAllAnims) {
-            if(anim.id === '0' || String(anim.isFree) === 'true') continue;
+            if(String(anim.id) === '0' || String(anim.isFree) === 'true') continue;
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
             let expected = StoreSecurity.generateLicenseKey(reqCode, anim.id);
             if (inputCode === expected) { 
@@ -1542,8 +1559,8 @@ class PremiumStore {
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
             let isFreeStrict = (String(anim.isFree) === 'true' || anim.isFree === true);
             
-            // Sync check using baseId directly to avoid reqCode regeneration bugs
-            let isBuyer = anim.buyers && anim.buyers.some(b => b.baseId === this.baseId || b.reqCode === reqCode);
+            // Sync check stringified to prevent bugs
+            let isBuyer = anim.buyers && anim.buyers.some(b => String(b.baseId) === String(this.baseId) || String(b.reqCode) === String(reqCode));
             let isManual = localStorage.getItem('manual_unlock_' + anim.id) === 'true'; 
             let isUnlocked = isFreeStrict || isBuyer || isManual;
 
@@ -1563,7 +1580,7 @@ class PremiumStore {
                 item.innerHTML = `<div style="position:absolute; bottom:-3px; right:-3px; background:#ef4444; color:#fff; width:18px; height:18px; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-lock"></i></div>`;
             }
 
-            if (this.state.activeAnimId === anim.id) {
+            if (String(this.state.activeAnimId) === String(anim.id)) {
                 item.className += ' active-anim-glow';
                 item.innerHTML += `<div style="position:absolute; top:-6px; background:#eab308; color:#000; font-size:8px; font-weight:bold; padding:2px 6px; border-radius:6px; letter-spacing:0.5px;">ACTIVE</div>`;
             }
@@ -1581,7 +1598,7 @@ class PremiumStore {
     handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode) {
         if (this.state.isPreviewing) return;
         
-        if (isAdmin && anim.id !== '0') {
+        if (isAdmin && String(anim.id) !== '0') {
             this.state.adminSelectedAnim = anim;
             this.showCustomModal(`
                 <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
@@ -1596,11 +1613,11 @@ class PremiumStore {
             return;
         }
 
-        if (anim.id === '0') { this.stopAllEffects(); return; }
+        if (String(anim.id) === '0') { this.stopAllEffects(); return; }
 
         if (isUnlocked || isFreeStrict) {
             this.closeStore(); this.stopAllEffects();
-            try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; this.state.activeAnimId = anim.id; } catch(e){}
+            try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; this.state.activeAnimId = String(anim.id); } catch(e){}
         } else {
             this.closeStore(); this.stopAllEffects(); this.state.isPreviewing = true;
             try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; } catch(e){}
@@ -1653,21 +1670,24 @@ class PremiumStore {
         
         let data = await StoreAPI.fetchCloudData();
         let registry = data.find(x => x.id === 'users_registry') || { users: [] };
-        let animsList = this.state.currentAllAnims.filter(a => a.id !== '0' && String(a.isFree) !== 'true'); 
+        let animsList = this.state.currentAllAnims.filter(a => String(a.id) !== '0' && String(a.isFree) !== 'true'); 
         
         let listHTML = '';
         registry.users.reverse().forEach(user => {
             let itemsHTML = animsList.map(anim => {
                 let reqCode = StoreSecurity.getRequestCode(user.baseId, anim.id);
-                let dbAnim = data.find(x => x.id === anim.id) || anim;
-                let isActive = dbAnim.buyers && dbAnim.buyers.some(b => b.baseId === user.baseId || b.reqCode === reqCode);
+                let dbAnim = data.find(x => String(x.id) === String(anim.id)) || anim;
+                let isActive = dbAnim.buyers && dbAnim.buyers.some(b => String(b.baseId) === String(user.baseId) || String(b.reqCode) === String(reqCode));
                 
+                let safeIcon = anim.icon ? anim.icon.replace(/'/g, "\\'") : '';
+                let safeName = user.name ? user.name.replace(/'/g, "\\'") : 'User';
+
                 return `
                 <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
                     <span style="font-size:12px; color:#fff; display:flex; align-items:center; gap:6px;">${anim.icon} Effect #${anim.id}</span>
                     <div style="display:flex; gap:5px;">
-                        <button onclick="window.StoreApp.generateGiftKey('${anim.id}', '${user.baseId}', '${anim.icon}', this)" style="background:rgba(56, 189, 248, 0.2); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer;" title="Copy Gift Code">🎁</button>
-                        <button onclick="window.StoreApp.toggleUserAccessInline('${anim.id}', '${anim.icon}', '${user.baseId}', '${user.name}', this)" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:75px; transition:0.2s;">
+                        <button onclick="window.StoreApp.generateGiftKey('${anim.id}', '${user.baseId}', '${safeIcon}', this)" style="background:rgba(56, 189, 248, 0.2); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer;" title="Copy Gift Code">🎁</button>
+                        <button onclick="window.StoreApp.toggleUserAccessInline('${anim.id}', '${safeIcon}', '${user.baseId}', '${safeName}', this)" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:75px; transition:0.2s;">
                             ${isActive ? '🟢 Active' : '🔴 Revoked'}
                         </button>
                     </div>
@@ -1679,7 +1699,7 @@ class PremiumStore {
                     <summary style="padding:12px; cursor:pointer; outline:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
                         <div style="text-align:left;">
                             <div style="color:#fff; font-size:13px; font-weight:bold;">👤 ${user.name}</div>
-                            <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">${user.baseId}</div>
+                            <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">TG: ${user.tgId || 'Unknown'}</div>
                         </div>
                     </summary>
                     <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.15);">
@@ -1727,11 +1747,11 @@ class PremiumStore {
             if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
 
             let updated = data.map(x => {
-                if (x.id === animId) {
+                if (String(x.id) === String(animId)) {
                     x.buyers = x.buyers || [];
-                    let isBuyer = x.buyers.some(b => b.baseId === userBaseId || b.reqCode === reqCode);
+                    let isBuyer = x.buyers.some(b => String(b.baseId) === String(userBaseId) || String(b.reqCode) === String(reqCode));
                     if (isBuyer) {
-                        x.buyers = x.buyers.filter(b => b.baseId !== userBaseId && b.reqCode !== reqCode); 
+                        x.buyers = x.buyers.filter(b => String(b.baseId) !== String(userBaseId) && String(b.reqCode) !== String(reqCode)); 
                         isActiveNow = false;
                     } else {
                         x.buyers.push({ reqCode: reqCode, baseId: userBaseId, name: userName }); 
@@ -1811,7 +1831,7 @@ class PremiumStore {
         let i=document.getElementById('nIcon').value, id=document.getElementById('nId').value, pr=document.getElementById('nPrice').value, fr=document.getElementById('nFree').value==='true', d=document.getElementById('nDesc').value, lnk=document.getElementById('nLink').value, p=document.getElementById('nPlay').value, s=document.getElementById('nStop').value;
         if(!i||!id) return; this.hideCustomModal(); 
         let data = await StoreAPI.fetchCloudData();
-        let filtered = data.filter(x => x.id !== id && x.id !== "empty");
+        let filtered = data.filter(x => String(x.id) !== String(id) && x.id !== "empty");
         filtered.push({ icon: i, id: id, price: pr, isFree: fr, desc: d, buyLink: lnk, playScript: p, stopScript: s, buyers: [], blacklist: [] });
         await StoreAPI.updateCloudData(filtered);
         this.renderAnimStore();
@@ -1836,7 +1856,7 @@ class PremiumStore {
         let i=document.getElementById('eIcon').value, pr=document.getElementById('ePrice').value, fr=document.getElementById('eFree').value==='true', d=document.getElementById('eDesc').value, lnk=document.getElementById('eLink').value, p=document.getElementById('ePlay').value, s=document.getElementById('eStop').value;
         this.hideCustomModal(); 
         let data = await StoreAPI.fetchCloudData();
-        let updated = data.map(x => x.id === targetId ? { ...x, icon: i, price: pr, isFree: fr, desc: d, buyLink: lnk, playScript: p, stopScript: s, deleted: false } : x);
+        let updated = data.map(x => String(x.id) === String(targetId) ? { ...x, icon: i, price: pr, isFree: fr, desc: d, buyLink: lnk, playScript: p, stopScript: s, deleted: false } : x);
         await StoreAPI.updateCloudData(updated);
         this.renderAnimStore();
     }
@@ -1845,7 +1865,8 @@ class PremiumStore {
         if(!confirm("⚠️ Are you sure you want to PERMANENTLY delete this effect?")) return;
         let id = this.state.adminSelectedAnim.id; this.hideCustomModal();
         let data = await StoreAPI.fetchCloudData();
-        let filtered = data.filter(x => x.id !== id); if (StoreConfig.DEFAULT_ANIMS.some(a => a.id === id)) filtered.push({ id: id, deleted: true });
+        let filtered = data.filter(x => String(x.id) !== String(id)); 
+        if (StoreConfig.DEFAULT_ANIMS.some(a => String(a.id) === String(id))) filtered.push({ id: id, deleted: true });
         if(filtered.length === 0) filtered = [{"id":"empty"}];
         await StoreAPI.updateCloudData(filtered);
         this.renderAnimStore();
@@ -1892,8 +1913,6 @@ window.onload = () => {
         };
     }
 };
-
-
 
 
 
