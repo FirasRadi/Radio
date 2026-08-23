@@ -1175,9 +1175,9 @@
 
 // ===================================================
 
-
-/**
- * 🚀 Premium Store Manager - CRM & User-Centric Edition (v4.0 - Perfect UX)
+        
+ /**
+ * 🚀 Premium Store Manager - CRM & User-Centric Edition (v5.0 - Ultimate Fixes)
  */
 
 const StoreConfig = {
@@ -1188,8 +1188,8 @@ const StoreConfig = {
     SECRET_SALT: "TIME_WORLD_2026",
     MY_ADMIN_TG_ID: 5350129816,
     DEFAULT_ANIMS: [
-        { icon: '🚫', id: '0', price: 'Free', isFree: true, playScript: "", stopScript: "window.StoreApp.stopAllEffects();" },
-        { icon: '🦋', id: '1', price: 'Free', isFree: true, playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 12s linear, transform 12s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),12000);}, 600);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
+        { icon: '🚫', id: '0', price: 'Free', isFree: true, desc: "Remove all active effects.", playScript: "", stopScript: "window.StoreApp.stopAllEffects();" },
+        { icon: '🦋', id: '1', price: 'Free', isFree: true, desc: "Beautiful glowing butterflies floating on your screen.", playScript: "window.bfly=setInterval(()=>{let e=document.createElement('div');e.innerText='🦋';e.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:105vh;z-index:9999;pointer-events:none;font-size:${Math.random()*15+20}px;transition:top 12s linear, transform 12s ease-in-out;opacity:0.9;`;document.body.appendChild(e);setTimeout(()=>{e.style.top='-10vh';e.style.transform=\`translateX(${Math.random()*300-150}px) rotate(${Math.random()*90-45}deg)\`;},50);setTimeout(()=>e.remove(),12000);}, 600);", stopScript: "clearInterval(window.bfly); document.querySelectorAll('div').forEach(e=>{if(e.innerText==='🦋')e.remove();});" }
     ]
 };
 
@@ -1306,8 +1306,8 @@ class PremiumStore {
         let mailServer = data.find(x => x.id === 'mail_server');
         if (!mailServer) return;
 
-        let msgText = action === 'radio' ? `Joined Radio: ${this.userName} (TG: ${this.tgId}) [${this.baseId}]` : `Opened Store: ${this.userName} (TG: ${this.tgId}) [${this.baseId}]`;
-        let iconType = action === 'radio' ? '📻' : '🎁';
+        let msgText = action === 'radio' ? `Joined Radio:\nName: ${this.userName}\nTG ID: ${this.tgId}\nBase: ${this.baseId}` : `Opened Store:\nName: ${this.userName}\nTG ID: ${this.tgId}\nBase: ${this.baseId}`;
+        let iconType = action === 'radio' ? '📻' : '💎';
         
         mailServer.inbox.push({
             to: 'TG-' + StoreConfig.MY_ADMIN_TG_ID,
@@ -1318,8 +1318,6 @@ class PremiumStore {
         
         await StoreAPI.updateCloudData(data);
         sessionStorage.setItem(sessionKey, 'true');
-        
-        // Update red badge for admin if he is logged in
         if (StoreAPI.getMasterKey()) this.updateInboxBadge(data);
     }
 
@@ -1327,12 +1325,16 @@ class PremiumStore {
         if (!document.getElementById('store-core-styles')) {
             let style = document.createElement('style');
             style.id = 'store-core-styles';
+            // Z-index hierarchy fixes: Inbox icon stays below sheets!
             style.innerHTML = `
                 * { -webkit-tap-highlight-color: transparent !important; outline: none !important; }
                 .h-scroll::-webkit-scrollbar { display: none; } .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
                 details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }
                 .active-anim-glow { border: 2px solid #eab308 !important; box-shadow: 0 0 15px rgba(234, 179, 8, 0.4), inset 0 0 10px rgba(234, 179, 8, 0.2) !important; background: rgba(234, 179, 8, 0.1) !important; }
                 
+                #standaloneInboxBtn { z-index: 100 !important; }
+                .sheet-overlay { z-index: 9990 !important; }
+                .bottom-sheet { z-index: 9995 !important; }
                 .custom-modal-overlay { 
                     position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; 
                     background: rgba(10,15,25,0.85) !important; z-index: 10000 !important; display: none; align-items: center; justify-content: center; 
@@ -1348,7 +1350,7 @@ class PremiumStore {
         
         this.sheet.innerHTML = `
             <div class="sheet-header" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                <div><i class="fas fa-gift" style="color:#f59e0b; margin-right:5px;"></i> Premium Store</div>
+                <div><i class="fas fa-gem" style="color:#f59e0b; margin-right:5px;"></i> Premium Store</div>
                 <button class="close-sheet" onclick="window.StoreApp.closeStore()"><i class="fas fa-times"></i></button>
             </div>
             <div id="adminBarContainer" style="width:100%; margin-bottom:10px;"></div>
@@ -1367,7 +1369,7 @@ class PremiumStore {
         let headerRight = document.querySelector('.header-right');
         if (headerRight && !document.getElementById('proStoreBtnKey')) {
             let storeBtn = document.createElement('button'); storeBtn.id = 'proStoreBtnKey'; storeBtn.className = 'icon-btn';
-            storeBtn.innerHTML = '<i class="fas fa-gift"></i>'; storeBtn.style.color = '#f59e0b';
+            storeBtn.innerHTML = '<i class="fas fa-gem"></i>'; storeBtn.style.color = '#f59e0b';
             storeBtn.onclick = () => { 
                 this.notifyActivity('store'); 
                 this.renderAnimStore(); 
@@ -1380,7 +1382,7 @@ class PremiumStore {
         if (!document.getElementById('standaloneInboxBtn')) {
             let inboxBtn = document.createElement('button');
             inboxBtn.id = 'standaloneInboxBtn';
-            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer; z-index: 900;';
+            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer; transition: transform 0.2s ease;';
             inboxBtn.innerHTML = '<i class="fas fa-envelope"></i><span id="standaloneInboxBadge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; width:14px; height:14px; border-radius:50%; border:2px solid #0f172a;"></span>';
             inboxBtn.onclick = () => this.openUserInbox();
             document.body.appendChild(inboxBtn);
@@ -1439,7 +1441,12 @@ class PremiumStore {
             if(anim.id === '0' || String(anim.isFree) === 'true') continue;
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
             let expected = StoreSecurity.generateLicenseKey(reqCode, anim.id);
-            if (inputCode === expected) { localStorage.setItem('unlocked_' + anim.id, 'true'); foundAnim = anim; break; }
+            if (inputCode === expected) { 
+                // نستخدم LocalStorage يدوي لكي لا يتم مسحه بالتزامن
+                localStorage.setItem('manual_unlock_' + anim.id, 'true'); 
+                foundAnim = anim; 
+                break; 
+            }
         }
         if(foundAnim) {
             inputField.value = '';
@@ -1483,15 +1490,16 @@ class PremiumStore {
         let mailHTML = myMail.length === 0 ? `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 Your inbox is empty.</div>` : 
             myMail.map((m, idx) => {
                 let isKey = m.msg.includes('VIP-');
-                let copyBtn = isKey ? `<button onclick="window.StoreApp.copyToClipboard('${m.msg.match(/VIP-[A-Z0-9]+-[A-Z0-9]+/)[0]}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;"><i class="far fa-copy"></i> Copy</button>` : '';
+                let displayMsg = m.msg.replace(/\n/g, '<br>'); // اصلاح الأسطر
+                let copyBtn = isKey ? `<button onclick="window.StoreApp.copyToClipboard('${m.msg.match(/VIP-[A-Z0-9]+-[A-Z0-9]+/)[0]}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; align-self:flex-start; margin-top:5px;"><i class="far fa-copy"></i> Copy</button>` : '';
                 return `
-                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(56, 189, 248, 0.2); padding:12px; border-radius:12px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                        <div style="font-size:24px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;">${m.icon || '💬'}</div>
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(56, 189, 248, 0.2); padding:12px; border-radius:12px; margin-bottom:10px; display:flex; align-items:flex-start; gap:10px;">
+                        <div style="font-size:24px; background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-top:2px;">${m.icon || '💬'}</div>
                         <div style="flex:1; text-align:left;">
-                            <div style="font-size:10px; color:var(--text-sub); margin-bottom:4px; font-weight:bold;">${StoreSecurity.formatCustomDate(m.timestamp)}</div>
-                            <div style="${isKey ? 'font-family:monospace; color:#10b981; font-size:13px;' : 'color:#e2e8f0; font-size:13px;'} font-weight:bold;">${m.msg}</div>
+                            <div style="font-size:10px; color:var(--text-sub); margin-bottom:6px; font-weight:bold;">${StoreSecurity.formatCustomDate(m.timestamp)}</div>
+                            <div style="${isKey ? 'color:#10b981; font-size:13px;' : 'color:#e2e8f0; font-size:13px;'} font-weight:500; line-height:1.5;">${displayMsg}</div>
+                            ${copyBtn}
                         </div>
-                        ${copyBtn}
                     </div>`;
             }).join('');
 
@@ -1538,10 +1546,8 @@ class PremiumStore {
             let isFreeStrict = (String(anim.isFree) === 'true' || anim.isFree === true);
             
             let isBuyer = anim.buyers && anim.buyers.some(b => b.reqCode === reqCode);
-            if (isBuyer) localStorage.setItem('unlocked_' + anim.id, 'true');
-            else localStorage.removeItem('unlocked_' + anim.id);
-
-            let isUnlocked = isFreeStrict || localStorage.getItem('unlocked_' + anim.id) === 'true';
+            let isManual = localStorage.getItem('manual_unlock_' + anim.id) === 'true'; // تفعيل التخزين اليدوي
+            let isUnlocked = isFreeStrict || isBuyer || isManual;
 
             let wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; position:relative;';
             let item = document.createElement('div'); item.className = 'studio-item'; 
@@ -1618,10 +1624,18 @@ class PremiumStore {
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div style="width:45px; height:45px; background:rgba(255,255,255,0.05); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; border:1px solid rgba(255,255,255,0.1);">${anim.icon}</div>
-                    <div><div style="font-size:14px; font-weight:bold; color:#fff;">Premium Effect</div><div style="font-size:16px; color:#10b981; font-weight:800;">${anim.price || '€1.00'}</div></div>
+                    <div>
+                        <div style="font-size:14px; font-weight:bold; color:#fff;">Premium Effect</div>
+                        <div style="font-size:16px; color:#10b981; font-weight:800;">${anim.price || '€1.00'}</div>
+                    </div>
                 </div>
                 <button onclick="window.StoreApp.closeStore()" style="background:transparent; border:none; color:var(--text-sub); font-size:16px; cursor:pointer;"><i class="fas fa-times"></i></button>
             </div>
+            
+            <div style="font-size:12px; color:#94a3b8; margin-bottom:15px; line-height:1.5; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #38bdf8;">
+                ${anim.desc || 'Premium visual effect to enhance your experience.'}
+            </div>
+
             <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:bold; text-transform:uppercase;">Your Request Code</div>
             <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin-bottom:15px;">
                 <span style="font-family:monospace; font-weight:bold; color:#e2e8f0; font-size:12px;">${reqCode}</span>
@@ -1654,8 +1668,8 @@ class PremiumStore {
                 <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
                     <span style="font-size:12px; color:#fff; display:flex; align-items:center; gap:6px;">${anim.icon} Effect #${anim.id}</span>
                     <div style="display:flex; gap:5px;">
-                        <button onclick="window.StoreApp.generateGiftKey('${anim.id}', '${user.baseId}', '${anim.icon}', this)" style="background:rgba(56, 189, 248, 0.2); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer;" title="Generate Gift Key">🎁</button>
-                        <button onclick="window.StoreApp.toggleUserAccessInline('${anim.id}', '${user.baseId}', '${user.name}', this)" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:75px; transition:0.2s;">
+                        <button onclick="window.StoreApp.generateGiftKey('${anim.id}', '${user.baseId}', '${anim.icon}', this)" style="background:rgba(56, 189, 248, 0.2); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer;" title="Copy Gift Code">🎁</button>
+                        <button onclick="window.StoreApp.toggleUserAccessInline('${anim.id}', '${anim.icon}', '${user.baseId}', '${user.name}', this)" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:75px; transition:0.2s;">
                             ${isActive ? '🟢 Active' : '🔴 Revoked'}
                         </button>
                     </div>
@@ -1667,11 +1681,11 @@ class PremiumStore {
                     <summary style="padding:12px; cursor:pointer; outline:none; display:flex; justify-content:space-between; align-items:center; user-select:none;">
                         <div style="text-align:left;">
                             <div style="color:#fff; font-size:13px; font-weight:bold;">👤 ${user.name}</div>
-                            <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">${user.baseId} • Joined: ${user.date}</div>
+                            <div style="color:var(--text-sub); font-size:9px; font-family:monospace; margin-top:2px;">${user.baseId}</div>
                         </div>
                     </summary>
                     <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.15);">
-                        <button onclick="window.StoreApp.adminSendMsg('${user.baseId}')" style="width:100%; margin-bottom:10px; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:8px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-paper-plane"></i> Send Message to User</button>
+                        <button onclick="window.StoreApp.adminSendMsg('${user.baseId}')" style="width:100%; margin-bottom:10px; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:8px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-paper-plane"></i> Message User</button>
                         ${itemsHTML || '<div style="font-size:10px; color:#64748b; text-align:center;">No paid effects available yet.</div>'}
                     </div>
                 </details>
@@ -1682,7 +1696,9 @@ class PremiumStore {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h3 style="color:#3b82f6; margin:0; font-size:16px;"><i class="fas fa-users-cog"></i> Global Users DB</h3>
             </div>
-            <div style="max-height:60vh; overflow-y:auto; padding-right:5px; margin-bottom:15px; text-align:left;" id="usersListContainer">
+            <button onclick="window.StoreApp.adminBroadcastMsg()" style="width:100%; margin-bottom:15px; background:rgba(59, 130, 246, 0.2); color:#3b82f6; border:1px solid rgba(59, 130, 246, 0.4); padding:10px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;"><i class="fas fa-bullhorn"></i> Send Message to ALL Users</button>
+            
+            <div style="max-height:50vh; overflow-y:auto; padding-right:5px; margin-bottom:15px; text-align:left;" id="usersListContainer">
                 ${listHTML || `<div style="color:var(--text-sub); font-size:11px; padding:20px; text-align:center;">No users registered yet.</div>`}
             </div>
             <button onclick="window.StoreApp.hideCustomModal(); window.StoreApp.renderAnimStore();" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
@@ -1692,7 +1708,7 @@ class PremiumStore {
     generateGiftKey(animId, userBaseId, icon, btnElement) {
         let reqCode = StoreSecurity.getRequestCode(userBaseId, animId);
         let key = StoreSecurity.generateLicenseKey(reqCode, animId);
-        let giftText = `Here is your Gift! 🎁\nEffect: ${icon} #${animId}\nLicense Key: ${key}`;
+        let giftText = `🎁 Here is your Gift!\nEffect: ${icon} #${animId}\nLicense Key: VIP-${key.split('-')[1]}-${key.split('-')[2]}`;
         
         navigator.clipboard.writeText(giftText).then(() => {
             let oldHTML = btnElement.innerHTML;
@@ -1701,7 +1717,7 @@ class PremiumStore {
         });
     }
 
-    async toggleUserAccessInline(animId, userBaseId, userName, btnElement) {
+    async toggleUserAccessInline(animId, animIcon, userBaseId, userName, btnElement) {
         btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         btnElement.style.pointerEvents = 'none';
         
@@ -1710,10 +1726,12 @@ class PremiumStore {
 
         try {
             let data = await StoreAPI.fetchCloudData();
+            let mailServer = data.find(x => x.id === 'mail_server');
+            if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
+
             let updated = data.map(x => {
                 if (x.id === animId) {
                     x.buyers = x.buyers || [];
-                    
                     let isBuyer = x.buyers.some(b => b.reqCode === reqCode);
                     if (isBuyer) {
                         x.buyers = x.buyers.filter(b => b.reqCode !== reqCode); 
@@ -1725,6 +1743,16 @@ class PremiumStore {
                 }
                 return x;
             });
+
+            // 🟢 إرسال إشعار التفعيل للمستخدم
+            let actionText = isActiveNow ? 'Activated 🟢' : 'Revoked 🔴';
+            mailServer.inbox.push({ 
+                to: userBaseId, 
+                msg: `Effect ${animIcon} #${animId} has been ${actionText}.\nPlease refresh your store.`, 
+                icon: isActiveNow ? '🟢' : '🔴', 
+                timestamp: Date.now() 
+            });
+
             await StoreAPI.updateCloudData(updated);
             
             btnElement.style.background = isActiveNow ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
@@ -1751,26 +1779,45 @@ class PremiumStore {
         } catch(e) { alert("❌ Error sending message."); }
     }
 
+    // 🟢 البث الجماعي للرسائل
+    async adminBroadcastMsg() {
+        let msg = prompt("Write broadcast message to ALL users:"); if(!msg) return;
+        try {
+            let data = await StoreAPI.fetchCloudData();
+            let registry = data.find(x => x.id === 'users_registry') || { users: [] };
+            let mailServer = data.find(x => x.id === 'mail_server'); 
+            if (!mailServer) { mailServer = { id: 'mail_server', inbox: [] }; data.push(mailServer); }
+            
+            registry.users.forEach(u => {
+                mailServer.inbox.push({ to: u.baseId, msg: msg, icon: '📢', timestamp: Date.now() });
+            });
+            
+            await StoreAPI.updateCloudData(data);
+            alert(`✅ Broadcast Sent to ${registry.users.length} users!`);
+        } catch(e) { alert("❌ Error sending broadcast."); }
+    }
+
     adminActionAdd() {
         this.stopAllEffects();
         this.showCustomModal(`
             <h3 style="color:#10b981; margin-bottom:15px;">Add Effect</h3>
             <div style="display:flex; gap:8px; margin-bottom:8px;"><input id="nIcon" placeholder="Icon 🍉" style="flex:1; width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px;"><input id="nId" placeholder="ID (e.g. 2)" style="flex:1; width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px;"></div>
             <div style="display:flex; gap:8px; margin-bottom:8px;"><input id="nPrice" placeholder="€1.00" value="€1.00" style="flex:1; width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px;"><select id="nFree" style="flex:1; width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:10px; border-radius:8px;"><option value="false">Paid 🔒</option><option value="true">Free 🆓</option></select></div>
-            <input id="nLink" placeholder="Payment Link" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center;">
-            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:8px;"></textarea>
-            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:12px;"></textarea>
+            <input id="nDesc" placeholder="Description (Effect details)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center; font-size:11px;">
+            <input id="nLink" placeholder="Payment Link" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; margin-bottom:8px; text-align:center; font-size:11px;">
+            <textarea id="nPlay" placeholder="Play Script" rows="2" style="width:100%; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:10px; border-radius:8px; margin-bottom:8px; font-size:11px;"></textarea>
+            <textarea id="nStop" placeholder="Stop Script" rows="2" style="width:100%; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; margin-bottom:12px; font-size:11px;"></textarea>
             <button onclick="window.StoreApp.executeAdminAdd()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px;">Deploy</button>
             <button onclick="window.StoreApp.hideCustomModal()" style="width:100%; background:transparent; color:var(--text-sub); border:none; font-weight:bold; padding:10px;">Cancel</button>
         `);
     }
 
     async executeAdminAdd() {
-        let i=document.getElementById('nIcon').value, id=document.getElementById('nId').value, pr=document.getElementById('nPrice').value, fr=document.getElementById('nFree').value==='true', lnk=document.getElementById('nLink').value, p=document.getElementById('nPlay').value, s=document.getElementById('nStop').value;
+        let i=document.getElementById('nIcon').value, id=document.getElementById('nId').value, pr=document.getElementById('nPrice').value, fr=document.getElementById('nFree').value==='true', d=document.getElementById('nDesc').value, lnk=document.getElementById('nLink').value, p=document.getElementById('nPlay').value, s=document.getElementById('nStop').value;
         if(!i||!id) return; this.hideCustomModal(); 
         let data = await StoreAPI.fetchCloudData();
         let filtered = data.filter(x => x.id !== id && x.id !== "empty");
-        filtered.push({ icon: i, id: id, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s, buyers: [], blacklist: [] });
+        filtered.push({ icon: i, id: id, price: pr, isFree: fr, desc: d, buyLink: lnk, playScript: p, stopScript: s, buyers: [], blacklist: [] });
         await StoreAPI.updateCloudData(filtered);
         this.renderAnimStore();
     }
@@ -1781,19 +1828,20 @@ class PremiumStore {
             <h3 style="color:#3b82f6; margin-bottom:12px;">✏️ Edit Effect #${anim.id}</h3>
             <div style="display:flex; gap:8px; margin-bottom:8px;"><input id="eIcon" value="${anim.icon}" style="flex:1; width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px;"><input id="eId" value="${anim.id}" readonly style="flex:1; width:100%; background:rgba(0,0,0,0.1); border:1px solid rgba(255,255,255,0.05); color:var(--text-sub); padding:8px; border-radius:8px;"></div>
             <div style="display:flex; gap:8px; margin-bottom:8px;"><input id="ePrice" value="${anim.price || '€1.00'}" style="flex:1; width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px;"><select id="eFree" style="flex:1; width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:8px; border-radius:8px;"><option value="false" ${isPd}>Paid 🔒</option><option value="true" ${isFr}>Free 🆓</option></select></div>
-            <input id="eLink" value="${anim.buyLink || StoreConfig.STRIPE_LINK}" placeholder="Payment Link" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; margin-bottom:8px; text-align:center;">
-            <textarea id="ePlay" style="width:100%; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:8px; height:60px;">${anim.playScript}</textarea>
-            <textarea id="eStop" style="width:100%; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:12px; height:50px;">${anim.stopScript}</textarea>
+            <input id="eDesc" value="${anim.desc || ''}" placeholder="Description" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; margin-bottom:8px; text-align:center; font-size:11px;">
+            <input id="eLink" value="${anim.buyLink || StoreConfig.STRIPE_LINK}" placeholder="Payment Link" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; margin-bottom:8px; text-align:center; font-size:11px;">
+            <textarea id="ePlay" style="width:100%; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:8px; height:60px; font-size:11px;">${anim.playScript}</textarea>
+            <textarea id="eStop" style="width:100%; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:12px; height:50px; font-size:11px;">${anim.stopScript}</textarea>
             <button onclick="window.StoreApp.executeAdminEdit('${anim.id}')" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:6px;">Update</button>
             <button onclick="window.StoreApp.hideCustomModal()" style="width:100%; background:transparent; color:var(--text-sub); border:none; font-weight:bold; padding:10px;">Cancel</button>
         `);
     }
 
     async executeAdminEdit(targetId) {
-        let i=document.getElementById('eIcon').value, pr=document.getElementById('ePrice').value, fr=document.getElementById('eFree').value==='true', lnk=document.getElementById('eLink').value, p=document.getElementById('ePlay').value, s=document.getElementById('eStop').value;
+        let i=document.getElementById('eIcon').value, pr=document.getElementById('ePrice').value, fr=document.getElementById('eFree').value==='true', d=document.getElementById('eDesc').value, lnk=document.getElementById('eLink').value, p=document.getElementById('ePlay').value, s=document.getElementById('eStop').value;
         this.hideCustomModal(); 
         let data = await StoreAPI.fetchCloudData();
-        let updated = data.map(x => x.id === targetId ? { ...x, icon: i, price: pr, isFree: fr, buyLink: lnk, playScript: p, stopScript: s, deleted: false } : x);
+        let updated = data.map(x => x.id === targetId ? { ...x, icon: i, price: pr, isFree: fr, desc: d, buyLink: lnk, playScript: p, stopScript: s, deleted: false } : x);
         await StoreAPI.updateCloudData(updated);
         this.renderAnimStore();
     }
@@ -1848,8 +1896,8 @@ window.onload = () => {
             if (originalSaveNote) originalSaveNote();
         };
     }
-};
-
+};       
+                        
 
 
 
