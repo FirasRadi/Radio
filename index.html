@@ -1174,11 +1174,7 @@
 
 
 // ===================================================
-
-        
- /**
- * 🚀 Premium Store Manager - CRM & User-Centric Edition (v5.0 - Ultimate Fixes)
- */
+                        
 
 const StoreConfig = {
     BIN_ID: "6a821a3ada38895dfeec6ddc",
@@ -1306,7 +1302,7 @@ class PremiumStore {
         let mailServer = data.find(x => x.id === 'mail_server');
         if (!mailServer) return;
 
-        let msgText = action === 'radio' ? `Joined Radio:\nName: ${this.userName}\nTG ID: ${this.tgId}\nBase: ${this.baseId}` : `Opened Store:\nName: ${this.userName}\nTG ID: ${this.tgId}\nBase: ${this.baseId}`;
+        let msgText = action === 'radio' ? `Joined Radio:\nName: ${this.userName}\nTG: ${this.tgId}` : `Opened Store:\nName: ${this.userName}\nTG: ${this.tgId}`;
         let iconType = action === 'radio' ? '📻' : '💎';
         
         mailServer.inbox.push({
@@ -1325,12 +1321,14 @@ class PremiumStore {
         if (!document.getElementById('store-core-styles')) {
             let style = document.createElement('style');
             style.id = 'store-core-styles';
-            // Z-index hierarchy fixes: Inbox icon stays below sheets!
             style.innerHTML = `
                 * { -webkit-tap-highlight-color: transparent !important; outline: none !important; }
                 .h-scroll::-webkit-scrollbar { display: none; } .h-scroll { -ms-overflow-style: none; scrollbar-width: none; }
                 details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }
                 .active-anim-glow { border: 2px solid #eab308 !important; box-shadow: 0 0 15px rgba(234, 179, 8, 0.4), inset 0 0 10px rgba(234, 179, 8, 0.2) !important; background: rgba(234, 179, 8, 0.1) !important; }
+                
+                .store-btn-pulse { border: 1px solid #ef4444 !important; border-radius: 50% !important; animation: pulseRed 1.5s infinite; }
+                @keyframes pulseRed { 0% { box-shadow: 0 0 5px rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 15px rgba(239,68,68,0.9); } 100% { box-shadow: 0 0 5px rgba(239,68,68,0.4); } }
                 
                 #standaloneInboxBtn { z-index: 100 !important; }
                 .sheet-overlay { z-index: 9990 !important; }
@@ -1368,7 +1366,8 @@ class PremiumStore {
 
         let headerRight = document.querySelector('.header-right');
         if (headerRight && !document.getElementById('proStoreBtnKey')) {
-            let storeBtn = document.createElement('button'); storeBtn.id = 'proStoreBtnKey'; storeBtn.className = 'icon-btn';
+            let storeBtn = document.createElement('button'); storeBtn.id = 'proStoreBtnKey'; 
+            storeBtn.className = 'icon-btn store-btn-pulse';
             storeBtn.innerHTML = '<i class="fas fa-gem"></i>'; storeBtn.style.color = '#f59e0b';
             storeBtn.onclick = () => { 
                 this.notifyActivity('store'); 
@@ -1382,7 +1381,7 @@ class PremiumStore {
         if (!document.getElementById('standaloneInboxBtn')) {
             let inboxBtn = document.createElement('button');
             inboxBtn.id = 'standaloneInboxBtn';
-            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer; transition: transform 0.2s ease;';
+            inboxBtn.style.cssText = 'position:fixed; left:20px; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 15px rgba(0,0,0,0.6); backdrop-filter:blur(5px); cursor:pointer;';
             inboxBtn.innerHTML = '<i class="fas fa-envelope"></i><span id="standaloneInboxBadge" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; width:14px; height:14px; border-radius:50%; border:2px solid #0f172a;"></span>';
             inboxBtn.onclick = () => this.openUserInbox();
             document.body.appendChild(inboxBtn);
@@ -1442,7 +1441,6 @@ class PremiumStore {
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
             let expected = StoreSecurity.generateLicenseKey(reqCode, anim.id);
             if (inputCode === expected) { 
-                // نستخدم LocalStorage يدوي لكي لا يتم مسحه بالتزامن
                 localStorage.setItem('manual_unlock_' + anim.id, 'true'); 
                 foundAnim = anim; 
                 break; 
@@ -1481,7 +1479,6 @@ class PremiumStore {
         let clearedAt = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
         myMail = myMail.filter(m => m.timestamp > clearedAt);
         
-        // Sorting Newest on Top
         myMail.sort((a, b) => b.timestamp - a.timestamp);
         
         localStorage.setItem('read_mail_count_' + this.baseId, myMail.length);
@@ -1490,7 +1487,7 @@ class PremiumStore {
         let mailHTML = myMail.length === 0 ? `<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">📭 Your inbox is empty.</div>` : 
             myMail.map((m, idx) => {
                 let isKey = m.msg.includes('VIP-');
-                let displayMsg = m.msg.replace(/\n/g, '<br>'); // اصلاح الأسطر
+                let displayMsg = m.msg.replace(/\n/g, '<br>'); 
                 let copyBtn = isKey ? `<button onclick="window.StoreApp.copyToClipboard('${m.msg.match(/VIP-[A-Z0-9]+-[A-Z0-9]+/)[0]}', 'cpyMail${idx}')" id="cpyMail${idx}" style="background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; align-self:flex-start; margin-top:5px;"><i class="far fa-copy"></i> Copy</button>` : '';
                 return `
                     <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(56, 189, 248, 0.2); padding:12px; border-radius:12px; margin-bottom:10px; display:flex; align-items:flex-start; gap:10px;">
@@ -1545,11 +1542,17 @@ class PremiumStore {
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
             let isFreeStrict = (String(anim.isFree) === 'true' || anim.isFree === true);
             
-            let isBuyer = anim.buyers && anim.buyers.some(b => b.reqCode === reqCode);
-            let isManual = localStorage.getItem('manual_unlock_' + anim.id) === 'true'; // تفعيل التخزين اليدوي
+            // Sync check using baseId directly to avoid reqCode regeneration bugs
+            let isBuyer = anim.buyers && anim.buyers.some(b => b.baseId === this.baseId || b.reqCode === reqCode);
+            let isManual = localStorage.getItem('manual_unlock_' + anim.id) === 'true'; 
             let isUnlocked = isFreeStrict || isBuyer || isManual;
 
             let wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; position:relative;';
+            
+            let idLabel = document.createElement('div');
+            idLabel.innerText = `#${anim.id}`;
+            idLabel.style.cssText = `font-size:10px; font-weight:bold; color:var(--text-sub); margin-bottom:-2px;`;
+
             let item = document.createElement('div'); item.className = 'studio-item'; 
             let baseStyles = `display:flex; align-items:center; justify-content:center; font-size:30px; transition: 0.3s ease; cursor:pointer; margin:0; width:60px; height:60px; border-radius:18px; position:relative;`;
             
@@ -1571,7 +1574,7 @@ class PremiumStore {
             priceLabel.style.cssText = `font-size:10px; font-weight:800; color:${isUnlocked || isFreeStrict ? '#10b981' : 'var(--text-sub)'}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:10px;`;
 
             item.onclick = () => this.handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode);
-            wrapper.append(item, priceLabel); grid.appendChild(wrapper);
+            wrapper.append(idLabel, item, priceLabel); grid.appendChild(wrapper);
         });
     }
 
@@ -1625,22 +1628,17 @@ class PremiumStore {
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div style="width:45px; height:45px; background:rgba(255,255,255,0.05); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; border:1px solid rgba(255,255,255,0.1);">${anim.icon}</div>
                     <div>
-                        <div style="font-size:14px; font-weight:bold; color:#fff;">Premium Effect</div>
+                        <div style="font-size:14px; font-weight:bold; color:#fff;">Premium Effect #${anim.id}</div>
                         <div style="font-size:16px; color:#10b981; font-weight:800;">${anim.price || '€1.00'}</div>
                     </div>
                 </div>
                 <button onclick="window.StoreApp.closeStore()" style="background:transparent; border:none; color:var(--text-sub); font-size:16px; cursor:pointer;"><i class="fas fa-times"></i></button>
             </div>
             
-            <div style="font-size:12px; color:#94a3b8; margin-bottom:15px; line-height:1.5; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #38bdf8;">
+            <div style="font-size:12px; color:#94a3b8; margin-bottom:20px; line-height:1.5; background:rgba(0,0,0,0.2); padding:12px; border-radius:8px; border-left:3px solid #38bdf8;">
                 ${anim.desc || 'Premium visual effect to enhance your experience.'}
             </div>
 
-            <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:bold; text-transform:uppercase;">Your Request Code</div>
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin-bottom:15px;">
-                <span style="font-family:monospace; font-weight:bold; color:#e2e8f0; font-size:12px;">${reqCode}</span>
-                <button onclick="window.StoreApp.copyToClipboard('${reqCode}', 'chkCopyBtn')" id="chkCopyBtn" style="background:transparent; color:#38bdf8; border:none; font-size:14px; cursor:pointer;"><i class="far fa-copy"></i></button>
-            </div>
             <div style="display:flex; gap:10px; margin-bottom:15px;">
                 <button onclick="window.open('${anim.buyLink || StoreConfig.STRIPE_LINK}', '_blank')" style="flex:1; padding:10px; border-radius:10px; background:#fff; color:#0f172a; border:none; font-weight:bold; cursor:pointer;"><i class="fas fa-credit-card"></i> Pay</button>
                 <button onclick="let u='${directChatUrl}'; typeof tg !== 'undefined'&&tg.openTelegramLink ? tg.openTelegramLink(u) : window.open(u,'_blank');" style="flex:1; padding:10px; border-radius:10px; background:rgba(56, 189, 248, 0.1); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.2); font-weight:bold; cursor:pointer;"><i class="fab fa-telegram-plane"></i> Send Request</button>
@@ -1662,7 +1660,7 @@ class PremiumStore {
             let itemsHTML = animsList.map(anim => {
                 let reqCode = StoreSecurity.getRequestCode(user.baseId, anim.id);
                 let dbAnim = data.find(x => x.id === anim.id) || anim;
-                let isActive = dbAnim.buyers && dbAnim.buyers.some(b => b.reqCode === reqCode);
+                let isActive = dbAnim.buyers && dbAnim.buyers.some(b => b.baseId === user.baseId || b.reqCode === reqCode);
                 
                 return `
                 <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
@@ -1697,7 +1695,6 @@ class PremiumStore {
                 <h3 style="color:#3b82f6; margin:0; font-size:16px;"><i class="fas fa-users-cog"></i> Global Users DB</h3>
             </div>
             <button onclick="window.StoreApp.adminBroadcastMsg()" style="width:100%; margin-bottom:15px; background:rgba(59, 130, 246, 0.2); color:#3b82f6; border:1px solid rgba(59, 130, 246, 0.4); padding:10px; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer;"><i class="fas fa-bullhorn"></i> Send Message to ALL Users</button>
-            
             <div style="max-height:50vh; overflow-y:auto; padding-right:5px; margin-bottom:15px; text-align:left;" id="usersListContainer">
                 ${listHTML || `<div style="color:var(--text-sub); font-size:11px; padding:20px; text-align:center;">No users registered yet.</div>`}
             </div>
@@ -1732,19 +1729,18 @@ class PremiumStore {
             let updated = data.map(x => {
                 if (x.id === animId) {
                     x.buyers = x.buyers || [];
-                    let isBuyer = x.buyers.some(b => b.reqCode === reqCode);
+                    let isBuyer = x.buyers.some(b => b.baseId === userBaseId || b.reqCode === reqCode);
                     if (isBuyer) {
-                        x.buyers = x.buyers.filter(b => b.reqCode !== reqCode); 
+                        x.buyers = x.buyers.filter(b => b.baseId !== userBaseId && b.reqCode !== reqCode); 
                         isActiveNow = false;
                     } else {
-                        x.buyers.push({ reqCode: reqCode, name: userName }); 
+                        x.buyers.push({ reqCode: reqCode, baseId: userBaseId, name: userName }); 
                         isActiveNow = true;
                     }
                 }
                 return x;
             });
 
-            // 🟢 إرسال إشعار التفعيل للمستخدم
             let actionText = isActiveNow ? 'Activated 🟢' : 'Revoked 🔴';
             mailServer.inbox.push({ 
                 to: userBaseId, 
@@ -1779,7 +1775,6 @@ class PremiumStore {
         } catch(e) { alert("❌ Error sending message."); }
     }
 
-    // 🟢 البث الجماعي للرسائل
     async adminBroadcastMsg() {
         let msg = prompt("Write broadcast message to ALL users:"); if(!msg) return;
         try {
@@ -1896,12 +1891,13 @@ window.onload = () => {
             if (originalSaveNote) originalSaveNote();
         };
     }
-};       
-                        
+};
 
 
 
-        
+
+
+
 
         
 // ======================================================
