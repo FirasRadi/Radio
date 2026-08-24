@@ -1700,31 +1700,47 @@ async globalRedeemAction() {
         this.checkoutSheet.classList.add('open'); this.overlay.classList.add('open');
     }
 
-    async adminShowUsers() {
+
+async adminShowUsers() {
         this.showCustomModal('<div style="color:#f59e0b; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading Users...</div>');
         
         let data = await StoreAPI.fetchCloudData();
         let registry = data.find(x => x.id === 'users_registry') || { users: [] };
-        let animsList = this.state.currentAllAnims.filter(a => String(a.id) !== '0' && String(a.isFree) !== 'true'); 
+        
+        // جلب كل التأثيرات (ما عدا تأثير الإيقاف رقم 0)
+        let animsList = this.state.currentAllAnims.filter(a => String(a.id) !== '0'); 
         
         let listHTML = '';
         registry.users.reverse().forEach(user => {
             let itemsHTML = animsList.map(anim => {
                 let reqCode = StoreSecurity.getRequestCode(user.baseId, anim.id);
                 let dbAnim = data.find(x => String(x.id) === String(anim.id)) || anim;
+                
+                let isFreeStrict = (String(anim.isFree) === 'true' || anim.isFree === true);
                 let isActive = dbAnim.buyers && dbAnim.buyers.some(b => String(b.baseId) === String(user.baseId) || String(b.reqCode) === String(reqCode));
                 
                 let safeIcon = anim.icon ? anim.icon.replace(/'/g, "\\'") : '';
                 let safeName = user.name ? user.name.replace(/'/g, "\\'") : 'User';
 
-                return `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
-                    <span style="font-size:12px; color:#fff; display:flex; align-items:center; gap:6px;">${anim.icon} Effect #${anim.id}</span>
-                    <div style="display:flex; gap:5px;">
+                let actionButtonsHTML = '';
+                
+                // 🟢 إذا كان التأثير مجاني، نعرض شارة (Free) ثابتة، وإذا مدفوع نعرض أزرار التفعيل
+                if (isFreeStrict) {
+                    actionButtonsHTML = `<span style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:4px 12px; border-radius:6px; font-size:11px; font-weight:bold; text-align:center; min-width:60px;">🆓 Free</span>`;
+                } else {
+                    actionButtonsHTML = `
                         <button onclick="window.StoreApp.generateGiftKey('${anim.id}', '${user.baseId}', '${safeIcon}', this)" style="background:rgba(56, 189, 248, 0.2); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer;" title="Copy Gift Code">🎁</button>
                         <button onclick="window.StoreApp.toggleUserAccessInline('${anim.id}', '${safeIcon}', '${user.baseId}', '${safeName}', this)" style="background:${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isActive ? '#10b981' : '#ef4444'}; border:1px solid ${isActive ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; padding:6px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; width:75px; transition:0.2s;">
                             ${isActive ? '🟢 Active' : '🔴 Revoked'}
                         </button>
+                    `;
+                }
+
+                return `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:5px;">
+                    <span style="font-size:12px; color:#fff; display:flex; align-items:center; gap:6px;">${anim.icon} Effect #${anim.id}</span>
+                    <div style="display:flex; gap:5px;">
+                        ${actionButtonsHTML}
                     </div>
                 </div>`;
             }).join('');
@@ -1739,7 +1755,7 @@ async globalRedeemAction() {
                     </summary>
                     <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.15);">
                         <button onclick="window.StoreApp.adminSendMsg('${user.baseId}')" style="width:100%; margin-bottom:10px; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:8px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-paper-plane"></i> Message User</button>
-                        ${itemsHTML || '<div style="font-size:10px; color:#64748b; text-align:center;">No paid effects available yet.</div>'}
+                        ${itemsHTML || '<div style="font-size:10px; color:#64748b; text-align:center;">No effects available yet.</div>'}
                     </div>
                 </details>
             `;
@@ -1756,6 +1772,9 @@ async globalRedeemAction() {
             <button onclick="window.StoreApp.hideCustomModal(); window.StoreApp.renderAnimStore();" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
         `);
     }
+
+
+    
 
     generateGiftKey(animId, userBaseId, icon, btnElement) {
         let reqCode = StoreSecurity.getRequestCode(userBaseId, animId);
