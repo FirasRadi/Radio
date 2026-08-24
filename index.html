@@ -1450,10 +1450,20 @@ class PremiumStore {
         if (this.sheet.classList.contains('open')) this.renderAnimStore(); 
     }
 
-    globalRedeemAction() {
+
+
+async globalRedeemAction() {
         let inputField = document.getElementById('globalRedeemInput'); let inputCode = inputField.value.trim().toUpperCase();
         if(!inputCode) return;
+        
+        let redeemBtn = inputField.nextElementSibling;
+        let oldBtnText = redeemBtn.innerHTML;
+        redeemBtn.innerHTML = '⏳...'; 
+        redeemBtn.style.pointerEvents = 'none';
+
         let foundAnim = null;
+        let validReqCode = '';
+
         for(let anim of this.state.currentAllAnims) {
             if(String(anim.id) === '0' || String(anim.isFree) === 'true') continue;
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
@@ -1461,16 +1471,40 @@ class PremiumStore {
             if (inputCode === expected) { 
                 localStorage.setItem('manual_unlock_' + anim.id, 'true'); 
                 foundAnim = anim; 
+                validReqCode = reqCode;
                 break; 
             }
         }
+
         if(foundAnim) {
+            let data = await StoreAPI.fetchCloudData();
+            let updated = data.map(x => {
+                if (String(x.id) === String(foundAnim.id)) {
+                    x.buyers = x.buyers || [];
+                    let isAlreadyBuyer = x.buyers.some(b => String(b.baseId) === String(this.baseId));
+                    if (!isAlreadyBuyer) {
+                        x.buyers.push({ reqCode: validReqCode, baseId: this.baseId, name: this.userName });
+                    }
+                }
+                return x;
+            });
+            await StoreAPI.updateCloudData(updated);
+
             inputField.value = '';
-            alert(`✅ Activated! Effect #${foundAnim.id} is now PERMANENTLY UNLOCKED.`); this.renderAnimStore();
+            redeemBtn.innerHTML = oldBtnText;
+            redeemBtn.style.pointerEvents = 'auto';
+            alert(`✅ Activated! Effect #${foundAnim.id} is now PERMANENTLY UNLOCKED.`); 
+            this.renderAnimStore();
         } else {
-            inputField.style.border = '1px solid #ef4444'; inputField.style.color = '#ef4444'; setTimeout(()=> { inputField.style.border = 'none'; inputField.style.color = '#10b981'; }, 1000); alert('❌ Invalid License Key!');
+            redeemBtn.innerHTML = oldBtnText;
+            redeemBtn.style.pointerEvents = 'auto';
+            inputField.style.border = '1px solid #ef4444'; inputField.style.color = '#ef4444'; 
+            setTimeout(()=> { inputField.style.border = 'none'; inputField.style.color = '#10b981'; }, 1000); 
+            alert('❌ Invalid License Key!');
         }
     }
+
+    
 
     updateInboxBadge(data) {
         let badge = document.getElementById('standaloneInboxBadge');
