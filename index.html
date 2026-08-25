@@ -2057,10 +2057,23 @@ window.onload = () => {
         }
 
         // 4. وضع ختم مسح البريد لتصفير الصندوق ومنع عودة الرسائل القديمة
+        
+
+
+// 4. وضع ختم مسح البريد للمستخدم العادي وللأدمن أيضاً 🧹
         if (myBaseId) {
             localStorage.setItem('inbox_cleared_at_' + myBaseId, wipeTime);
             localStorage.setItem('read_mail_count_' + myBaseId, '0');
         }
+
+        // 🟢 تصفير ومسح رسائل إشعارات الأدمن
+        let adminTgId = 'TG-5350129816';
+        localStorage.setItem('inbox_cleared_at_' + adminTgId, wipeTime);
+        localStorage.setItem('read_mail_count_' + adminTgId, '0');
+
+        
+
+        
 
         window.location.reload();
     };
