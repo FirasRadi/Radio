@@ -1504,19 +1504,32 @@ async globalRedeemAction() {
         }
     }
 
-    
 
-    updateInboxBadge(data) {
+
+
+
+
+
+
+updateInboxBadge(data) {
         let badge = document.getElementById('standaloneInboxBadge');
         if (!badge) return;
         let isAdmin = !!StoreAPI.getMasterKey();
         let adminTgId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
         let mailServer = data.find(x => x.id === 'mail_server') || { inbox: [] };
         
-        let clearedAt = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
-        let newMail = mailServer.inbox.filter(m => (m.to === this.baseId || (isAdmin && m.to === adminTgId)) && m.timestamp > clearedAt);
-        let readCount = parseInt(localStorage.getItem('read_mail_count_' + this.baseId) || '0');
+        let regularCleared = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
+        let adminCleared = parseInt(localStorage.getItem('admin_cleared_at_' + this.baseId) || '0');
         
+        let newMail = mailServer.inbox.filter(m => {
+            if (m.to !== this.baseId && !(isAdmin && m.to === adminTgId)) return false;
+            // فصل الإشعارات الإدارية عن العادية
+            let isAdminMsg = ['📻', '💎', '👤'].includes(m.icon);
+            let clearedAt = isAdminMsg ? adminCleared : regularCleared;
+            return m.timestamp > clearedAt;
+        });
+        
+        let readCount = parseInt(localStorage.getItem('read_mail_count_' + this.baseId) || '0');
         badge.style.display = (newMail.length > readCount) ? 'block' : 'none';
     }
 
@@ -1527,12 +1540,17 @@ async globalRedeemAction() {
         let data = await StoreAPI.fetchCloudData();
         this.state.mailServerData = data.find(x => x.id === 'mail_server') || { inbox: [] };
 
-        let myMail = this.state.mailServerData.inbox.filter(m => m.to === this.baseId || (isAdmin && m.to === adminTgId));
-        let clearedAt = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
-        myMail = myMail.filter(m => m.timestamp > clearedAt);
+        let regularCleared = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
+        let adminCleared = parseInt(localStorage.getItem('admin_cleared_at_' + this.baseId) || '0');
+
+        let myMail = this.state.mailServerData.inbox.filter(m => {
+            if (m.to !== this.baseId && !(isAdmin && m.to === adminTgId)) return false;
+            let isAdminMsg = ['📻', '💎', '👤'].includes(m.icon);
+            let clearedAt = isAdminMsg ? adminCleared : regularCleared;
+            return m.timestamp > clearedAt;
+        });
         
         myMail.sort((a, b) => b.timestamp - a.timestamp);
-        
         localStorage.setItem('read_mail_count_' + this.baseId, myMail.length);
         document.getElementById('standaloneInboxBadge').style.display = 'none';
 
@@ -1552,16 +1570,28 @@ async globalRedeemAction() {
                     </div>`;
             }).join('');
 
+        // زر الحذف داخل البريد يتصرف أيضاً بذكاء حسب الدخول
+        let cleanAction = isAdmin ? `localStorage.setItem('admin_cleared_at_${this.baseId}', Date.now());` : `localStorage.setItem('inbox_cleared_at_${this.baseId}', Date.now());`;
+
         this.showCustomModal(`
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h3 style="color:#38bdf8; margin:0; font-size:16px;"><i class="fas fa-envelope"></i> Inbox</h3>
-                <button onclick="if(confirm('Clear inbox?')){localStorage.setItem('inbox_cleared_at_${this.baseId}', Date.now()); window.StoreApp.openUserInbox();}" style="background:rgba(239,68,68,0.1); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;"><i class="fas fa-trash"></i> Clear</button>
+                <button onclick="if(confirm('Clear inbox?')){${cleanAction} window.StoreApp.openUserInbox();}" style="background:rgba(239,68,68,0.1); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;"><i class="fas fa-trash"></i> Clear</button>
             </div>
             <div style="max-height:50vh; overflow-y:auto; padding-right:5px; margin-bottom:15px;">${mailHTML}</div>
             <button onclick="window.StoreApp.hideCustomModal()" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
         `);
     }
+    
 
+    
+
+
+
+
+
+
+    
     async renderAnimStore() {
         let isAdmin = !!StoreAPI.getMasterKey();
         let grid = document.getElementById('animStoreGrid');
