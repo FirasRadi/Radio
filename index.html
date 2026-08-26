@@ -2061,16 +2061,19 @@ window.onload = () => {
 
 
 // 4. وضع ختم مسح البريد للمستخدم العادي وللأدمن أيضاً 🧹
+        // 4. وضع ختم مسح البريد للمستخدم العادي
         if (myBaseId) {
             localStorage.setItem('inbox_cleared_at_' + myBaseId, wipeTime);
             localStorage.setItem('read_mail_count_' + myBaseId, '0');
         }
 
-        // 🟢 تصفير ومسح رسائل إشعارات الأدمن
-        let adminTgId = 'TG-5350129816';
-        localStorage.setItem('inbox_cleared_at_' + adminTgId, wipeTime);
-        localStorage.setItem('read_mail_count_' + adminTgId, '0');
-
+        // 🟢 مسح بريد الأدمن فقط وفقط إذا كان مسجل دخول كأدمن حالياً!
+        let isAdminLoggedIn = !!localStorage.getItem('my_master_key');
+        if (isAdminLoggedIn) {
+            let adminTgId = 'TG-5350129816';
+            localStorage.setItem('inbox_cleared_at_' + adminTgId, wipeTime);
+            localStorage.setItem('read_mail_count_' + adminTgId, '0');
+        }
         
 
         
