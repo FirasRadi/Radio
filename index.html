@@ -1523,8 +1523,11 @@ updateInboxBadge(data) {
         
         let newMail = mailServer.inbox.filter(m => {
             if (m.to !== this.baseId && !(isAdmin && m.to === adminTgId)) return false;
-            // فصل الإشعارات الإدارية عن العادية
-            let isAdminMsg = ['📻', '💎', '👤'].includes(m.icon);
+            
+            // فلترة دقيقة لمعرفة نوع الرسالة
+            let adminIcons = ['📻', '💎', '👤'];
+            let isAdminMsg = adminIcons.some(ic => m.icon && m.icon.includes(ic));
+            
             let clearedAt = isAdminMsg ? adminCleared : regularCleared;
             return m.timestamp > clearedAt;
         });
@@ -1545,7 +1548,11 @@ updateInboxBadge(data) {
 
         let myMail = this.state.mailServerData.inbox.filter(m => {
             if (m.to !== this.baseId && !(isAdmin && m.to === adminTgId)) return false;
-            let isAdminMsg = ['📻', '💎', '👤'].includes(m.icon);
+            
+            // فلترة دقيقة لمعرفة نوع الرسالة
+            let adminIcons = ['📻', '💎', '👤'];
+            let isAdminMsg = adminIcons.some(ic => m.icon && m.icon.includes(ic));
+            
             let clearedAt = isAdminMsg ? adminCleared : regularCleared;
             return m.timestamp > clearedAt;
         });
@@ -1570,8 +1577,8 @@ updateInboxBadge(data) {
                     </div>`;
             }).join('');
 
-        // زر الحذف داخل البريد يتصرف أيضاً بذكاء حسب الدخول
-        let cleanAction = isAdmin ? `localStorage.setItem('admin_cleared_at_${this.baseId}', Date.now());` : `localStorage.setItem('inbox_cleared_at_${this.baseId}', Date.now());`;
+        // 🟢 زر المسح داخل البريد يتبع نفس قاعدة "دخول الحمام مو متل خروجه"
+        let cleanAction = isAdmin ? `localStorage.setItem('admin_cleared_at_${this.baseId}', Date.now().toString());` : `localStorage.setItem('inbox_cleared_at_${this.baseId}', Date.now().toString());`;
 
         this.showCustomModal(`
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -1582,6 +1589,7 @@ updateInboxBadge(data) {
             <button onclick="window.StoreApp.hideCustomModal()" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
         `);
     }
+    
     
 
     
@@ -2006,9 +2014,8 @@ window.onload = () => {
 // ======================================================
 // 🧹 المكنسة السرية (10 نقرات متتالية سريعة)
 // ======================================================
-
 // ======================================================
-// 🧹 Secret Wipe (10 Fast Taps) - Dual Mode (Admin / Regular)
+// 🧹 Secret Wipe (10 Fast Taps) - Strict Dual Role Mode
 // ======================================================
 (function initSecretTapWipe() {
     let wipeOverlay = document.createElement('div');
@@ -2044,50 +2051,38 @@ window.onload = () => {
         setTimeout(() => { wipeModal.style.visibility = 'hidden'; wipeOverlay.style.visibility = 'hidden'; }, 300);
     };
 
-    wipeOverlay.onclick = (e) => {
-        if (isModalSafeToClose && e.target === wipeOverlay) hideWipeModal();
-    };
-    
+    wipeOverlay.onclick = (e) => { if (isModalSafeToClose && e.target === wipeOverlay) hideWipeModal(); };
     document.getElementById('cancelWipeBtn').onclick = hideWipeModal;
 
-    // 🟢 الكنس الذكي المنفصل
+    // 🟢 عملية المسح المفصولة تماماً
     document.getElementById('confirmWipeBtn').onclick = () => {
-        let myBaseId = localStorage.getItem('my_base_id');
-        let isMasterActive = !!localStorage.getItem('my_master_key');
-        let wipeTime = Date.now();
+        // نضمن جلب الـ ID الدقيق الخاص بالمتجر
+        let myBaseId = window.StoreAppInstance ? window.StoreAppInstance.baseId : localStorage.getItem('my_base_id');
+        let isMaster = !!localStorage.getItem('my_master_key');
+        let wipeTime = Date.now().toString();
 
-        // 1. حماية بيانات المتجر والمفاتيح وأختام الزمن
-        let preservedData = {};
+        // 1. حماية البيانات المهمة
+        let backup = {};
         for (let i = 0; i < localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if (
-                key.startsWith('unlocked_') || 
-                key.startsWith('manual_unlock_') || 
-                key === 'my_base_id' || 
-                key === 'my_master_key' ||
-                key.startsWith('cloud_registered_') ||
-                key.startsWith('inbox_cleared_at_') ||
-                key.startsWith('admin_cleared_at_')
-            ) {
-                preservedData[key] = localStorage.getItem(key);
+            let k = localStorage.key(i);
+            if (k.includes('unlock') || k.includes('my_base_id') || k.includes('my_master_key') || k.includes('cloud_registered_') || k.includes('cleared_at_') || k.includes('read_mail_count_')) {
+                backup[k] = localStorage.getItem(k);
             }
         }
 
-        // 2. تصفير البريد حسب حالة تسجيل الدخول
+        // 2. تحديث ختم الحذف حسب الصلاحية فقط!
         if (myBaseId) {
-            if (isMasterActive) {
-                preservedData['admin_cleared_at_' + myBaseId] = wipeTime; // مسح بريد الأدمن
+            if (isMaster) {
+                backup['admin_cleared_at_' + myBaseId] = wipeTime; // مسح إشعارات الأدمن
             } else {
-                preservedData['inbox_cleared_at_' + myBaseId] = wipeTime; // مسح البريد العادي
+                backup['inbox_cleared_at_' + myBaseId] = wipeTime; // مسح البريد العادي
             }
-            preservedData['read_mail_count_' + myBaseId] = '0';
+            backup['read_mail_count_' + myBaseId] = '0';
         }
 
+        // 3. تدمير واستعادة
         localStorage.clear();
-
-        for (let key in preservedData) {
-            localStorage.setItem(key, preservedData[key]);
-        }
+        Object.keys(backup).forEach(k => localStorage.setItem(k, backup[k]));
 
         window.location.reload();
     };
@@ -2096,13 +2091,7 @@ window.onload = () => {
     let lastTapTime = 0;
 
     document.body.addEventListener('pointerdown', (e) => {
-        if (
-            e.target.tagName === 'BUTTON' || 
-            e.target.tagName === 'INPUT' || 
-            e.target.tagName === 'TEXTAREA' || 
-            e.target.closest('button') ||
-            e.target.closest('#gameContainer')
-        ) return;
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.closest('button') || e.target.closest('#gameContainer')) return;
 
         let currentTime = new Date().getTime();
         if (currentTime - lastTapTime > 800) tapCount = 0;
@@ -2112,10 +2101,10 @@ window.onload = () => {
         if (tapCount === 10) {
             tapCount = 0; 
             
-            // 🟢 تحديث نصوص واجهة المكنسة لتتطابق مع حالة الدخول
+            // 🟢 تغيير الواجهة بناءً على حالة الأدمن
             let isMaster = !!localStorage.getItem('my_master_key');
             document.getElementById('wipeModalTitle').innerText = isMaster ? 'Reset Radio & Admin Inbox?' : 'Reset Radio & Inbox?';
-            document.getElementById('wipeModalDesc').innerText = isMaster ? 'clear your Admin notifications' : 'clear your messages';
+            document.getElementById('wipeModalDesc').innerText = isMaster ? 'clear your Admin System Notifications' : 'clear your messages';
             document.getElementById('wipeModalMailType').innerText = isMaster ? 'Admin System Notifications' : 'Your Normal Inbox messages';
 
             if (typeof tg !== 'undefined' && tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
