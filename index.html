@@ -1978,7 +1978,7 @@ window.onload = () => {
 // ======================================================
 
 // ======================================================
-// 🧹 Secret Wipe (10 Fast Taps) - Final Perfect Version
+// 🧹 Secret Wipe (10 Fast Taps) - Role-Based Mail Reset
 // ======================================================
 (function initSecretTapWipe() {
     let wipeOverlay = document.createElement('div');
@@ -1989,12 +1989,12 @@ window.onload = () => {
 
     wipeModal.innerHTML = `
         <div style="font-size:35px; margin-bottom:10px; color:#ef4444; text-align:center;">⚠️</div>
-        <h3 style="color:#fff; margin-bottom:15px; font-size:18px; text-align:center;">Reset Radio & Inbox?</h3>
-        <p style="color:#cbd5e1; font-size:14px; margin-bottom:10px; line-height:1.5;">This will reset your radio settings and clear your messages. <b>(Your Store effects & phone data are completely safe).</b></p>
+        <h3 id="wipeModalTitle" style="color:#fff; margin-bottom:15px; font-size:18px; text-align:center;">Reset Radio & Inbox?</h3>
+        <p style="color:#cbd5e1; font-size:14px; margin-bottom:10px; line-height:1.5;">This will reset your radio settings and clear your messages. <b>(Store effects are protected).</b></p>
         <ul style="color:#94a3b8; font-size:13px; margin-bottom:20px; padding-left:20px; line-height:1.6;">
             <li>Saved favorite stations</li>
             <li>Your personal notes</li>
-            <li>All Inbox messages</li>
+            <li id="wipeModalTarget" style="color:#38bdf8; font-weight:bold;">Your Inbox messages</li>
         </ul>
         <div style="display:flex; gap:10px;">
             <button id="cancelWipeBtn" style="flex:1; background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:10px; font-weight:bold; cursor:pointer; transition:0.2s;">Cancel</button>
@@ -2008,30 +2008,50 @@ window.onload = () => {
     let isModalSafeToClose = false;
 
     const hideWipeModal = () => {
-        wipeModal.style.opacity = '0'; wipeModal.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        wipeModal.style.opacity = '0'; 
+        wipeModal.style.transform = 'translate(-50%, -50%) scale(0.8)';
         wipeOverlay.style.opacity = '0';
         setTimeout(() => { wipeModal.style.visibility = 'hidden'; wipeOverlay.style.visibility = 'hidden'; }, 300);
     };
 
     wipeOverlay.onclick = (e) => {
-        if (isModalSafeToClose && e.target === wipeOverlay) {
-            hideWipeModal();
-        }
+        if (isModalSafeToClose && e.target === wipeOverlay) hideWipeModal();
     };
     
     document.getElementById('cancelWipeBtn').onclick = hideWipeModal;
 
-    // 🟢 زر التأكيد في المكنسة (عملية المسح الذكية)
-    document.getElementById('confirmWipeBtn').onclick = () => {
+    // 🟢 عملية الكنس المفصولة (أدمن مقابل مستخدم عادي)
+    document.getElementById('confirmWipeBtn').onclick = async () => {
+        let btn = document.getElementById('confirmWipeBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping...';
+        btn.style.pointerEvents = 'none';
+
         let myBaseId = localStorage.getItem('my_base_id');
+        let mKey = localStorage.getItem('my_master_key');
+        let isAdminActive = !!mKey;
         let wipeTime = Date.now();
 
-        // 1. هل الشخص الحالي "أدمن نشط"؟ (يحمل الماستر كود + حسابه 5350129816)
-        let hasMasterKey = !!localStorage.getItem('my_master_key');
-        let tgUser = typeof tg !== 'undefined' ? tg?.initDataUnsafe?.user : window.Telegram?.WebApp?.initDataUnsafe?.user;
-        let isActiveAdmin = hasMasterKey && String(tgUser?.id) === '5350129816';
+        // 🟢 إذا كان أدمن: نقوم بمسح رسائل الأدمن من السحابة مباشرة
+        if (isAdminActive) {
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/6a821a3ada38895dfeec6ddc/latest?meta=false&t=${Date.now()}`, { headers: { 'X-Master-Key': mKey } });
+                if (res.ok) {
+                    let data = await res.json();
+                    let mailServer = data.find(x => x.id === 'mail_server');
+                    if (mailServer) {
+                        // حذف رسائل الأدمن من السيرفر والإبقاء على رسائل كل المستخدمين الآخرين!
+                        mailServer.inbox = mailServer.inbox.filter(m => m.to !== 'TG-5350129816');
+                        await fetch(`https://api.jsonbin.io/v3/b/6a821a3ada38895dfeec6ddc`, { 
+                            method: 'PUT', 
+                            headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, 
+                            body: JSON.stringify(data) 
+                        });
+                    }
+                }
+            } catch(e) { console.log("Cloud Wipe Error"); }
+        }
 
-        // 2. حماية بيانات المتجر من الحذف
+        // 1. تجميع وحماية بيانات المتجر
         let preservedStoreData = {};
         for (let i = 0; i < localStorage.length; i++) {
             let key = localStorage.key(i);
@@ -2040,31 +2060,27 @@ window.onload = () => {
                 key.startsWith('manual_unlock_') || 
                 key === 'my_base_id' || 
                 key === 'my_master_key' ||
-                key.startsWith('cloud_registered_')
+                key.startsWith('cloud_registered_') ||
+                // حماية بريد المستخدم العادي إذا كان الذي يمسح هو الأدمن!
+                (isAdminActive && key.startsWith('inbox_cleared_at_')) ||
+                (isAdminActive && key.startsWith('read_mail_count_'))
             ) {
                 preservedStoreData[key] = localStorage.getItem(key);
             }
         }
 
-        // 3. مسح الذاكرة بالكامل
+        // 2. كنس الذاكرة
         localStorage.clear();
 
-        // 4. استرجاع بيانات المتجر المحمية
+        // 3. إعادة البيانات المحمية
         for (let key in preservedStoreData) {
             localStorage.setItem(key, preservedStoreData[key]);
         }
 
-        // 5. تصفير بريد المستخدم العادي دائماً 🧹
-        if (myBaseId) {
+        // 4. إذا كان مستخدماً عادياً: نضع ختم المسح المحلي لبريده فقط
+        if (!isAdminActive && myBaseId) {
             localStorage.setItem('inbox_cleared_at_' + myBaseId, wipeTime);
             localStorage.setItem('read_mail_count_' + myBaseId, '0');
-        }
-
-        // 6. مسح بريد الأدمن فقط وفقط إذا كان في وضع الأدمن 👑
-        if (isActiveAdmin) {
-            let adminTgId = 'TG-5350129816';
-            localStorage.setItem('inbox_cleared_at_' + adminTgId, wipeTime);
-            localStorage.setItem('read_mail_count_' + adminTgId, '0');
         }
 
         window.location.reload();
@@ -2080,35 +2096,32 @@ window.onload = () => {
             e.target.tagName === 'TEXTAREA' || 
             e.target.closest('button') ||
             e.target.closest('#gameContainer')
-        ) {
-            return;
-        }
+        ) return;
 
         let currentTime = new Date().getTime();
-        if (currentTime - lastTapTime > 800) { tapCount = 0; }
-
+        if (currentTime - lastTapTime > 800) tapCount = 0;
         tapCount++;
         lastTapTime = currentTime;
 
         if (tapCount === 10) {
             tapCount = 0; 
-            if (typeof tg !== 'undefined' && tg?.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('warning');
-            }
+            if (typeof tg !== 'undefined' && tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             
+            // تحديث النصوص لتناسب حالة المستخدم (أدمن أو عادي)
+            let isAdminNow = !!localStorage.getItem('my_master_key');
+            document.getElementById('wipeModalTitle').innerText = isAdminNow ? "Reset Radio & Admin Inbox?" : "Reset Radio & Inbox?";
+            document.getElementById('wipeModalTarget').innerText = isAdminNow ? "Admin Inbox (Cloud Data)" : "Your Inbox messages";
+
             isModalSafeToClose = false; 
             wipeModal.style.visibility = 'visible';
             wipeModal.style.opacity = '1';
             wipeModal.style.transform = 'translate(-50%, -50%) scale(1)';
             wipeOverlay.style.visibility = 'visible';
             wipeOverlay.style.opacity = '1';
-
             setTimeout(() => { isModalSafeToClose = true; }, 500);
         }
     });
 })();
-
-
 
 
         
