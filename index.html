@@ -1978,7 +1978,7 @@ window.onload = () => {
 // ======================================================
 
 // ======================================================
-// 🧹 Secret Wipe (10 Fast Taps) - Role-Based Mail Reset
+// 🧹 Secret Wipe (10 Fast Taps) - Dual Mode (Admin / Regular)
 // ======================================================
 (function initSecretTapWipe() {
     let wipeOverlay = document.createElement('div');
@@ -1990,11 +1990,11 @@ window.onload = () => {
     wipeModal.innerHTML = `
         <div style="font-size:35px; margin-bottom:10px; color:#ef4444; text-align:center;">⚠️</div>
         <h3 id="wipeModalTitle" style="color:#fff; margin-bottom:15px; font-size:18px; text-align:center;">Reset Radio & Inbox?</h3>
-        <p style="color:#cbd5e1; font-size:14px; margin-bottom:10px; line-height:1.5;">This will reset your radio settings and clear your messages. <b>(Store effects are protected).</b></p>
+        <p style="color:#cbd5e1; font-size:14px; margin-bottom:10px; line-height:1.5;">This will reset your radio settings and <b id="wipeModalDesc">clear your messages</b>.</p>
         <ul style="color:#94a3b8; font-size:13px; margin-bottom:20px; padding-left:20px; line-height:1.6;">
             <li>Saved favorite stations</li>
             <li>Your personal notes</li>
-            <li id="wipeModalTarget" style="color:#38bdf8; font-weight:bold;">Your Inbox messages</li>
+            <li id="wipeModalMailType">Your Normal Inbox messages</li>
         </ul>
         <div style="display:flex; gap:10px;">
             <button id="cancelWipeBtn" style="flex:1; background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); padding:12px; border-radius:10px; font-weight:bold; cursor:pointer; transition:0.2s;">Cancel</button>
@@ -2020,39 +2020,14 @@ window.onload = () => {
     
     document.getElementById('cancelWipeBtn').onclick = hideWipeModal;
 
-    // 🟢 عملية الكنس المفصولة (أدمن مقابل مستخدم عادي)
-    document.getElementById('confirmWipeBtn').onclick = async () => {
-        let btn = document.getElementById('confirmWipeBtn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping...';
-        btn.style.pointerEvents = 'none';
-
+    // 🟢 الكنس الذكي المنفصل
+    document.getElementById('confirmWipeBtn').onclick = () => {
         let myBaseId = localStorage.getItem('my_base_id');
-        let mKey = localStorage.getItem('my_master_key');
-        let isAdminActive = !!mKey;
+        let isMasterActive = !!localStorage.getItem('my_master_key');
         let wipeTime = Date.now();
 
-        // 🟢 إذا كان أدمن: نقوم بمسح رسائل الأدمن من السحابة مباشرة
-        if (isAdminActive) {
-            try {
-                let res = await fetch(`https://api.jsonbin.io/v3/b/6a821a3ada38895dfeec6ddc/latest?meta=false&t=${Date.now()}`, { headers: { 'X-Master-Key': mKey } });
-                if (res.ok) {
-                    let data = await res.json();
-                    let mailServer = data.find(x => x.id === 'mail_server');
-                    if (mailServer) {
-                        // حذف رسائل الأدمن من السيرفر والإبقاء على رسائل كل المستخدمين الآخرين!
-                        mailServer.inbox = mailServer.inbox.filter(m => m.to !== 'TG-5350129816');
-                        await fetch(`https://api.jsonbin.io/v3/b/6a821a3ada38895dfeec6ddc`, { 
-                            method: 'PUT', 
-                            headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, 
-                            body: JSON.stringify(data) 
-                        });
-                    }
-                }
-            } catch(e) { console.log("Cloud Wipe Error"); }
-        }
-
-        // 1. تجميع وحماية بيانات المتجر
-        let preservedStoreData = {};
+        // 1. حماية بيانات المتجر والمفاتيح وأختام الزمن
+        let preservedData = {};
         for (let i = 0; i < localStorage.length; i++) {
             let key = localStorage.key(i);
             if (
@@ -2061,26 +2036,27 @@ window.onload = () => {
                 key === 'my_base_id' || 
                 key === 'my_master_key' ||
                 key.startsWith('cloud_registered_') ||
-                // حماية بريد المستخدم العادي إذا كان الذي يمسح هو الأدمن!
-                (isAdminActive && key.startsWith('inbox_cleared_at_')) ||
-                (isAdminActive && key.startsWith('read_mail_count_'))
+                key.startsWith('inbox_cleared_at_') ||
+                key.startsWith('admin_cleared_at_')
             ) {
-                preservedStoreData[key] = localStorage.getItem(key);
+                preservedData[key] = localStorage.getItem(key);
             }
         }
 
-        // 2. كنس الذاكرة
-        localStorage.clear();
-
-        // 3. إعادة البيانات المحمية
-        for (let key in preservedStoreData) {
-            localStorage.setItem(key, preservedStoreData[key]);
+        // 2. تصفير البريد حسب حالة تسجيل الدخول
+        if (myBaseId) {
+            if (isMasterActive) {
+                preservedData['admin_cleared_at_' + myBaseId] = wipeTime; // مسح بريد الأدمن
+            } else {
+                preservedData['inbox_cleared_at_' + myBaseId] = wipeTime; // مسح البريد العادي
+            }
+            preservedData['read_mail_count_' + myBaseId] = '0';
         }
 
-        // 4. إذا كان مستخدماً عادياً: نضع ختم المسح المحلي لبريده فقط
-        if (!isAdminActive && myBaseId) {
-            localStorage.setItem('inbox_cleared_at_' + myBaseId, wipeTime);
-            localStorage.setItem('read_mail_count_' + myBaseId, '0');
+        localStorage.clear();
+
+        for (let key in preservedData) {
+            localStorage.setItem(key, preservedData[key]);
         }
 
         window.location.reload();
@@ -2105,20 +2081,19 @@ window.onload = () => {
 
         if (tapCount === 10) {
             tapCount = 0; 
+            
+            // 🟢 تحديث نصوص واجهة المكنسة لتتطابق مع حالة الدخول
+            let isMaster = !!localStorage.getItem('my_master_key');
+            document.getElementById('wipeModalTitle').innerText = isMaster ? 'Reset Radio & Admin Inbox?' : 'Reset Radio & Inbox?';
+            document.getElementById('wipeModalDesc').innerText = isMaster ? 'clear your Admin notifications' : 'clear your messages';
+            document.getElementById('wipeModalMailType').innerText = isMaster ? 'Admin System Notifications' : 'Your Normal Inbox messages';
+
             if (typeof tg !== 'undefined' && tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             
-            // تحديث النصوص لتناسب حالة المستخدم (أدمن أو عادي)
-            let isAdminNow = !!localStorage.getItem('my_master_key');
-            document.getElementById('wipeModalTitle').innerText = isAdminNow ? "Reset Radio & Admin Inbox?" : "Reset Radio & Inbox?";
-            document.getElementById('wipeModalTarget').innerText = isAdminNow ? "Admin Inbox (Cloud Data)" : "Your Inbox messages";
-
             isModalSafeToClose = false; 
-            wipeModal.style.visibility = 'visible';
-            wipeModal.style.opacity = '1';
-            wipeModal.style.transform = 'translate(-50%, -50%) scale(1)';
-            wipeOverlay.style.visibility = 'visible';
-            wipeOverlay.style.opacity = '1';
-            setTimeout(() => { isModalSafeToClose = true; }, 500);
+            wipeModal.style.visibility = 'visible'; wipeModal.style.opacity = '1'; wipeModal.style.transform = 'translate(-50%, -50%) scale(1)';
+            wipeOverlay.style.visibility = 'visible'; wipeOverlay.style.opacity = '1';
+            setTimeout(() => isModalSafeToClose = true, 500);
         }
     });
 })();
