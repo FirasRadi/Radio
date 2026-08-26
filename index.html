@@ -1976,16 +1976,10 @@ window.onload = () => {
 // ======================================================
 // 🧹 المكنسة السرية (10 نقرات متتالية سريعة)
 // ======================================================
-// ======================================================
-// 🧹 Secret Wipe (10 Fast Taps) - Game Bug Fixed
-// ======================================================
-
 
 // ======================================================
-// 🧹 Secret Wipe (10 Fast Taps) - Mail & Radio Reset (Store Protected)
+// 🧹 Secret Wipe (10 Fast Taps) - Final Perfect Version
 // ======================================================
-
-        
 (function initSecretTapWipe() {
     let wipeOverlay = document.createElement('div');
     wipeOverlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:99998; opacity:0; visibility:hidden; transition:0.3s;';
@@ -2014,8 +2008,7 @@ window.onload = () => {
     let isModalSafeToClose = false;
 
     const hideWipeModal = () => {
-        wipeModal.style.opacity = '0'; 
-        wipeModal.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        wipeModal.style.opacity = '0'; wipeModal.style.transform = 'translate(-50%, -50%) scale(0.8)';
         wipeOverlay.style.opacity = '0';
         setTimeout(() => { wipeModal.style.visibility = 'hidden'; wipeOverlay.style.visibility = 'hidden'; }, 300);
     };
@@ -2028,12 +2021,17 @@ window.onload = () => {
     
     document.getElementById('cancelWipeBtn').onclick = hideWipeModal;
 
-    // 🟢 عملية الكنس الذكية (مسح البريد وحماية المتجر)
+    // 🟢 زر التأكيد في المكنسة (عملية المسح الذكية)
     document.getElementById('confirmWipeBtn').onclick = () => {
         let myBaseId = localStorage.getItem('my_base_id');
         let wipeTime = Date.now();
 
-        // 1. تجميع وحماية بيانات المتجر والأدمن والهوية
+        // 1. هل الشخص الحالي "أدمن نشط"؟ (يحمل الماستر كود + حسابه 5350129816)
+        let hasMasterKey = !!localStorage.getItem('my_master_key');
+        let tgUser = typeof tg !== 'undefined' ? tg?.initDataUnsafe?.user : window.Telegram?.WebApp?.initDataUnsafe?.user;
+        let isActiveAdmin = hasMasterKey && String(tgUser?.id) === '5350129816';
+
+        // 2. حماية بيانات المتجر من الحذف
         let preservedStoreData = {};
         for (let i = 0; i < localStorage.length; i++) {
             let key = localStorage.key(i);
@@ -2048,35 +2046,26 @@ window.onload = () => {
             }
         }
 
-        // 2. كنس ومسح الذاكرة المحلية بالكامل
+        // 3. مسح الذاكرة بالكامل
         localStorage.clear();
 
-        // 3. إعادة استرجاع تأثيرات المتجر والهوية المحمية
+        // 4. استرجاع بيانات المتجر المحمية
         for (let key in preservedStoreData) {
             localStorage.setItem(key, preservedStoreData[key]);
         }
 
-        // 4. وضع ختم مسح البريد لتصفير الصندوق ومنع عودة الرسائل القديمة
-        
-
-
-// 4. وضع ختم مسح البريد للمستخدم العادي وللأدمن أيضاً 🧹
-        // 4. وضع ختم مسح البريد للمستخدم العادي
+        // 5. تصفير بريد المستخدم العادي دائماً 🧹
         if (myBaseId) {
             localStorage.setItem('inbox_cleared_at_' + myBaseId, wipeTime);
             localStorage.setItem('read_mail_count_' + myBaseId, '0');
         }
 
-        // 🟢 مسح بريد الأدمن فقط وفقط إذا كان مسجل دخول كأدمن حالياً!
-        let isAdminLoggedIn = !!localStorage.getItem('my_master_key');
-        if (isAdminLoggedIn) {
+        // 6. مسح بريد الأدمن فقط وفقط إذا كان في وضع الأدمن 👑
+        if (isActiveAdmin) {
             let adminTgId = 'TG-5350129816';
             localStorage.setItem('inbox_cleared_at_' + adminTgId, wipeTime);
             localStorage.setItem('read_mail_count_' + adminTgId, '0');
         }
-        
-
-        
 
         window.location.reload();
     };
@@ -2096,36 +2085,28 @@ window.onload = () => {
         }
 
         let currentTime = new Date().getTime();
-        
-        if (currentTime - lastTapTime > 800) {
-            tapCount = 0;
-        }
+        if (currentTime - lastTapTime > 800) { tapCount = 0; }
 
         tapCount++;
         lastTapTime = currentTime;
 
         if (tapCount === 10) {
             tapCount = 0; 
-            
             if (typeof tg !== 'undefined' && tg?.HapticFeedback) {
                 tg.HapticFeedback.notificationOccurred('warning');
             }
             
             isModalSafeToClose = false; 
-            
             wipeModal.style.visibility = 'visible';
             wipeModal.style.opacity = '1';
             wipeModal.style.transform = 'translate(-50%, -50%) scale(1)';
             wipeOverlay.style.visibility = 'visible';
             wipeOverlay.style.opacity = '1';
 
-            setTimeout(() => {
-                isModalSafeToClose = true;
-            }, 500);
+            setTimeout(() => { isModalSafeToClose = true; }, 500);
         }
     });
 })();
-
 
 
 
