@@ -1515,18 +1515,22 @@ updateInboxBadge(data) {
         let badge = document.getElementById('standaloneInboxBadge');
         if (!badge) return;
         let isAdmin = !!StoreAPI.getMasterKey();
-        let adminTgId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
         let mailServer = data.find(x => x.id === 'mail_server') || { inbox: [] };
         
         let regularCleared = parseInt(localStorage.getItem('inbox_cleared_at_' + this.baseId) || '0');
         let adminCleared = parseInt(localStorage.getItem('admin_cleared_at_' + this.baseId) || '0');
         
         let newMail = mailServer.inbox.filter(m => {
-            if (m.to !== this.baseId && !(isAdmin && m.to === adminTgId)) return false;
+            let toMe = (m.to === this.baseId);
+            let toAdmin = (m.to === 'TG-' + StoreConfig.MY_ADMIN_TG_ID);
+            if (!toMe && !(isAdmin && toAdmin)) return false;
             
-            // فلترة دقيقة لمعرفة نوع الرسالة
+            // فلترة ذكية عبر الأيقونات
             let adminIcons = ['📻', '💎', '👤'];
             let isAdminMsg = adminIcons.some(ic => m.icon && m.icon.includes(ic));
+            
+            // إذا سجل الأدمن خروجه، نُخفي إشعارات النظام عنه ليصبح مستخدماً عادياً
+            if (isAdminMsg && !isAdmin) return false;
             
             let clearedAt = isAdminMsg ? adminCleared : regularCleared;
             return m.timestamp > clearedAt;
@@ -1538,8 +1542,6 @@ updateInboxBadge(data) {
 
     async openUserInbox() {
         let isAdmin = !!StoreAPI.getMasterKey();
-        let adminTgId = 'TG-' + StoreConfig.MY_ADMIN_TG_ID;
-        
         let data = await StoreAPI.fetchCloudData();
         this.state.mailServerData = data.find(x => x.id === 'mail_server') || { inbox: [] };
 
@@ -1547,11 +1549,14 @@ updateInboxBadge(data) {
         let adminCleared = parseInt(localStorage.getItem('admin_cleared_at_' + this.baseId) || '0');
 
         let myMail = this.state.mailServerData.inbox.filter(m => {
-            if (m.to !== this.baseId && !(isAdmin && m.to === adminTgId)) return false;
+            let toMe = (m.to === this.baseId);
+            let toAdmin = (m.to === 'TG-' + StoreConfig.MY_ADMIN_TG_ID);
+            if (!toMe && !(isAdmin && toAdmin)) return false;
             
-            // فلترة دقيقة لمعرفة نوع الرسالة
             let adminIcons = ['📻', '💎', '👤'];
             let isAdminMsg = adminIcons.some(ic => m.icon && m.icon.includes(ic));
+            
+            if (isAdminMsg && !isAdmin) return false;
             
             let clearedAt = isAdminMsg ? adminCleared : regularCleared;
             return m.timestamp > clearedAt;
@@ -1577,7 +1582,6 @@ updateInboxBadge(data) {
                     </div>`;
             }).join('');
 
-        // 🟢 زر المسح داخل البريد يتبع نفس قاعدة "دخول الحمام مو متل خروجه"
         let cleanAction = isAdmin ? `localStorage.setItem('admin_cleared_at_${this.baseId}', Date.now().toString());` : `localStorage.setItem('inbox_cleared_at_${this.baseId}', Date.now().toString());`;
 
         this.showCustomModal(`
@@ -2054,38 +2058,42 @@ window.onload = () => {
     wipeOverlay.onclick = (e) => { if (isModalSafeToClose && e.target === wipeOverlay) hideWipeModal(); };
     document.getElementById('cancelWipeBtn').onclick = hideWipeModal;
 
+
+
+
+    
     // 🟢 عملية المسح المفصولة تماماً
-    document.getElementById('confirmWipeBtn').onclick = () => {
-        // نضمن جلب الـ ID الدقيق الخاص بالمتجر
-        let myBaseId = window.StoreAppInstance ? window.StoreAppInstance.baseId : localStorage.getItem('my_base_id');
+document.getElementById('confirmWipeBtn').onclick = () => {
+        let myBaseId = localStorage.getItem('my_base_id');
         let isMaster = !!localStorage.getItem('my_master_key');
         let wipeTime = Date.now().toString();
 
-        // 1. حماية البيانات المهمة
         let backup = {};
         for (let i = 0; i < localStorage.length; i++) {
             let k = localStorage.key(i);
-            if (k.includes('unlock') || k.includes('my_base_id') || k.includes('my_master_key') || k.includes('cloud_registered_') || k.includes('cleared_at_') || k.includes('read_mail_count_')) {
+            if (k.includes('unlock') || k.includes('my_base_id') || k.includes('my_master_key') || 
+                k.includes('cloud_registered_') || k.includes('cleared_at_') || k.includes('read_mail_count_')) {
                 backup[k] = localStorage.getItem(k);
             }
         }
 
-        // 2. تحديث ختم الحذف حسب الصلاحية فقط!
         if (myBaseId) {
             if (isMaster) {
-                backup['admin_cleared_at_' + myBaseId] = wipeTime; // مسح إشعارات الأدمن
+                backup['admin_cleared_at_' + myBaseId] = wipeTime;
             } else {
-                backup['inbox_cleared_at_' + myBaseId] = wipeTime; // مسح البريد العادي
+                backup['inbox_cleared_at_' + myBaseId] = wipeTime;
             }
             backup['read_mail_count_' + myBaseId] = '0';
         }
 
-        // 3. تدمير واستعادة
         localStorage.clear();
         Object.keys(backup).forEach(k => localStorage.setItem(k, backup[k]));
-
         window.location.reload();
     };
+
+
+
+    
 
     let tapCount = 0;
     let lastTapTime = 0;
