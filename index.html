@@ -1641,12 +1641,34 @@ updateInboxBadge(data) {
             let isManual = localStorage.getItem('manual_unlock_' + anim.id) === 'true'; 
             let isUnlocked = isFreeStrict || isBuyer || isManual;
 
-            let wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; position:relative;';
+
+
+
             
+     //       let wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; position:relative;';
+            
+         //   let idLabel = document.createElement('div');
+     //       idLabel.innerText = `#${anim.id}`;
+     //       idLabel.style.cssText = `font-size:10px; font-weight:bold; color:var(--text-sub); margin-bottom:-2px;`;
+
+            
+let wrapper = document.createElement('div'); 
+            wrapper.className = 'store-item-wrapper'; // 🟢 ضروري للسحب
+            wrapper.dataset.id = String(anim.id);     // 🟢 للتعرف عليه أثناء السحب
+            wrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; position:relative; touch-action: pan-y;'; // touch-action مهم للهواتف
+            
+            // 🟢 إظهار الـ ID الحقيقي دائماً فوق التأثير لتعرف ترتيبه
             let idLabel = document.createElement('div');
             idLabel.innerText = `#${anim.id}`;
             idLabel.style.cssText = `font-size:10px; font-weight:bold; color:var(--text-sub); margin-bottom:-2px;`;
 
+
+
+
+            
+
+
+            
             let item = document.createElement('div'); item.className = 'studio-item'; 
             let baseStyles = `display:flex; align-items:center; justify-content:center; font-size:30px; transition: 0.3s ease; cursor:pointer; margin:0; width:60px; height:60px; border-radius:18px; position:relative;`;
             
@@ -1670,6 +1692,15 @@ updateInboxBadge(data) {
             item.onclick = () => this.handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode);
             wrapper.append(idLabel, item, priceLabel); grid.appendChild(wrapper);
         });
+
+
+
+// 🟢 تفعيل السحب والإفلات بعد اكتمال رسم التأثيرات
+        setTimeout(() => this.initDragAndDrop(), 300);
+
+
+
+    
     }
 
     handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode) {
@@ -1967,6 +1998,81 @@ async adminShowUsers() {
         await StoreAPI.updateCloudData(filtered);
         this.renderAnimStore();
     }
+
+
+
+
+
+
+
+
+// =====
+    // 🟢 نظام السحب والإفلات (مع التغيير التلقائي للـ ID)
+    initDragAndDrop() {
+        if (!StoreAPI.getMasterKey()) return; // يعمل للأدمن فقط
+        const grid = document.getElementById('animStoreGrid');
+        
+        // جلب مكتبة السحب والإفلات للهواتف
+        if (!window.Sortable) {
+            let script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js";
+            script.onload = () => this.activateSortable(grid);
+            document.head.appendChild(script);
+        } else {
+            this.activateSortable(grid);
+        }
+    }
+
+    activateSortable(grid) {
+        new Sortable(grid, {
+            animation: 200,
+            delay: 400, // 🟢 تفعيل السحب بعد ضغط مطول لمدة 400ms (نصف ثانية)
+            delayOnTouchOnly: true,
+            ghostClass: 'active-anim-glow',
+            draggable: '.store-item-wrapper',
+            filter: '[data-id="0"]', // 🟢 منع سحب التأثير رقم 0 (Free/Remove)
+            onEnd: async (evt) => {
+                if (evt.oldIndex === evt.newIndex) return;
+
+                if (typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+                
+                let newOrderIds = Array.from(grid.children).map(child => child.dataset.id);
+                grid.innerHTML = '<div style="color:#f59e0b; margin:auto; text-align:center; padding:20px;"><i class="fas fa-sync fa-spin fa-2x"></i><br><br><span style="font-size:12px;">Rebuilding IDs & Migrating Licenses...</span></div>';
+
+                let data = await StoreAPI.fetchCloudData();
+                
+                // 1. فصل التأثيرات عن باقي بيانات السيرفر
+                let anims = data.filter(x => x.id && x.id !== 'empty' && x.id !== 'mail_server' && x.id !== 'users_registry');
+                let sysData = data.filter(x => !x.id || x.id === 'empty' || x.id === 'mail_server' || x.id === 'users_registry');
+
+                // 2. إعادة ترتيب التأثيرات حسب السحب الذي قمت به
+                anims.sort((a, b) => newOrderIds.indexOf(String(a.id)) - newOrderIds.indexOf(String(b.id)));
+
+                // 3. 💥 خوارزمية الترحيل: جعل الـ ID الجديد هو موقع العنصر وتحديث المستخدمين
+                anims = anims.map((anim, index) => {
+                    let newId = String(index); // 0, 1, 2, 3...
+                    
+                    if (String(anim.id) !== newId) {
+                        let migratedBuyers = (anim.buyers || []).map(b => {
+                            return { ...b, reqCode: StoreSecurity.getRequestCode(b.baseId, newId) };
+                        });
+                        return { ...anim, id: newId, buyers: migratedBuyers };
+                    }
+                    return anim;
+                });
+
+                // 4. حفظ البيانات المحدثة وإعادة رسم المتجر
+                let updatedCloudData = [...anims, ...sysData];
+                await StoreAPI.updateCloudData(updatedCloudData);
+                this.renderAnimStore();
+            }
+        });
+    }
+
+    
+
+
+    
 
     exposeGlobals() {
         window.StoreApp = this;
