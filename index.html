@@ -2023,48 +2023,55 @@ async adminShowUsers() {
         }
     }
 
-    activateSortable(grid) {
+  activateSortable(grid) {
         new Sortable(grid, {
             animation: 200,
-            delay: 400, // 🟢 تفعيل السحب بعد ضغط مطول لمدة 400ms (نصف ثانية)
+            delay: 400, 
             delayOnTouchOnly: true,
             ghostClass: 'active-anim-glow',
             draggable: '.store-item-wrapper',
-            filter: '[data-id="0"]', // 🟢 منع سحب التأثير رقم 0 (Free/Remove)
-            onEnd: async (evt) => {
+            filter: '[data-id="0"]', // منع تحريك زر الإلغاء
+            onEnd: (evt) => {
                 if (evt.oldIndex === evt.newIndex) return;
-
                 if (typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                 
+                // أخذ الترتيب الجديد
                 let newOrderIds = Array.from(grid.children).map(child => child.dataset.id);
-                grid.innerHTML = '<div style="color:#f59e0b; margin:auto; text-align:center; padding:20px;"><i class="fas fa-sync fa-spin fa-2x"></i><br><br><span style="font-size:12px;">Rebuilding IDs & Migrating Licenses...</span></div>';
-
-                let data = await StoreAPI.fetchCloudData();
                 
-                // 1. فصل التأثيرات عن باقي بيانات السيرفر
-                let anims = data.filter(x => x.id && x.id !== 'empty' && x.id !== 'mail_server' && x.id !== 'users_registry');
-                let sysData = data.filter(x => !x.id || x.id === 'empty' || x.id === 'mail_server' || x.id === 'users_registry');
+                // 🟢 السر هنا: تأخير 50 ملي ثانية يمنع تعليق المتصفح نهائياً!
+                setTimeout(async () => {
+                    try {
+                        grid.innerHTML = '<div style="color:#f59e0b; margin:auto; text-align:center; padding:20px;"><i class="fas fa-sync fa-spin fa-2x"></i><br><br><span style="font-size:12px;">Rebuilding IDs & Migrating Licenses...</span></div>';
 
-                // 2. إعادة ترتيب التأثيرات حسب السحب الذي قمت به
-                anims.sort((a, b) => newOrderIds.indexOf(String(a.id)) - newOrderIds.indexOf(String(b.id)));
+                        let data = await StoreAPI.fetchCloudData();
+                        let sysData = data.filter(x => !x.id || x.id === 'empty' || x.id === 'mail_server' || x.id === 'users_registry');
 
-                // 3. 💥 خوارزمية الترحيل: جعل الـ ID الجديد هو موقع العنصر وتحديث المستخدمين
-                anims = anims.map((anim, index) => {
-                    let newId = String(index); // 0, 1, 2, 3...
-                    
-                    if (String(anim.id) !== newId) {
-                        let migratedBuyers = (anim.buyers || []).map(b => {
-                            return { ...b, reqCode: StoreSecurity.getRequestCode(b.baseId, newId) };
+                        // ترتيب كل التأثيرات بشكل مطابق تماماً للشاشة
+                        let sortedAnims = [...this.state.currentAllAnims];
+                        sortedAnims.sort((a, b) => newOrderIds.indexOf(String(a.id)) - newOrderIds.indexOf(String(b.id)));
+
+                        // تحديث الـ IDs وترحيل الرخص
+                        let migratedAnims = sortedAnims.map((anim, index) => {
+                            let newId = String(index);
+                            
+                            if (String(anim.id) !== newId) {
+                                let migratedBuyers = (anim.buyers || []).map(b => {
+                                    return { ...b, reqCode: StoreSecurity.getRequestCode(b.baseId, newId) };
+                                });
+                                return { ...anim, id: newId, buyers: migratedBuyers };
+                            }
+                            return anim;
                         });
-                        return { ...anim, id: newId, buyers: migratedBuyers };
-                    }
-                    return anim;
-                });
 
-                // 4. حفظ البيانات المحدثة وإعادة رسم المتجر
-                let updatedCloudData = [...anims, ...sysData];
-                await StoreAPI.updateCloudData(updatedCloudData);
-                this.renderAnimStore();
+                        // حفظ البيانات السليمة
+                        await StoreAPI.updateCloudData([...migratedAnims, ...sysData]);
+                        this.renderAnimStore();
+                        
+                    } catch (e) {
+                        alert("❌ خطأ في الاتصال، يرجى المحاولة لاحقاً.");
+                        this.renderAnimStore();
+                    }
+                }, 50); // نهاية التأخير الآمن
             }
         });
     }
