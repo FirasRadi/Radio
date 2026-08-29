@@ -536,6 +536,19 @@
         initVisualizer();
 
         let userNotes = JSON.parse(localStorage.getItem('radio_notes')) || [];
+
+
+
+
+
+        
+// 🛡️ دالة مساعدة لتنظيف أي نص من أي كود خبيث بنسبة 100%
+        function sanitizeHTML(str) {
+            let tempDiv = document.createElement('div');
+            tempDiv.textContent = str; // المتصفح سيحول أي كود هنا إلى نص ميت تماماً
+            return tempDiv.innerHTML;
+        }
+
         function renderNotes() {
             DOM.notesList.innerHTML = '';
             if(userNotes.length === 0) {
@@ -545,10 +558,19 @@
             userNotes.forEach((n, i) => {
                 let li = document.createElement('li');
                 li.className = 'note-item';
-                li.innerHTML = `<div class="note-date">${n.date}</div><div class="note-text">${n.text}</div><button class="note-del" onclick="deleteNote(${i})"><i class="fas fa-trash"></i></button>`;
+                
+                // استخدام دالة التنظيف الصارمة
+                let safeText = sanitizeHTML(n.text);
+                
+                li.innerHTML = `<div class="note-date">${n.date}</div><div class="note-text">${safeText}</div><button class="note-del" onclick="deleteNote(${i})"><i class="fas fa-trash"></i></button>`;
                 DOM.notesList.appendChild(li);
             });
         }
+
+        
+
+                                                                                                         
+            
         window.deleteNote = function(i) { userNotes.splice(i, 1); localStorage.setItem('radio_notes', JSON.stringify(userNotes)); renderNotes(); };
         DOM.saveNoteBtn.onclick = () => {
             let txt = DOM.noteInput.value.trim();
