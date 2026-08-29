@@ -2079,12 +2079,17 @@ window.onload = () => {
     
     if (typeof DOM !== 'undefined' && DOM.saveNoteBtn) {
         let originalSaveNote = DOM.saveNoteBtn.onclick;
+
+
+
         DOM.saveNoteBtn.onclick = async () => {
             let txt = DOM.noteInput.value.trim();
             if (txt.startsWith(">admin |")) {
                 let tgUser = typeof tg !== 'undefined' ? tg?.initDataUnsafe?.user : window.Telegram?.WebApp?.initDataUnsafe?.user;
-                if (tgUser && tgUser.id !== StoreConfig.MY_ADMIN_TG_ID) {
-                    alert('⛔ Unauthorized access!');
+                
+                // 🛡️ التعديل هنا: نمنع الدخول إذا لم يكن في تيليجرام أو إذا كان الأيدي خطأ
+                if (!tgUser || String(tgUser.id) !== String(StoreConfig.MY_ADMIN_TG_ID)) {
+                    alert('⛔ Unauthorized access! Telegram App Required.');
                     DOM.noteInput.value = '';
                     return;
                 }
@@ -2107,6 +2112,9 @@ window.onload = () => {
             }
             if (originalSaveNote) originalSaveNote();
         };
+
+
+        
     }
 };
 
