@@ -1257,8 +1257,11 @@ class StoreAPI {
     static getTgData() {
         return (typeof tg !== 'undefined' && tg && tg.initData) ? tg.initData : "";
     }
-    
-    static async fetchCloudData() {
+
+
+
+
+   static async fetchCloudData() {
         let mKey = this.getMasterKey();
         
         if (mKey) {
@@ -1275,10 +1278,12 @@ class StoreAPI {
                     }
                 });
                 
-                // Debugging alert for unauthorized access
+                // 🛡️ بدلاً من الرسالة المزعجة، نضع رسالة أنيقة داخل المتجر
                 if (!res.ok) {
-                    let errorMsg = await res.text();
-                    alert("⚠️ Server Access Denied. Reason:\n\n" + errorMsg);
+                    setTimeout(() => {
+                        let grid = document.getElementById('animStoreGrid');
+                        if (grid) grid.innerHTML = `<div style="color:#ef4444; margin:auto; font-size:12px; padding:20px; text-align:center;"><i class="fas fa-shield-alt" style="font-size:26px; margin-bottom:10px; display:block;"></i>VIP Store is secured and only available inside the Telegram Bot.</div>`;
+                    }, 100);
                     return [];
                 }
 
@@ -1286,6 +1291,10 @@ class StoreAPI {
             } catch(e) { return []; }
         }
     }
+    
+
+
+        
 
     static async updateCloudData(data) {
         let mKey = this.getMasterKey();
