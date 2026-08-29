@@ -1179,9 +1179,13 @@
  * 🚀 Premium Store Manager - CRM & User-Centric Edition (v6.0 - Ultimate Stability)
  */
 
+
+
 const StoreConfig = {
-    BIN_ID: "6a821a3ada38895dfeec6ddc",
-    ACCESS_KEY: "$2a$10$FVceXw7MN0t2buYrcZDgR.Oq/B6WTjPpypSbnlbTIhT4n6BIvwAkC",
+    // وضعنا الرابط الآمن الجديد الخاص بك هنا! 👇
+    PROXY_URL: "https://long-moon-9a74.firasradi0.workers.dev",
+    BIN_ID: "6a821a3ada38895dfeec6ddc", 
+    // لاحظ: تم حذف ACCESS_KEY نهائياً من الكود لحمايته من السرقة
     STRIPE_LINK: "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800",
     DEVELOPER_USERNAME: "developer_origins_bot",
     SECRET_SALT: "TIME_WORLD_2026",
@@ -1231,26 +1235,58 @@ class StoreAPI {
     
     static async fetchCloudData() {
         let mKey = this.getMasterKey();
-        let headers = mKey ? { 'X-Master-Key': mKey } : { 'X-Access-Key': StoreConfig.ACCESS_KEY };
-        try {
-            let res = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false&t=${Date.now()}`, { headers });
-            return res.ok ? await res.json() : [];
-        } catch(e) { return []; }
+        
+        if (mKey) {
+            // وصول الإدارة المباشر
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false&t=${Date.now()}`, { headers: { 'X-Master-Key': mKey } });
+                return res.ok ? await res.json() : [];
+            } catch(e) { return []; }
+        } else {
+            // وصول المستخدم العادي الآمن (عبر الوسيط)
+            try {
+                let res = await fetch(StoreConfig.PROXY_URL + `?t=${Date.now()}`);
+                return res.ok ? await res.json() : [];
+            } catch(e) { return []; }
+        }
     }
 
     static async updateCloudData(data) {
         let mKey = this.getMasterKey();
-        let headers = mKey ? { 'X-Master-Key': mKey } : { 'X-Access-Key': StoreConfig.ACCESS_KEY };
-        try {
-            await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}`, { 
-                method: 'PUT', 
-                headers: { 'Content-Type': 'application/json', ...headers }, 
-                body: JSON.stringify(data) 
-            });
-            return true;
-        } catch(e) { return false; }
+        
+        if (mKey) {
+            // تحديث الإدارة
+            try {
+                await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}`, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, 
+                    body: JSON.stringify(data) 
+                });
+                return true;
+            } catch(e) { return false; }
+        } else {
+            // تحديث المستخدم العادي الآمن (عبر الوسيط)
+            try {
+                await fetch(StoreConfig.PROXY_URL, { 
+                    method: 'PUT', 
+                    body: JSON.stringify(data) 
+                });
+                return true;
+            } catch(e) { return false; }
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+        
 
 class PremiumStore {
     constructor() {
