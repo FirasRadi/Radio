@@ -1182,10 +1182,9 @@
 
 
 const StoreConfig = {
-    // وضعنا الرابط الآمن الجديد الخاص بك هنا! 👇
+    // رابط السيرفر الوسيط الخاص بك
     PROXY_URL: "https://long-moon-9a74.firasradi0.workers.dev",
     BIN_ID: "6a821a3ada38895dfeec6ddc", 
-    // لاحظ: تم حذف ACCESS_KEY نهائياً من الكود لحمايته من السرقة
     STRIPE_LINK: "https://buy.stripe.com/aFabJ3fek1L41DNasJ28800",
     DEVELOPER_USERNAME: "developer_origins_bot",
     SECRET_SALT: "TIME_WORLD_2026",
@@ -1232,20 +1231,29 @@ class StoreSecurity {
 
 class StoreAPI {
     static getMasterKey() { return localStorage.getItem('my_master_key'); }
+
+    // جلب بصمة تيليجرام
+    static getTgData() {
+        return (typeof tg !== 'undefined' && tg && tg.initData) ? tg.initData : "";
+    }
     
     static async fetchCloudData() {
         let mKey = this.getMasterKey();
         
         if (mKey) {
-            // وصول الإدارة المباشر
             try {
                 let res = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false&t=${Date.now()}`, { headers: { 'X-Master-Key': mKey } });
                 return res.ok ? await res.json() : [];
             } catch(e) { return []; }
         } else {
-            // وصول المستخدم العادي الآمن (عبر الوسيط)
             try {
-                let res = await fetch(StoreConfig.PROXY_URL + `?t=${Date.now()}`);
+                // إرسال كلمة السر + بصمة تيليجرام معاً
+                let res = await fetch(StoreConfig.PROXY_URL + `?t=${Date.now()}`, {
+                    headers: { 
+                        "X-App-Secret": "RADIO_TOP_SECRET_2026",
+                        "X-TG-Init-Data": this.getTgData()
+                    }
+                });
                 return res.ok ? await res.json() : [];
             } catch(e) { return []; }
         }
@@ -1255,7 +1263,6 @@ class StoreAPI {
         let mKey = this.getMasterKey();
         
         if (mKey) {
-            // تحديث الإدارة
             try {
                 await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}`, { 
                     method: 'PUT', 
@@ -1265,10 +1272,14 @@ class StoreAPI {
                 return true;
             } catch(e) { return false; }
         } else {
-            // تحديث المستخدم العادي الآمن (عبر الوسيط)
             try {
                 await fetch(StoreConfig.PROXY_URL, { 
                     method: 'PUT', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        "X-App-Secret": "RADIO_TOP_SECRET_2026",
+                        "X-TG-Init-Data": this.getTgData()
+                    },
                     body: JSON.stringify(data) 
                 });
                 return true;
@@ -1276,7 +1287,6 @@ class StoreAPI {
         }
     }
 }
-
 
 
 
