@@ -1232,7 +1232,6 @@ class StoreSecurity {
 class StoreAPI {
     static getMasterKey() { return localStorage.getItem('my_master_key'); }
 
-    // جلب بصمة تيليجرام
     static getTgData() {
         return (typeof tg !== 'undefined' && tg && tg.initData) ? tg.initData : "";
     }
@@ -1247,14 +1246,21 @@ class StoreAPI {
             } catch(e) { return []; }
         } else {
             try {
-                // إرسال كلمة السر + بصمة تيليجرام معاً
                 let res = await fetch(StoreConfig.PROXY_URL + `?t=${Date.now()}`, {
                     headers: { 
                         "X-App-Secret": "RADIO_TOP_SECRET_2026",
                         "X-TG-Init-Data": this.getTgData()
                     }
                 });
-                return res.ok ? await res.json() : [];
+                
+                // Debugging alert for unauthorized access
+                if (!res.ok) {
+                    let errorMsg = await res.text();
+                    alert("⚠️ Server Access Denied. Reason:\n\n" + errorMsg);
+                    return [];
+                }
+
+                return await res.json();
             } catch(e) { return []; }
         }
     }
