@@ -1353,8 +1353,14 @@ class PremiumStore {
         this.tgId = tgUser?.id || "Unknown";
     }
 
+
+
+
+    
     async registerUserInCloud() {
-        if (localStorage.getItem('cloud_registered_' + this.baseId)) return;
+        // 💡 خدعة الإصدار الجديد v2: نتجاهل الختم القديم لنجبر الكود على إعادة تسجيل من تم مسحهم
+        if (localStorage.getItem('cloud_registered_v2_' + this.baseId)) return;
+        
         let data = await StoreAPI.fetchCloudData();
         if(!data || data.length === 0) return;
         
@@ -1363,13 +1369,18 @@ class PremiumStore {
         
         let exists = registry.users.find(u => String(u.baseId) === String(this.baseId));
         if (!exists) {
+            // إعادة تسجيل المستخدم الذي تم مسحه
             registry.users.push({ baseId: this.baseId, name: this.userName, tgId: this.tgId, date: StoreSecurity.formatCustomDate(Date.now()) });
             await StoreAPI.updateCloudData(data);
         }
-        localStorage.setItem('cloud_registered_' + this.baseId, 'true');
+        
+        // إعطاء المستخدم الختم الجديد لكي لا يعيد التسجيل في المرات القادمة
+        localStorage.setItem('cloud_registered_v2_' + this.baseId, 'true');
     }
 
 
+
+    
 
 async notifyActivity(action) {
         // حماية الإدارة من استهلاك الطلبات
