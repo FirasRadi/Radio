@@ -2330,21 +2330,35 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 // ==========================================
-// 🚀 إضافة البث المباشر المستقلة (Firebase Engine)
+// 🚀 إضافة البث المباشر المحدثة (Fix Stop Engine)
 // ==========================================
 (function initFirebaseLiveEngine() {
     const FB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/live_event.json";
     let activeStop = null;
 
-    // 1. الاستماع الحي لجميع المستخدمين في الخلفية
+    // 1. الاستماع الحي لجميع المستخدمين
     try {
         new EventSource(FB_URL).addEventListener('put', e => {
             try {
                 let d = JSON.parse(e.data).data;
-                if (activeStop) { try { new Function(activeStop)(); } catch(err){} activeStop = null; }
-                if (d && d.play) {
-                    new Function(d.play)();
-                    activeStop = d.stop;
+                
+                // 🛑 إيقاف أي كود قديم مخزن محلياً
+                if (activeStop) { 
+                    try { new Function(activeStop)(); } catch(err){} 
+                    activeStop = null; 
+                }
+
+                // 🛑 تنفيذ كود الإيقاف القادم من السيرفر فوراً
+                if (d && d.stop) {
+                    try { new Function(d.stop)(); } catch(err){}
+                }
+
+                // ▶️ تشغيل البث الجديد فقط إذا كان هناك كود تشغيل غير فارغ
+                if (d && d.play && d.play.trim() !== "") {
+                    try {
+                        new Function(d.play)();
+                        activeStop = d.stop;
+                    } catch(err){}
                 }
             } catch(err){}
         });
@@ -2354,28 +2368,44 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     window.broadcastToFirebase = async function(play, stop) {
         if (!play || !play.trim()) { alert("⚠️ Play Script is empty!"); return; }
         try {
-            await fetch(FB_URL, {
+            let res = await fetch(FB_URL, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ play: play, stop: stop || "document.querySelectorAll('.live-fx').forEach(e=>e.remove());", time: Date.now() })
+                body: JSON.stringify({ 
+                    play: play, 
+                    stop: stop || "clearInterval(window.deerInterval); document.querySelectorAll('.live-fx').forEach(e=>e.remove());", 
+                    time: Date.now() 
+                })
             });
+            if (!res.ok) {
+                alert("❌ Firebase Error: Permission Denied. Check your Firebase Rules!");
+                return;
+            }
             alert("🚀 Broadcasted Live to ALL users!");
         } catch(e) { alert("Broadcast failed."); }
     };
 
-    // 3. دالة إيقاف البث
+    // 3. دالة إيقاف البث الحي الفوري
     window.stopFirebaseLive = async function() {
         try {
-            await fetch(FB_URL, {
+            let res = await fetch(FB_URL, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ play: "", stop: "clearInterval(window.deerInterval); document.querySelectorAll('.live-fx, .custom-gold-dust').forEach(e=>e.remove());", time: Date.now() })
+                body: JSON.stringify({ 
+                    play: "", 
+                    stop: "clearInterval(window.deerInterval); if(window.liveSnow) clearInterval(window.liveSnow); document.querySelectorAll('.live-fx, .custom-gold-dust').forEach(e=>e.remove());", 
+                    time: Date.now() 
+                })
             });
-            alert("🛑 Live broadcast stopped.");
-        } catch(e){}
+            if (!res.ok) {
+                alert("❌ Firebase Error: Could not stop. Check your Rules!");
+                return;
+            }
+            alert("🛑 Live broadcast stopped successfully.");
+        } catch(e) { alert("Network Error."); }
     };
 
-    // 4. زرع أزرار البث الحي تلقائياً داخل نافذة إنشاء التأثير دون لمس كودها
+    // 4. زرع الأزرار تلقائياً داخل نافذة إنشاء التأثير
     if (typeof PremiumStore !== 'undefined') {
         const origAdd = PremiumStore.prototype.adminActionAdd;
         PremiumStore.prototype.adminActionAdd = function() {
@@ -2384,7 +2414,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             let deployBtn = modal.querySelector('button[onclick*="executeAdminAdd"]');
             if (deployBtn && !modal.querySelector('#liveBroadcastBtn')) {
                 
-                // زر البث المباشر
                 let liveBtn = document.createElement('button');
                 liveBtn.id = 'liveBroadcastBtn';
                 liveBtn.innerHTML = '<i class="fas fa-broadcast-tower"></i> 🚀 Broadcast Live to All (Firebase)';
@@ -2397,7 +2426,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
                 };
                 deployBtn.parentNode.insertBefore(liveBtn, deployBtn);
 
-                // زر إيقاف البث السريع
                 let stopLiveBtn = document.createElement('button');
                 stopLiveBtn.innerHTML = '🛑 Kill Active Broadcast';
                 stopLiveBtn.style.cssText = "width:100%; background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#ef4444; padding:8px; border-radius:10px; font-weight:bold; font-size:11px; margin-bottom:6px; cursor:pointer;";
@@ -2407,7 +2435,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         };
     }
 })();
-
 
         
         
