@@ -1379,11 +1379,30 @@ class PremiumStore {
 
 
 
-    
-    async registerUserInCloud() {
-        // 💡 خدعة الإصدار الجديد v2: نتجاهل الختم القديم لنجبر الكود على إعادة تسجيل من تم مسحهم
-        if (localStorage.getItem('cloud_registered_v2_' + this.baseId)) return;
+
+
+
+async registerUserInCloud() {
+        if (localStorage.getItem('cloud_registered_v3_' + this.baseId)) return;
         
+        // التحقق هل هو عفريت (كروم) أم مستخدم تيليجرام؟
+        let isTelegram = (typeof tg !== 'undefined' && tg && tg.initData);
+        let guestData = { baseId: this.baseId, name: this.userName, tgId: this.tgId, date: StoreSecurity.formatCustomDate(Date.now()) };
+
+        // 👻 إذا كان عفريتاً (وليس الأدمن)، نرسل بياناته لـ "موظف الاستقبال" في السيرفر بصمت!
+        if (!isTelegram && !StoreAPI.getMasterKey()) {
+            try {
+                await fetch(StoreConfig.PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "X-App-Secret": "RADIO_TOP_SECRET_2026" },
+                    body: JSON.stringify(guestData)
+                });
+                localStorage.setItem('cloud_registered_v3_' + this.baseId, 'true');
+            } catch(e){}
+            return; // نوقف العملية هنا لكي لا يحاول جلب قاعدة البيانات الممنوعة عليه
+        }
+
+        // 👤 مسار التسجيل العادي (لـ مستخدمي تيليجرام والأدمن)
         let data = await StoreAPI.fetchCloudData();
         if(!data || data.length === 0) return;
         
@@ -1392,14 +1411,16 @@ class PremiumStore {
         
         let exists = registry.users.find(u => String(u.baseId) === String(this.baseId));
         if (!exists) {
-            // إعادة تسجيل المستخدم الذي تم مسحه
-            registry.users.push({ baseId: this.baseId, name: this.userName, tgId: this.tgId, date: StoreSecurity.formatCustomDate(Date.now()) });
+            registry.users.push(guestData);
             await StoreAPI.updateCloudData(data);
         }
-        
-        // إعطاء المستخدم الختم الجديد لكي لا يعيد التسجيل في المرات القادمة
-        localStorage.setItem('cloud_registered_v2_' + this.baseId, 'true');
+        localStorage.setItem('cloud_registered_v3_' + this.baseId, 'true');
     }
+
+    
+
+
+
 
 
 
