@@ -1404,19 +1404,15 @@ class PremiumStore {
 
 
 async notifyActivity(action) {
-        // 🛑 1. حماية للأدمن: إذا كنت أنت (بالماستر كود أو بالايدي)، لا ترسل إشعاراً ولا تستهلك طلبات
+        // حماية الإدارة من استهلاك الطلبات
         if (StoreAPI.getMasterKey() || String(this.tgId) === String(StoreConfig.MY_ADMIN_TG_ID)) {
             return;
         }
 
-        // 🛑 2. منع التكرار للمستخدم العادي: يُرسل مرة واحدة فقط في الجلسة
         let sessionKey = 'notified_' + action + '_' + this.baseId;
         if (sessionStorage.getItem(sessionKey)) return;
 
-        // جلب البيانات
         let data = await StoreAPI.fetchCloudData();
-        
-        // 🛡️ حماية ضد مسح البيانات: إذا عادت البيانات فارغة لسبب ما، نوقف العملية فوراً
         if (!data || data.length === 0) return; 
 
         let mailServer = data.find(x => x.id === 'mail_server');
@@ -1432,14 +1428,13 @@ async notifyActivity(action) {
             timestamp: Date.now()
         });
         
-        // حفظ الرسالة في السيرفر
         let success = await StoreAPI.updateCloudData(data);
-        
-        // إذا نجح الحفظ، نضع علامة في متصفح المستخدم كي لا يرسل مجدداً في نفس الجلسة
         if (success) {
             sessionStorage.setItem(sessionKey, 'true');
         }
+        if (StoreAPI.getMasterKey()) this.updateInboxBadge(data);
     }
+    
 
     
     
