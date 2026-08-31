@@ -2327,6 +2327,89 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         
         
 
+
+
+// ==========================================
+// 🚀 إضافة البث المباشر المستقلة (Firebase Engine)
+// ==========================================
+(function initFirebaseLiveEngine() {
+    const FB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/live_event.json";
+    let activeStop = null;
+
+    // 1. الاستماع الحي لجميع المستخدمين في الخلفية
+    try {
+        new EventSource(FB_URL).addEventListener('put', e => {
+            try {
+                let d = JSON.parse(e.data).data;
+                if (activeStop) { try { new Function(activeStop)(); } catch(err){} activeStop = null; }
+                if (d && d.play) {
+                    new Function(d.play)();
+                    activeStop = d.stop;
+                }
+            } catch(err){}
+        });
+    } catch(e){}
+
+    // 2. دالة إرسال البث المباشر
+    window.broadcastToFirebase = async function(play, stop) {
+        if (!play || !play.trim()) { alert("⚠️ Play Script is empty!"); return; }
+        try {
+            await fetch(FB_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ play: play, stop: stop || "document.querySelectorAll('.live-fx').forEach(e=>e.remove());", time: Date.now() })
+            });
+            alert("🚀 Broadcasted Live to ALL users!");
+        } catch(e) { alert("Broadcast failed."); }
+    };
+
+    // 3. دالة إيقاف البث
+    window.stopFirebaseLive = async function() {
+        try {
+            await fetch(FB_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ play: "", stop: "clearInterval(window.deerInterval); document.querySelectorAll('.live-fx, .custom-gold-dust').forEach(e=>e.remove());", time: Date.now() })
+            });
+            alert("🛑 Live broadcast stopped.");
+        } catch(e){}
+    };
+
+    // 4. زرع أزرار البث الحي تلقائياً داخل نافذة إنشاء التأثير دون لمس كودها
+    if (typeof PremiumStore !== 'undefined') {
+        const origAdd = PremiumStore.prototype.adminActionAdd;
+        PremiumStore.prototype.adminActionAdd = function() {
+            origAdd.call(this);
+            let modal = this.customModalBox;
+            let deployBtn = modal.querySelector('button[onclick*="executeAdminAdd"]');
+            if (deployBtn && !modal.querySelector('#liveBroadcastBtn')) {
+                
+                // زر البث المباشر
+                let liveBtn = document.createElement('button');
+                liveBtn.id = 'liveBroadcastBtn';
+                liveBtn.innerHTML = '<i class="fas fa-broadcast-tower"></i> 🚀 Broadcast Live to All (Firebase)';
+                liveBtn.style.cssText = "width:100%; background:linear-gradient(135deg, #ec4899, #db2777); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px; cursor:pointer;";
+                liveBtn.onclick = () => {
+                    let play = document.getElementById('nPlay').value;
+                    let stop = document.getElementById('nStop').value;
+                    window.broadcastToFirebase(play, stop);
+                    this.hideCustomModal();
+                };
+                deployBtn.parentNode.insertBefore(liveBtn, deployBtn);
+
+                // زر إيقاف البث السريع
+                let stopLiveBtn = document.createElement('button');
+                stopLiveBtn.innerHTML = '🛑 Kill Active Broadcast';
+                stopLiveBtn.style.cssText = "width:100%; background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#ef4444; padding:8px; border-radius:10px; font-weight:bold; font-size:11px; margin-bottom:6px; cursor:pointer;";
+                stopLiveBtn.onclick = () => { window.stopFirebaseLive(); this.hideCustomModal(); };
+                deployBtn.parentNode.insertBefore(stopLiveBtn, deployBtn);
+            }
+        };
+    }
+})();
+
+
+        
         
     </script>
 </body>
