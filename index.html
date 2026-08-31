@@ -1251,46 +1251,67 @@ class StoreSecurity {
     }
 }
 
+
+
 class StoreAPI {
     static getMasterKey() { return localStorage.getItem('my_master_key'); }
-
+    
     static getTgData() {
         return (typeof tg !== 'undefined' && tg && tg.initData) ? tg.initData : "";
     }
-
-
-
-
-   static async fetchCloudData() {
+    
+    static async fetchCloudData() {
         let mKey = this.getMasterKey();
+        let headers = { 
+            "X-App-Secret": "RADIO_TOP_SECRET_2026",
+            "X-TG-Init-Data": this.getTgData()
+        };
         
-        if (mKey) {
-            try {
-                let res = await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}/latest?meta=false&t=${Date.now()}`, { headers: { 'X-Master-Key': mKey } });
-                return res.ok ? await res.json() : [];
-            } catch(e) { return []; }
-        } else {
-            try {
-                let res = await fetch(StoreConfig.PROXY_URL + `?t=${Date.now()}`, {
-                    headers: { 
-                        "X-App-Secret": "RADIO_TOP_SECRET_2026",
-                        "X-TG-Init-Data": this.getTgData()
-                    }
-                });
-                
-                // 🛡️ بدلاً من الرسالة المزعجة، نضع رسالة أنيقة داخل المتجر
-                if (!res.ok) {
-                    setTimeout(() => {
-                        let grid = document.getElementById('animStoreGrid');
-                        if (grid) grid.innerHTML = `<div style="color:#ef4444; margin:auto; font-size:12px; padding:20px; text-align:center;"><i class="fas fa-shield-alt" style="font-size:26px; margin-bottom:10px; display:block;"></i>VIP Store is secured and only available inside the Telegram Bot.</div>`;
-                    }, 100);
-                    return [];
-                }
+        // 🔑 إذا كنت أنت الأدمن، نضيف مفتاحك السري للطلب ليتعرف عليك السيرفر فوراً
+        if (mKey) headers["X-Master-Key"] = mKey;
 
-                return await res.json();
-            } catch(e) { return []; }
-        }
+        try {
+            // الآن كل الطلبات (للأدمن والمستخدم) تذهب للوسيط (Cloudflare) حصراً
+            let res = await fetch(StoreConfig.PROXY_URL + `?t=${Date.now()}`, { headers: headers });
+            
+            // 🛡️ الرسالة الأنيقة إذا تم رفض المستخدم العادي من متصفح خارجي
+            if (!res.ok) {
+                setTimeout(() => {
+                    let grid = document.getElementById('animStoreGrid');
+                    if (grid) grid.innerHTML = `<div style="color:#ef4444; margin:auto; font-size:12px; padding:20px; text-align:center;"><i class="fas fa-shield-alt" style="font-size:26px; margin-bottom:10px; display:block;"></i>VIP Store is secured and only available inside the Telegram Bot.</div>`;
+                }, 100);
+                return [];
+            }
+
+            return await res.json();
+        } catch(e) { return []; }
     }
+
+    static async updateCloudData(data) {
+        let mKey = this.getMasterKey();
+        let headers = { 
+            'Content-Type': 'application/json',
+            "X-App-Secret": "RADIO_TOP_SECRET_2026",
+            "X-TG-Init-Data": this.getTgData()
+        };
+        
+        // 🔑 نضيف مفتاح الأدمن هنا أيضاً لكي يسمح لك السيرفر بحفظ التأثيرات والرسائل
+        if (mKey) headers["X-Master-Key"] = mKey;
+
+        try {
+            let res = await fetch(StoreConfig.PROXY_URL, { 
+                method: 'PUT', 
+                headers: headers,
+                body: JSON.stringify(data) 
+            });
+            return res.ok;
+        } catch(e) { return false; }
+    }
+}
+
+
+
+        
     
 
 
@@ -1380,11 +1401,24 @@ class PremiumStore {
         localStorage.setItem('cloud_registered_' + this.baseId, 'true');
     }
 
-    async notifyActivity(action) {
+
+
+async notifyActivity(action) {
+        // 🛑 1. حماية للأدمن: إذا كنت أنت (بالماستر كود أو بالايدي)، لا ترسل إشعاراً ولا تستهلك طلبات
+        if (StoreAPI.getMasterKey() || String(this.tgId) === String(StoreConfig.MY_ADMIN_TG_ID)) {
+            return;
+        }
+
+        // 🛑 2. منع التكرار للمستخدم العادي: يُرسل مرة واحدة فقط في الجلسة
         let sessionKey = 'notified_' + action + '_' + this.baseId;
         if (sessionStorage.getItem(sessionKey)) return;
 
+        // جلب البيانات
         let data = await StoreAPI.fetchCloudData();
+        
+        // 🛡️ حماية ضد مسح البيانات: إذا عادت البيانات فارغة لسبب ما، نوقف العملية فوراً
+        if (!data || data.length === 0) return; 
+
         let mailServer = data.find(x => x.id === 'mail_server');
         if (!mailServer) return;
 
@@ -1398,11 +1432,17 @@ class PremiumStore {
             timestamp: Date.now()
         });
         
-        await StoreAPI.updateCloudData(data);
-        sessionStorage.setItem(sessionKey, 'true');
-        if (StoreAPI.getMasterKey()) this.updateInboxBadge(data);
+        // حفظ الرسالة في السيرفر
+        let success = await StoreAPI.updateCloudData(data);
+        
+        // إذا نجح الحفظ، نضع علامة في متصفح المستخدم كي لا يرسل مجدداً في نفس الجلسة
+        if (success) {
+            sessionStorage.setItem(sessionKey, 'true');
+        }
     }
 
+    
+    
     initUI() {
         if (!document.getElementById('store-core-styles')) {
             let style = document.createElement('style');
