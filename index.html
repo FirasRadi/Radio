@@ -2325,116 +2325,220 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
         
         
-        
-
-
-
+  // ==========================================
+// 📡 محرك البث المتعدد (Multi-Track Live Center)
 // ==========================================
-// 🚀 إضافة البث المباشر المحدثة (Fix Stop Engine)
-// ==========================================
-(function initFirebaseLiveEngine() {
-    const FB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/live_event.json";
-    let activeStop = null;
+(function initAdvancedLiveEngine() {
+    const DB_BASE = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app";
+    const STREAMS_URL = `${DB_BASE}/live_streams.json`;
+    const LIBRARY_URL = `${DB_BASE}/live_library.json`;
 
-    // 1. الاستماع الحي لجميع المستخدمين
+    // ذاكرة العميل للسكريبتات الشغالة حالياً { id: "stop_script" }
+    window.activeLiveStreams = {};
+
+    // 1. الاستماع الحي متعدد المسارات (Multi-track Listener)
     try {
-        new EventSource(FB_URL).addEventListener('put', e => {
+        const source = new EventSource(STREAMS_URL);
+        source.addEventListener('put', e => {
             try {
-                let d = JSON.parse(e.data).data;
-                
-                // 🛑 إيقاف أي كود قديم مخزن محلياً
-                if (activeStop) { 
-                    try { new Function(activeStop)(); } catch(err){} 
-                    activeStop = null; 
-                }
+                let payload = JSON.parse(e.data);
+                let path = payload.path;
+                let data = payload.data;
 
-                // 🛑 تنفيذ كود الإيقاف القادم من السيرفر فوراً
-                if (d && d.stop) {
-                    try { new Function(d.stop)(); } catch(err){}
-                }
-
-                // ▶️ تشغيل البث الجديد فقط إذا كان هناك كود تشغيل غير فارغ
-                if (d && d.play && d.play.trim() !== "") {
-                    try {
-                        new Function(d.play)();
-                        activeStop = d.stop;
-                    } catch(err){}
+                // تحديث جذري لكل السكريبتات
+                if (path === "/") {
+                    let streams = data || {};
+                    // أ. إيقاف السكريبتات التي تم مسحها من السيرفر
+                    for (let k in window.activeLiveStreams) {
+                        if (!streams[k]) {
+                            try { new Function(window.activeLiveStreams[k])(); } catch(err){}
+                            delete window.activeLiveStreams[k];
+                        }
+                    }
+                    // ب. تشغيل السكريبتات الجديدة
+                    for (let k in streams) {
+                        if (!window.activeLiveStreams[k]) {
+                            try { new Function(streams[k].play)(); } catch(err){}
+                            window.activeLiveStreams[k] = streams[k].stop;
+                        }
+                    }
+                } 
+                // تحديث لسكريبت واحد فقط (تشغيل أو إيقاف)
+                else {
+                    let k = path.replace('/', '');
+                    if (data === null) {
+                        // إيقاف هذا السكريبت فقط
+                        if (window.activeLiveStreams[k]) {
+                            try { new Function(window.activeLiveStreams[k])(); } catch(err){}
+                            delete window.activeLiveStreams[k];
+                        }
+                    } else {
+                        // تشغيل هذا السكريبت
+                        if (!window.activeLiveStreams[k]) {
+                            try { new Function(data.play)(); } catch(err){}
+                            window.activeLiveStreams[k] = data.stop;
+                        }
+                    }
                 }
             } catch(err){}
         });
     } catch(e){}
 
-    // 2. دالة إرسال البث المباشر
-    window.broadcastToFirebase = async function(play, stop) {
-        if (!play || !play.trim()) { alert("⚠️ Play Script is empty!"); return; }
-        try {
-            let res = await fetch(FB_URL, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    play: play, 
-                    stop: stop || "clearInterval(window.deerInterval); document.querySelectorAll('.live-fx').forEach(e=>e.remove());", 
-                    time: Date.now() 
-                })
-            });
-            if (!res.ok) {
-                alert("❌ Firebase Error: Permission Denied. Check your Firebase Rules!");
-                return;
-            }
-            alert("🚀 Broadcasted Live to ALL users!");
-        } catch(e) { alert("Broadcast failed."); }
-    };
-
-    // 3. دالة إيقاف البث الحي الفوري
-    window.stopFirebaseLive = async function() {
-        try {
-            let res = await fetch(FB_URL, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    play: "", 
-                    stop: "clearInterval(window.deerInterval); if(window.liveSnow) clearInterval(window.liveSnow); document.querySelectorAll('.live-fx, .custom-gold-dust').forEach(e=>e.remove());", 
-                    time: Date.now() 
-                })
-            });
-            if (!res.ok) {
-                alert("❌ Firebase Error: Could not stop. Check your Rules!");
-                return;
-            }
-            alert("🛑 Live broadcast stopped successfully.");
-        } catch(e) { alert("Network Error."); }
-    };
-
-    // 4. زرع الأزرار تلقائياً داخل نافذة إنشاء التأثير
+    // 2. زرع زر (Live Center) في لوحة الإدارة بشكل أنيق وبدون مساس بالكود الأصلي
     if (typeof PremiumStore !== 'undefined') {
-        const origAdd = PremiumStore.prototype.adminActionAdd;
-        PremiumStore.prototype.adminActionAdd = function() {
-            origAdd.call(this);
-            let modal = this.customModalBox;
-            let deployBtn = modal.querySelector('button[onclick*="executeAdminAdd"]');
-            if (deployBtn && !modal.querySelector('#liveBroadcastBtn')) {
-                
-                let liveBtn = document.createElement('button');
-                liveBtn.id = 'liveBroadcastBtn';
-                liveBtn.innerHTML = '<i class="fas fa-broadcast-tower"></i> 🚀 Broadcast Live to All (Firebase)';
-                liveBtn.style.cssText = "width:100%; background:linear-gradient(135deg, #ec4899, #db2777); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; margin-bottom:6px; cursor:pointer;";
-                liveBtn.onclick = () => {
-                    let play = document.getElementById('nPlay').value;
-                    let stop = document.getElementById('nStop').value;
-                    window.broadcastToFirebase(play, stop);
-                    this.hideCustomModal();
-                };
-                deployBtn.parentNode.insertBefore(liveBtn, deployBtn);
-
-                let stopLiveBtn = document.createElement('button');
-                stopLiveBtn.innerHTML = '🛑 Kill Active Broadcast';
-                stopLiveBtn.style.cssText = "width:100%; background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#ef4444; padding:8px; border-radius:10px; font-weight:bold; font-size:11px; margin-bottom:6px; cursor:pointer;";
-                stopLiveBtn.onclick = () => { window.stopFirebaseLive(); this.hideCustomModal(); };
-                deployBtn.parentNode.insertBefore(stopLiveBtn, deployBtn);
-            }
+        const origRender = PremiumStore.prototype.renderAnimStore;
+        PremiumStore.prototype.renderAnimStore = async function() {
+            await origRender.call(this);
+            setTimeout(() => {
+                let adminBar = document.getElementById('adminBarContainer');
+                if (adminBar && adminBar.innerHTML !== '' && !document.getElementById('liveDashboardBtn')) {
+                    let btnContainer = adminBar.querySelector('div');
+                    if(btnContainer) {
+                        let liveBtn = document.createElement('button');
+                        liveBtn.id = 'liveDashboardBtn';
+                        liveBtn.innerHTML = '<i class="fas fa-satellite-dish"></i> Live Center';
+                        // تصميم احترافي بألوان النيلي والسيان
+                        liveBtn.style.cssText = "flex:1.2; background:linear-gradient(135deg, #4f46e5, #0ea5e9); color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer; margin-left:4px; box-shadow:0 0 10px rgba(14,165,233,0.3);";
+                        liveBtn.onclick = () => window.openLiveDashboard(this);
+                        btnContainer.appendChild(liveBtn);
+                    }
+                }
+            }, 100);
         };
     }
-})();
+
+    // 3. فتح الحاوية (لوحة تحكم السكريبتات الشاملة)
+    window.openLiveDashboard = async function(appInstance) {
+        appInstance.showCustomModal('<div style="color:#0ea5e9; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading Control Center...</div>');
+
+        // جلب المكتبة والسكريبتات الشغالة حالياً
+        let [libRes, streamsRes] = await Promise.all([
+            fetch(LIBRARY_URL + '?t=' + Date.now()).catch(()=>null),
+            fetch(STREAMS_URL + '?t=' + Date.now()).catch(()=>null)
+        ]);
+
+        window.currentLiveLibrary = libRes && libRes.ok ? await libRes.json() || {} : {};
+        window.currentActiveStreams = streamsRes && streamsRes.ok ? await streamsRes.json() || {} : {};
+
+        window.renderLiveDashboard(appInstance);
+    };
+
+    // 4. تصميم ورسم حاوية التحكم
+    window.renderLiveDashboard = function(appInstance) {
+        let library = window.currentLiveLibrary || {};
+        let activeStreams = window.currentActiveStreams || {};
+
+        let listHTML = Object.keys(library).length === 0 ?
+            '<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">No scripts available.<br>Add one below!</div>' :
+            Object.keys(library).map(id => {
+                let item = library[id];
+                let isRunning = !!activeStreams[id];
+                // مفتاح التشغيل/الإيقاف المستقل لكل سكريبت
+                let toggleColor = isRunning ? '#10b981' : 'rgba(255,255,255,0.1)';
+                let toggleText = isRunning ? '🟢 Running' : '⚪ Off';
+                let toggleBorder = isRunning ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.2)';
+
+                return `
+                <div style="background:rgba(0,0,0,0.4); border:1px solid rgba(14,165,233,0.2); border-radius:12px; padding:10px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:10px; text-align:left;">
+                        <div style="font-size:24px;">${item.icon || '⚡'}</div>
+                        <div>
+                            <div style="color:#fff; font-size:13px; font-weight:bold;">${item.name}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button onclick="window.toggleStream('${id}')" style="background:${toggleColor}; border:1px solid ${toggleBorder}; color:#fff; padding:6px 12px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">${toggleText}</button>
+                        <button onclick="window.deleteFromLibrary('${id}')" style="background:rgba(239,68,68,0.15); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">🗑</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="color:#0ea5e9; margin:0; font-size:16px;"><i class="fas fa-satellite-dish"></i> Live Control Center</h3>
+            </div>
+            
+            <div style="max-height:35vh; overflow-y:auto; padding-right:5px; margin-bottom:15px;">
+                ${listHTML}
+            </div>
+
+            <!-- حاوية الإضافة السريعة -->
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; text-align:left; margin-bottom:10px;">
+                <div style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:8px;">+ Add New Script</div>
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <input id="l_icon" placeholder="Icon 🦌" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                    <input id="l_name" placeholder="Name" style="flex:3; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                </div>
+                <textarea id="l_play" placeholder="Play Script" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:8px; border-radius:8px; margin-bottom:6px; font-size:10px;"></textarea>
+                <textarea id="l_stop" placeholder="Stop Script (e.g. clearInterval(id); remove element)" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:8px; border-radius:8px; margin-bottom:8px; font-size:10px;"></textarea>
+                <button onclick="window.saveToLibrary()" style="width:100%; background:#4f46e5; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">Save Script</button>
+            </div>
+
+            <button onclick="window.StoreAppInstance.hideCustomModal()" style="width:100%; background:rgba(255,255,255,0.05); border:none; color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
+        `;
+        appInstance.showCustomModal(html);
+    };
+
+    // 5. دالة التشغيل/الإيقاف المستقلة
+    window.toggleStream = async function(id) {
+        let isRunning = !!window.currentActiveStreams[id];
+        let item = window.currentLiveLibrary[id];
+        if (!item) return;
+
+        if (isRunning) {
+            // إيقاف السكريبت بمسحه من عقدة السيرفر
+            await fetch(STREAMS_URL.replace('.json', `/${id}.json`), { method: 'DELETE' });
+            delete window.currentActiveStreams[id];
+        } else {
+            // تشغيل السكريبت بوضعه في السيرفر
+            await fetch(STREAMS_URL.replace('.json', `/${id}.json`), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ play: item.play, stop: item.stop, time: Date.now() })
+            });
+            window.currentActiveStreams[id] = { play: item.play, stop: item.stop };
+        }
+        window.renderLiveDashboard(window.StoreAppInstance);
+    };
+
+    // 6. دالة الحفظ في المكتبة
+    window.saveToLibrary = async function() {
+        let icon = document.getElementById('l_icon').value || '⚡';
+        let name = document.getElementById('l_name').value || 'Script';
+        let play = document.getElementById('l_play').value;
+        let stop = document.getElementById('l_stop').value;
+
+        if (!play || !stop) { alert("Play & Stop scripts are required!"); return; }
+
+        let id = 'script_' + Date.now();
+        let payload = { name, icon, play, stop };
+
+        await fetch(LIBRARY_URL.replace('.json', `/${id}.json`), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        window.currentLiveLibrary[id] = payload;
+        window.renderLiveDashboard(window.StoreAppInstance);
+    };
+
+    // 7. الحذف من المكتبة وإيقاف السكريبت إذا كان يعمل
+    window.deleteFromLibrary = async function(id) {
+        if(!confirm("Delete this script?")) return;
+        
+        if(window.currentActiveStreams[id]) {
+            await fetch(STREAMS_URL.replace('.json', `/${id}.json`), { method: 'DELETE' });
+            delete window.currentActiveStreams[id];
+        }
+        await fetch(LIBRARY_URL.replace('.json', `/${id}.json`), { method: 'DELETE' });
+        delete window.currentLiveLibrary[id];
+
+        window.renderLiveDashboard(window.StoreAppInstance);
+    };
+})();      
+
+
 
         
         
