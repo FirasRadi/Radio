@@ -1306,42 +1306,6 @@ class StoreAPI {
 
 
 
-        
-    
-
-
-        
-
-    static async updateCloudData(data) {
-        let mKey = this.getMasterKey();
-        
-        if (mKey) {
-            try {
-                await fetch(`https://api.jsonbin.io/v3/b/${StoreConfig.BIN_ID}`, { 
-                    method: 'PUT', 
-                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': mKey }, 
-                    body: JSON.stringify(data) 
-                });
-                return true;
-            } catch(e) { return false; }
-        } else {
-            try {
-                await fetch(StoreConfig.PROXY_URL, { 
-                    method: 'PUT', 
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        "X-App-Secret": "RADIO_TOP_SECRET_2026",
-                        "X-TG-Init-Data": this.getTgData()
-                    },
-                    body: JSON.stringify(data) 
-                });
-                return true;
-            } catch(e) { return false; }
-        }
-    }
-}
-
-
 
 
 
