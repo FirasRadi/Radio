@@ -1361,8 +1361,14 @@ class PremiumStore {
         this.initUI();
         this.exposeGlobals();
         this.renderAnimStore();
-        this.registerUserInCloud();
-        this.notifyActivity('radio');
+        
+        // 🚦 تشغيل التسجيل أولاً ثم الإشعار بالتسلسل لمنع التصادم ومسح المستخدمين
+        this.startBootSequence();
+    }
+
+    async startBootSequence() {
+        await this.registerUserInCloud();
+        await this.notifyActivity('radio');
     }
 
     initUser() {
@@ -1376,20 +1382,13 @@ class PremiumStore {
         this.tgId = tgUser?.id || "Unknown";
     }
 
-
-
-
-
-
-
-async registerUserInCloud() {
-        if (localStorage.getItem('cloud_registered_v3_' + this.baseId)) return;
+    async registerUserInCloud() {
+        // 💡 الترقية إلى v4 لإجبار التطبيق على إعادة تسجيل كل من تم مسحهم سابقاً
+        if (localStorage.getItem('cloud_registered_v4_' + this.baseId)) return;
         
-        // التحقق هل هو عفريت (كروم) أم مستخدم تيليجرام؟
         let isTelegram = (typeof tg !== 'undefined' && tg && tg.initData);
         let guestData = { baseId: this.baseId, name: this.userName, tgId: this.tgId, date: StoreSecurity.formatCustomDate(Date.now()) };
 
-        // 👻 إذا كان عفريتاً (وليس الأدمن)، نرسل بياناته لـ "موظف الاستقبال" في السيرفر بصمت!
         if (!isTelegram && !StoreAPI.getMasterKey()) {
             try {
                 await fetch(StoreConfig.PROXY_URL, {
@@ -1397,12 +1396,11 @@ async registerUserInCloud() {
                     headers: { 'Content-Type': 'application/json', "X-App-Secret": "RADIO_TOP_SECRET_2026" },
                     body: JSON.stringify(guestData)
                 });
-                localStorage.setItem('cloud_registered_v3_' + this.baseId, 'true');
+                localStorage.setItem('cloud_registered_v4_' + this.baseId, 'true');
             } catch(e){}
-            return; // نوقف العملية هنا لكي لا يحاول جلب قاعدة البيانات الممنوعة عليه
+            return;
         }
 
-        // 👤 مسار التسجيل العادي (لـ مستخدمي تيليجرام والأدمن)
         let data = await StoreAPI.fetchCloudData();
         if(!data || data.length === 0) return;
         
@@ -1414,7 +1412,7 @@ async registerUserInCloud() {
             registry.users.push(guestData);
             await StoreAPI.updateCloudData(data);
         }
-        localStorage.setItem('cloud_registered_v3_' + this.baseId, 'true');
+        localStorage.setItem('cloud_registered_v4_' + this.baseId, 'true');
     }
 
     
@@ -1900,8 +1898,22 @@ updateInboxBadge(data) {
 
 
 
+// 🗑️ دالة حذف المستخدم من قاعدة البيانات وتحديث القائمة
+    async deleteUserFromDB(baseId) {
+        if (!confirm("Are you sure you want to delete this user from database?")) return;
+        
+        let data = await StoreAPI.fetchCloudData();
+        if (!data || data.length === 0) return;
+        
+        let registry = data.find(x => x.id === 'users_registry');
+        if (registry && registry.users) {
+            registry.users = registry.users.filter(u => String(u.baseId) !== String(baseId));
+            await StoreAPI.updateCloudData(data);
+            this.adminShowUsers(); // إعادة فتح القائمة وتحديث الأرقام فوراً
+        }
+    }
 
-async adminShowUsers() {
+    async adminShowUsers() {
         this.showCustomModal('<div style="color:#f59e0b; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading Users...</div>');
         
         let data = await StoreAPI.fetchCloudData();
@@ -1952,7 +1964,11 @@ async adminShowUsers() {
                         </div>
                     </summary>
                     <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.15);">
-                        <button onclick="window.StoreApp.adminSendMsg('${user.baseId}')" style="width:100%; margin-bottom:10px; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:8px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-paper-plane"></i> Message User</button>
+                        <!-- زر المراسلة وزر الحذف جنباً إلى جنب -->
+                        <div style="display:flex; gap:8px; margin-bottom:10px;">
+                            <button onclick="window.StoreApp.adminSendMsg('${user.baseId}')" style="flex:2; background:rgba(56,189,248,0.1); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:8px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-paper-plane"></i> Message</button>
+                            <button onclick="window.StoreApp.deleteUserFromDB('${user.baseId}')" style="flex:1; background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:8px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-trash-alt"></i> Delete</button>
+                        </div>
                         ${itemsHTML || '<div style="font-size:10px; color:#64748b; text-align:center;">No effects available yet.</div>'}
                     </div>
                 </details>
