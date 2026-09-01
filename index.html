@@ -1382,43 +1382,50 @@ class PremiumStore {
         this.tgId = tgUser?.id || "Unknown";
     }
 
-    async registerUserInCloud() {
-        // 💡 الترقية إلى v4 لإجبار التطبيق على إعادة تسجيل كل من تم مسحهم سابقاً
-        if (localStorage.getItem('cloud_registered_v4_' + this.baseId)) return;
-        
+
+
+
+    
+  async registerUserInCloud() {
         let isTelegram = (typeof tg !== 'undefined' && tg && tg.initData);
         let guestData = { baseId: this.baseId, name: this.userName, tgId: this.tgId, date: StoreSecurity.formatCustomDate(Date.now()) };
 
+        // 👻 1. مسار زوار المتصفح (Web / Chrome)
         if (!isTelegram && !StoreAPI.getMasterKey()) {
+            if (localStorage.getItem('guest_reg_' + this.baseId)) return;
             try {
                 await fetch(StoreConfig.PROXY_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "X-App-Secret": "RADIO_TOP_SECRET_2026" },
                     body: JSON.stringify(guestData)
                 });
-                localStorage.setItem('cloud_registered_v4_' + this.baseId, 'true');
+                localStorage.setItem('guest_reg_' + this.baseId, 'true');
             } catch(e){}
             return;
         }
 
+        // 👤 2. مسار مستخدمي تيليجرام (فحص السيرفر المباشر بدون أختام v4 أو v5)
         let data = await StoreAPI.fetchCloudData();
-        if(!data || data.length === 0) return;
+        if (!data || data.length === 0) return;
         
         let registry = data.find(x => x.id === 'users_registry');
-        if (!registry) { registry = { id: 'users_registry', users: [] }; data.push(registry); }
+        if (!registry) { 
+            registry = { id: 'users_registry', users: [] }; 
+            data.push(registry); 
+        }
         
-        let exists = registry.users.find(u => String(u.baseId) === String(this.baseId));
+        // 🔍 فحص حقيقي: هل المعرف موجود داخل قائمة السيرفر الآن؟
+        let exists = registry.users.some(u => String(u.baseId) === String(this.baseId));
+        
+        // 🚀 إذا لم يكن موجوداً (جديد أو تم حذفه)، يتم تسجيله وحفظه فوراً
         if (!exists) {
             registry.users.push(guestData);
             await StoreAPI.updateCloudData(data);
         }
-        localStorage.setItem('cloud_registered_v4_' + this.baseId, 'true');
-    }
+        // إذا كان موجوداً، لا يفعل شيئاً ولا يستهلك أي طلبات
+    }  
 
     
-
-
-
 
 
 
