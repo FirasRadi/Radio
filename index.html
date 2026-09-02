@@ -1378,7 +1378,11 @@ class PremiumStore {
             this.baseId = tgUser?.id ? "TG-" + tgUser.id : "U-" + Math.floor(Math.random() * 90000 + 10000);
             localStorage.setItem('my_base_id', this.baseId);
         }
-        this.userName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
+        let rawName = tgUser ? `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() : "Client";
+        
+        // 🛡️ الدرع المضاد للسموم: تحويل أي أقواس برمجية في الاسم إلى نصوص ميتة
+        this.userName = rawName.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
         this.tgId = tgUser?.id || "Unknown";
     }
 
