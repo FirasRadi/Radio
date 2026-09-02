@@ -1598,6 +1598,7 @@ async notifyActivity(action) {
 
 
 
+
 async globalRedeemAction() {
         let inputField = document.getElementById('globalRedeemInput'); let inputCode = inputField.value.trim().toUpperCase();
         if(!inputCode) return;
@@ -1615,7 +1616,7 @@ async globalRedeemAction() {
             let reqCode = StoreSecurity.getRequestCode(this.baseId, anim.id);
             let expected = StoreSecurity.generateLicenseKey(reqCode, anim.id);
             if (inputCode === expected) { 
-                localStorage.setItem('manual_unlock_' + anim.id, 'true'); 
+                // 🛑 تم إزالة localStorage من هنا نهائياً
                 foundAnim = anim; 
                 validReqCode = reqCode;
                 break; 
@@ -1624,6 +1625,15 @@ async globalRedeemAction() {
 
         if(foundAnim) {
             let data = await StoreAPI.fetchCloudData();
+            
+            // 🛡️ الدرع المفقود: لمنع هذه الدالة من مسح قاعدة البيانات إذا ضعف الإنترنت
+            if (!data || data.length === 0) {
+                alert("⚠️ Network Error. Blocked to prevent data wipe.");
+                redeemBtn.innerHTML = oldBtnText;
+                redeemBtn.style.pointerEvents = 'auto';
+                return;
+            }
+
             let updated = data.map(x => {
                 if (String(x.id) === String(foundAnim.id)) {
                     x.buyers = x.buyers || [];
@@ -1649,8 +1659,6 @@ async globalRedeemAction() {
             alert('❌ Invalid License Key!');
         }
     }
-
-
 
 
 
@@ -1783,11 +1791,15 @@ updateInboxBadge(data) {
             let isFreeStrict = (String(anim.isFree) === 'true' || anim.isFree === true);
             
             // Sync check stringified to prevent bugs
-            let isBuyer = anim.buyers && anim.buyers.some(b => String(b.baseId) === String(this.baseId) || String(b.reqCode) === String(reqCode));
-            let isManual = localStorage.getItem('manual_unlock_' + anim.id) === 'true'; 
-            let isUnlocked = isFreeStrict || isBuyer || isManual;
+         //   let isBuyer = anim.buyers && anim.buyers.some(b => String(b.baseId) === String(this.baseId) || String(b.reqCode) === String(reqCode));
+        //    let isManual = localStorage.getItem('manual_unlock_' + anim.id) === 'true'; 
+       //     let isUnlocked = isFreeStrict || isBuyer || isManual;
 
 
+
+           // 🛡️ الاعتماد المطلق على السيرفر (إلغاء ذاكرة الهاتف لكي يعمل زر Revoke بنجاح)
+            let isBuyer = anim.buyers && anim.buyers.some(b => String(b.baseId) === String(this.baseId));
+            let isUnlocked = isFreeStrict || isBuyer; 
 
 
             
