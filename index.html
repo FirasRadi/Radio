@@ -369,6 +369,68 @@
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) { tg.ready(); tg.expand(); }
 
+
+
+
+
+
+
+
+// ===================================================
+// 🛡️ أداة اعتراض وحماية فايربيس (Firebase Secure Bridge)
+// ===================================================
+(function initFirebaseShield() {
+    if (window._fbShieldActive) return;
+    window._fbShieldActive = true;
+
+    const originalFetch = window.fetch;
+    const FIREBASE_HOST = "firebasedatabase.app";
+    const CLOUDFLARE_PROXY = "https://long-moon-9a74.firasradi0.workers.dev";
+    const APP_SECRET = "RADIO_TOP_SECRET_2026";
+
+    window.fetch = async function(...args) {
+        let url = args[0];
+        let options = args[1] || {};
+        let method = (options.method || "GET").toUpperCase();
+
+        if (typeof url === "string" && url.includes(FIREBASE_HOST) && ["PUT", "POST", "DELETE", "PATCH"].includes(method)) {
+            try {
+                let parsed = new URL(url);
+                let path = parsed.pathname;
+
+                let headers = options.headers ? { ...options.headers } : {};
+                headers["Content-Type"] = headers["Content-Type"] || "application/json";
+                headers["X-App-Secret"] = APP_SECRET;
+                headers["X-FB-Path"] = path;
+
+                let tgData = (typeof tg !== "undefined" && tg && tg.initData) ? tg.initData : "";
+                if (tgData) headers["X-TG-Init-Data"] = tgData;
+
+                let mKey = localStorage.getItem("my_master_key");
+                if (mKey) headers["X-Master-Key"] = mKey;
+
+                return originalFetch(CLOUDFLARE_PROXY, {
+                    method: method,
+                    headers: headers,
+                    body: options.body
+                });
+            } catch (e) {}
+        }
+
+        return originalFetch.apply(this, args);
+    };
+})();
+
+
+
+
+
+
+
+
+
+        
+
         const DOM = {
             loading: document.getElementById('loading'), logo: document.getElementById('stationLogo'), title: document.getElementById('stationTitle'), sub: document.getElementById('stationSub'), playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), prevBtn: document.getElementById('prevBtn'), nextBtn: document.getElementById('nextBtn'), audio: document.getElementById('audioPlayer'), vol: document.getElementById('volumeSlider'), saveBtn: document.getElementById('saveFavBtn'), shareBtn: document.getElementById('shareBtn'), themeBtn: document.getElementById('themeBtn'), searchBtn: document.getElementById('searchBtn'), openFavs: document.getElementById('openFavsBtn'), closeFavs: document.getElementById('closeFavsBtn'), favModal: document.getElementById('favModal'), favList: document.getElementById('favList'), headerCountry: document.getElementById('headerCountry'), mainHeaderTimer: document.getElementById('mainHeaderTimer'), timersToggleBtn: document.getElementById('toggleTimerBtn'), timerOverlay: document.getElementById('timerOverlay'), timerSheet: document.getElementById('timerSheet'), closeTimerBtn: document.getElementById('closeTimerBtn'), sheetHeaderTimer: document.getElementById('sheetHeaderTimer'), sleepDigital: document.getElementById('sleepDigital'), sleepActions: document.getElementById('sleepActions'), sleepCancelBtn: document.getElementById('sleepCancelBtn'), startDigital: document.getElementById('startDigital'), startActions: document.getElementById('startActions'), startCancelBtn: document.getElementById('startCancelBtn'), themeOverlay: document.getElementById('themeOverlay'), themeSheet: document.getElementById('themeSheet'), closeThemeBtn: document.getElementById('closeThemeBtn'), themeColors: document.getElementById('themeColors'), searchOverlay: document.getElementById('searchOverlay'), searchSheet: document.getElementById('searchSheet'), closeSearchBtn: document.getElementById('closeSearchBtn'), searchInput: document.getElementById('searchInput'), searchResults: document.getElementById('searchResults'), logoWrapper: document.getElementById('logoWrapper'), customPhotoInput: document.getElementById('customPhotoInput'), removePhotoBtn: document.getElementById('removePhotoBtn'), addPhotoText: document.getElementById('addPhotoText'),
             decorToggleBtn: document.getElementById('decorToggleBtn'), notesBtn: document.getElementById('notesBtn'), notesOverlay: document.getElementById('notesOverlay'), notesSheet: document.getElementById('notesSheet'), closeNotesBtn: document.getElementById('closeNotesBtn'), noteInput: document.getElementById('noteInput'), saveNoteBtn: document.getElementById('saveNoteBtn'), notesList: document.getElementById('notesList'),
