@@ -1908,7 +1908,9 @@ updateInboxBadge(data) {
  
     }
 
-    handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode) {
+    
+
+handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode) {
         if (this.state.isPreviewing) return;
         
         if (isAdmin && String(anim.id) !== '0') {
@@ -1917,11 +1919,16 @@ updateInboxBadge(data) {
                 <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
                 <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:15px; text-transform:uppercase;">Admin Panel • ID #${anim.id}</div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                    <button onclick="window.StoreApp.hideCustomModal(); window.StoreApp.closeStore(); window.StoreApp.stopAllEffects(); window.StoreApp.state.activeAnimId='${anim.id}'; new Function(window.StoreApp.state.adminSelectedAnim.playScript)(); window.StoreApp.state.activeStopScript=window.StoreApp.state.adminSelectedAnim.stopScript;" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Test Effect</button>
+                    <button onclick="if(window.showUniversalToast)window.showUniversalToast(window.StoreApp.state.adminSelectedAnim.desc); window.StoreApp.hideCustomModal(); window.StoreApp.closeStore(); window.StoreApp.stopAllEffects(); window.StoreApp.state.activeAnimId='${anim.id}'; new Function(window.StoreApp.state.adminSelectedAnim.playScript)(); window.StoreApp.state.activeStopScript=window.StoreApp.state.adminSelectedAnim.stopScript;" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Test Effect</button>
                     <button onclick="window.StoreApp.adminActionEditCode()" style="width:100%; background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-pen"></i> Edit Effect</button>
                     <button onclick="window.StoreApp.adminActionDelete()" style="width:100%; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-trash-alt"></i> Delete Effect</button>
                 </div>
                 <button onclick="window.StoreApp.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold; cursor:pointer;">Close</button>
+
+
+
+
+                
             `);
             return;
         }
