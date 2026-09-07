@@ -2675,6 +2675,268 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 })();
 
 
+
+
+
+
+
+
+
+
+// ===================================================
+// 📢 منصة الإعلانات الذكية التلقائية (Smart Ads Engine)
+// ===================================================
+(function initSmartAutoAdsEngine() {
+    const AD_DB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/ad_config.json";
+    
+    // الإعدادات الافتراضية
+    window.currentAdConfig = {
+        active: true,
+        icon: "🎁",
+        badge: "SPONSORED",
+        title: "Special VIP Access!",
+        desc: "Get unlimited premium radio features now.",
+        btnText: "Visit 🔗",
+        link: "https://t.me/Time_of_world_origins_bot",
+        duration: 14,
+        nextClicksThreshold: 5,
+        playDelaySeconds: 5
+    };
+
+    // 1. الاستماع الحي لتحديثات الإعلان من Firebase
+    try {
+        const adSource = new EventSource(AD_DB_URL);
+        adSource.addEventListener('put', e => {
+            try {
+                let d = JSON.parse(e.data);
+                if (d && d.data) {
+                    window.currentAdConfig = { ...window.currentAdConfig, ...d.data };
+                }
+            } catch(err){}
+        });
+    } catch(e){}
+
+    // جلب الإعدادات أول مرة
+    fetch(AD_DB_URL).then(r => r.json()).then(data => {
+        if (data) window.currentAdConfig = { ...window.currentAdConfig, ...data };
+    }).catch(()=>{});
+
+    // 2. دالة إظهار الإعلان مع الشريط المتناقص
+    function triggerSmartAd() {
+        if (!window.currentAdConfig || !window.currentAdConfig.active) return;
+        if (document.getElementById('smartAutoAdBox')) return; // منع التكرار فوق بعض
+
+        if (!document.getElementById('smart-auto-ad-css')) {
+            let st = document.createElement('style');
+            st.id = 'smart-auto-ad-css';
+            st.innerHTML = `
+                #smartAutoAdBox { position:fixed; top:20px; left:50%; transform:translateX(-50%); width:90%; max-width:350px; background:rgba(15,23,42,0.96); border:1px solid #f59e0b; border-radius:20px; padding:15px 18px; z-index:999998; box-shadow:0 15px 50px rgba(0,0,0,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:center; gap:12px; animation:slideAdDown 0.4s cubic-bezier(0.34,1.56,0.64,1); box-sizing:border-box; }
+                @keyframes slideAdDown { 0% { transform:translateX(-50%) translateY(-100px); opacity:0; } 100% { transform:translateX(-50%) translateY(0); opacity:1; } }
+                #smartAdTimerProgress { position:absolute; bottom:0; left:0; height:3px; background:linear-gradient(90deg, #f59e0b, #ef4444); width:100%; border-radius:0 0 20px 20px; transition:width linear; }
+            `;
+            document.head.appendChild(st);
+        }
+
+        let cfg = window.currentAdConfig;
+        let box = document.createElement('div');
+        box.id = 'smartAutoAdBox';
+        box.innerHTML = `
+            <div style="font-size:32px; flex-shrink:0;">${cfg.icon || '🎁'}</div>
+            <div style="flex:1; text-align:left; min-width:0;">
+                <div style="font-size:9px; color:#f59e0b; font-weight:900; letter-spacing:1px;">${cfg.badge || 'SPONSORED'}</div>
+                <div style="color:#fff; font-size:13px; font-weight:bold; margin:2px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cfg.title}</div>
+                <div style="color:#94a3b8; font-size:10px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${cfg.desc}</div>
+            </div>
+            <button id="smartAdActionBtn" style="background:#f59e0b; color:#0f172a; border:none; padding:8px 14px; border-radius:12px; font-weight:bold; font-size:11px; cursor:pointer; flex-shrink:0;">${cfg.btnText || 'Visit 🔗'}</button>
+            <button id="smartAdCloseBtn" style="background:none; border:none; color:#64748b; font-size:18px; cursor:pointer; flex-shrink:0; padding:4px;"><i class="fas fa-times"></i></button>
+            <div id="smartAdTimerProgress"></div>
+        `;
+        document.body.appendChild(box);
+
+        // زر الفتح الآمن بتيليجرام
+        document.getElementById('smartAdActionBtn').onclick = () => {
+            if (typeof tg !== 'undefined' && tg && tg.openLink) { tg.openLink(cfg.link); }
+            else { window.open(cfg.link, '_blank'); }
+            box.remove();
+        };
+
+        const closeAd = () => { if (box) box.remove(); };
+        document.getElementById('smartAdCloseBtn').onclick = closeAd;
+
+        // تشغيل شريط التناقص والإغلاق التلقائي
+        let bar = document.getElementById('smartAdTimerProgress');
+        let dur = cfg.duration || 14;
+        setTimeout(() => { if (bar) bar.style.width = '0%'; }, 50);
+        bar.style.transitionDuration = dur + 's';
+        setTimeout(closeAd, dur * 1000);
+    }
+
+    // 3. محفزات الراديو (بعد 5 ثوانٍ من التشغيل + بعد 5 نقرات)
+    let navClicksCount = 0;
+    let playTimer = null;
+
+    // أ) عند بدء تشغيل الصوت
+    let audio = document.getElementById('audioPlayer');
+    if (audio) {
+        audio.addEventListener('playing', () => {
+            clearTimeout(playTimer);
+            let delay = (window.currentAdConfig.playDelaySeconds || 5) * 1000;
+            playTimer = setTimeout(() => {
+                if (audio && !audio.paused) triggerSmartAd();
+            }, delay);
+        });
+    }
+
+    // ب) عند النقر 5 مرات على التالي أو السابق
+    function countNavClick() {
+        navClicksCount++;
+        let target = window.currentAdConfig.nextClicksThreshold || 5;
+        if (navClicksCount >= target) {
+            navClicksCount = 0;
+            triggerSmartAd();
+        }
+    }
+
+    let nextBtn = document.getElementById('nextBtn');
+    let prevBtn = document.getElementById('prevBtn');
+    if (nextBtn) nextBtn.addEventListener('click', countNavClick);
+    if (prevBtn) prevBtn.addEventListener('click', countNavClick);
+
+    // 4. دمج لوحة تحكم الإعلانات (Ads Hub) في المتجر للأدمن
+    if (typeof PremiumStore !== 'undefined') {
+        const origRender = PremiumStore.prototype.renderAnimStore;
+        PremiumStore.prototype.renderAnimStore = async function() {
+            await origRender.call(this);
+            
+            let isAdmin = !!StoreAPI.getMasterKey();
+            if (!isAdmin) return;
+
+            setTimeout(() => {
+                let adminBar = document.getElementById('adminBarContainer');
+                if (adminBar && !document.getElementById('adsHubAdminBtn')) {
+                    adminBar.innerHTML = `
+                        <div style="display:flex; flex-direction:column; gap:6px; background:rgba(0,0,0,0.35); padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,0.06); margin-bottom:8px;">
+                            <!-- السطر الأول -->
+                            <div style="display:flex; gap:6px;">
+                                <button onclick="window.StoreApp.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-plus"></i> + Add / Live</button>
+                                <button onclick="window.StoreApp.adminShowUsers()" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-users"></i> Users DB</button>
+                            </div>
+                            <!-- السطر الثاني (برج البث + منصة الإعلانات) -->
+                            <div style="display:flex; gap:6px;">
+                                <button onclick="window.openLiveDashboard(window.StoreAppInstance)" style="flex:1; background:linear-gradient(135deg, #4f46e5, #0ea5e9); color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-satellite-dish"></i> Live Center</button>
+                                <button id="adsHubAdminBtn" onclick="window.openAdsHubModal()" style="flex:1; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-bullhorn"></i> Ads Hub</button>
+                            </div>
+                            <!-- السطر الثالث النحيف الأنيق: تسجيل الخروج -->
+                            <button onclick="localStorage.removeItem('my_master_key'); window.StoreApp.renderAnimStore();" style="width:100%; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25); color:#ef4444; padding:5px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; margin-top:2px;">
+                                <i class="fas fa-sign-out-alt"></i> Sign Out Admin
+                            </button>
+                        </div>
+                    `;
+                }
+            }, 100);
+        };
+    }
+
+    // 5. نافذة تحكم الإعلانات الفخمة (Ads Hub Modal)
+    window.openAdsHubModal = function() {
+        let cfg = window.currentAdConfig;
+        let isAct = cfg.active ? 'selected' : '';
+        let isDis = !cfg.active ? 'selected' : '';
+
+        window.StoreApp.showCustomModal(`
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:10px;">
+                <h3 style="color:#f59e0b; margin:0; font-size:16px;"><i class="fas fa-bullhorn"></i> Smart Ads Manager</h3>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px; text-align:left; max-height:55vh; overflow-y:auto; padding-right:4px;">
+                <!-- حالة التفعيل -->
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <span style="font-size:12px; color:#fff; font-weight:bold; flex:1;">Ad Status:</span>
+                    <select id="ad_active" style="flex:1.5; background:#0f172a; border:1px solid #f59e0b; color:#f59e0b; padding:8px; border-radius:8px; font-weight:bold;">
+                        <option value="true" ${isAct}>🟢 Running (Active)</option>
+                        <option value="false" ${isDis}>⚪ Paused (Disabled)</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:8px;">
+                    <input id="ad_icon" value="${cfg.icon || '🎁'}" placeholder="Icon" style="width:25%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; font-size:16px;">
+                    <input id="ad_badge" value="${cfg.badge || 'SPONSORED'}" placeholder="Badge" style="width:75%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                </div>
+
+                <input id="ad_title" value="${cfg.title || ''}" placeholder="Ad Title" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:12px;">
+                <textarea id="ad_desc" placeholder="Ad Description" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:11px;">${cfg.desc || ''}</textarea>
+
+                <div style="display:flex; gap:8px;">
+                    <input id="ad_btn" value="${cfg.btnText || 'Visit 🔗'}" placeholder="Button Text" style="width:35%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                    <input id="ad_link" value="${cfg.link || ''}" placeholder="URL Link (https://...)" style="width:65%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                </div>
+
+                <!-- إعدادات التوقيت -->
+                <div style="display:flex; gap:8px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="flex:1;">
+                        <span style="font-size:10px; color:#94a3b8; display:block;">Duration (Sec):</span>
+                        <input id="ad_dur" type="number" value="${cfg.duration || 14}" style="width:100%; background:transparent; border:none; color:#f59e0b; font-size:14px; font-weight:bold;">
+                    </div>
+                    <div style="flex:1;">
+                        <span style="font-size:10px; color:#94a3b8; display:block;">Next Clicks:</span>
+                        <input id="ad_clicks" type="number" value="${cfg.nextClicksThreshold || 5}" style="width:100%; background:transparent; border:none; color:#38bdf8; font-size:14px; font-weight:bold;">
+                    </div>
+                    <div style="flex:1;">
+                        <span style="font-size:10px; color:#94a3b8; display:block;">Play Delay (Sec):</span>
+                        <input id="ad_delay" type="number" value="${cfg.playDelaySeconds || 5}" style="width:100%; background:transparent; border:none; color:#10b981; font-size:14px; font-weight:bold;">
+                    </div>
+                </div>
+
+                <button onclick="window.saveAdConfigToCloud()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:12px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer; margin-top:5px;">
+                    💾 Save & Deploy Ad (Live Sync)
+                </button>
+                <button onclick="triggerSmartAd(); window.StoreApp.hideCustomModal();" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:11px; cursor:pointer;">
+                    👁️ Test Ad on My Screen Now
+                </button>
+            </div>
+            <button onclick="window.StoreApp.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); padding:8px; font-weight:bold; cursor:pointer; margin-top:5px;">Close</button>
+        `);
+    };
+
+    // 6. حفظ إعدادات الإعلان ونشرها في Firebase
+    window.saveAdConfigToCloud = async function() {
+        let newCfg = {
+            active: document.getElementById('ad_active').value === 'true',
+            icon: document.getElementById('ad_icon').value.trim() || '🎁',
+            badge: document.getElementById('ad_badge').value.trim() || 'SPONSORED',
+            title: document.getElementById('ad_title').value.trim(),
+            desc: document.getElementById('ad_desc').value.trim(),
+            btnText: document.getElementById('ad_btn').value.trim() || 'Visit 🔗',
+            link: document.getElementById('ad_link').value.trim(),
+            duration: parseInt(document.getElementById('ad_dur').value) || 14,
+            nextClicksThreshold: parseInt(document.getElementById('ad_clicks').value) || 5,
+            playDelaySeconds: parseInt(document.getElementById('ad_delay').value) || 5
+        };
+
+        if (!newCfg.title || !newCfg.link) {
+            alert("⚠️ Title and Link are required!");
+            return;
+        }
+
+        try {
+            // يتم حفظها عبر ميزة الحماية لـ Firebase
+            await fetch(AD_DB_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newCfg)
+            });
+            window.currentAdConfig = newCfg;
+            alert("✅ Ad Configuration Deployed Globally via Firebase!");
+            window.StoreApp.hideCustomModal();
+        } catch(e) {
+            alert("Error saving ad configuration.");
+        }
+    };
+})();
+
+        
+
+        
         
         
     </script>
