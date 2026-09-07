@@ -1926,9 +1926,12 @@ handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode) {
                 let oldN = document.getElementById('universalEffectToast'); if(oldN) oldN.remove();
                 let n = document.createElement('div');
                 n.id = 'universalEffectToast';
+
+                
                 // خلفية مصمتة وزد إندكس مرتفع لمنع تداخل النصوص على شاشات الكمبيوتر
-                n.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0f172a; border:1.5px solid #10b981; border-radius:25px; padding:8px 22px; z-index:100005; box-shadow:0 15px 35px rgba(0,0,0,0.9), 0 0 15px rgba(16,185,129,0.3); color:#10b981; font-size:12px; font-weight:800; text-align:center; max-width:85%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; pointer-events:none; font-family:sans-serif; transition:opacity 0.4s ease;';
-                n.innerHTML = `<span style="display:flex; align-items:center; gap:6px;"><i class="fas fa-shield-alt"></i> ${desc}</span>`;
+                n.style.cssText = 'position:fixed; top:68px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.95); border:1px solid #10b981; border-radius:20px; padding:6px 18px; z-index:100005; box-shadow:0 8px 25px rgba(0,0,0,0.8); color:#10b981; font-size:11px; font-weight:700; text-align:center; max-width:85%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; font-family:sans-serif; transition:opacity 0.4s ease;';
+                n.innerHTML = `<i class="fas fa-shield-alt" style="margin-right:5px;"></i> ${desc}`;
+                
                 document.body.appendChild(n);
                 setTimeout(() => { if (n) { n.style.opacity = '0'; setTimeout(() => n.remove(), 400); } }, 3500);
             };
