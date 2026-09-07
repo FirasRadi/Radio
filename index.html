@@ -1928,9 +1928,39 @@ updateInboxBadge(data) {
 
         if (String(anim.id) === '0') { this.stopAllEffects(); return; }
 
+
+
+        
         if (isUnlocked || isFreeStrict) {
-            this.closeStore(); this.stopAllEffects();
-            try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; this.state.activeAnimId = String(anim.id); } catch(e){}
+     //       this.closeStore(); this.stopAllEffects();
+    //        try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; this.state.activeAnimId = String(anim.id); } catch(e){}
+
+
+this.closeStore(); this.stopAllEffects();
+            try{ 
+                new Function(anim.playScript)(); 
+                this.state.activeStopScript = anim.stopScript; 
+                this.state.activeAnimId = String(anim.id);
+                
+                // 🟢 إظهار الوصف تحت موضع العداد تلقائياً لأي تأثير
+                if(anim.desc && String(anim.id) !== '0') {
+                    let oldN = document.getElementById('universalEffectToast'); if(oldN) oldN.remove();
+                    let n = document.createElement('div');
+                    n.id = 'universalEffectToast';
+                    // top: 75px يضمن هبوطه تحت عداد الـ 5 ثوانٍ تماماً وبدون أي تداخل
+                    n.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.92); border:1px solid #10b981; border-radius:20px; padding:7px 18px; z-index:99999; box-shadow:0 8px 25px rgba(16,185,129,0.25); color:#10b981; font-size:11px; font-weight:700; text-align:center; max-width:85%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; font-family:sans-serif; transition:opacity 0.5s ease;';
+                    n.innerHTML = `<i class="fas fa-check-circle" style="margin-right:5px;"></i> ${anim.desc}`;
+                    document.body.appendChild(n);
+                    setTimeout(() => { if(n) { n.style.opacity = '0'; setTimeout(()=>n.remove(), 500); } }, 4000);
+                }
+            } catch(e){}
+
+
+
+
+            
+
+            
         } else {
             this.closeStore(); this.stopAllEffects(); this.state.isPreviewing = true;
             try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; } catch(e){}
