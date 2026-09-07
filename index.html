@@ -1910,76 +1910,61 @@ updateInboxBadge(data) {
 
     
 
+
+
+
+
+
+
 handleAnimClick(anim, isAdmin, isUnlocked, isFreeStrict, reqCode) {
         if (this.state.isPreviewing) return;
         
+        // 🟢 1. بناء دالة التوست بداخل الكلاس لتكون جاهزة للاستخدام من قِبل الأدمن والمستخدم
+        if (!this.showToastFx) {
+            this.showToastFx = function(desc) {
+                if (!desc) return;
+                let oldN = document.getElementById('universalEffectToast'); if(oldN) oldN.remove();
+                let n = document.createElement('div');
+                n.id = 'universalEffectToast';
+                // خلفية مصمتة وزد إندكس مرتفع لمنع تداخل النصوص على شاشات الكمبيوتر
+                n.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0f172a; border:1.5px solid #10b981; border-radius:25px; padding:8px 22px; z-index:100005; box-shadow:0 15px 35px rgba(0,0,0,0.9), 0 0 15px rgba(16,185,129,0.3); color:#10b981; font-size:12px; font-weight:800; text-align:center; max-width:85%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; pointer-events:none; font-family:sans-serif; transition:opacity 0.4s ease;';
+                n.innerHTML = `<span style="display:flex; align-items:center; gap:6px;"><i class="fas fa-shield-alt"></i> ${desc}</span>`;
+                document.body.appendChild(n);
+                setTimeout(() => { if (n) { n.style.opacity = '0'; setTimeout(() => n.remove(), 400); } }, 3500);
+            };
+        }
+
+        // 👑 2. مسار الأدمن
         if (isAdmin && String(anim.id) !== '0') {
             this.state.adminSelectedAnim = anim;
+            // حماية النص من الأقواس أو علامات التنصيص التي تكسر كود الـ HTML
+            let safeDesc = anim.desc ? anim.desc.replace(/'/g, "\\'").replace(/"/g, "&quot;") : '';
             this.showCustomModal(`
                 <div style="font-size:40px; margin-bottom:5px;">${anim.icon}</div>
                 <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-bottom:15px; text-transform:uppercase;">Admin Panel • ID #${anim.id}</div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                    <button onclick="if(window.showUniversalToast)window.showUniversalToast(window.StoreApp.state.adminSelectedAnim.desc); window.StoreApp.hideCustomModal(); window.StoreApp.closeStore(); window.StoreApp.stopAllEffects(); window.StoreApp.state.activeAnimId='${anim.id}'; new Function(window.StoreApp.state.adminSelectedAnim.playScript)(); window.StoreApp.state.activeStopScript=window.StoreApp.state.adminSelectedAnim.stopScript;" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Test Effect</button>
+                    <button onclick="window.StoreApp.hideCustomModal(); window.StoreApp.closeStore(); window.StoreApp.stopAllEffects(); window.StoreApp.showToastFx('${safeDesc}'); window.StoreApp.state.activeAnimId='${anim.id}'; new Function(window.StoreApp.state.adminSelectedAnim.playScript)(); window.StoreApp.state.activeStopScript=window.StoreApp.state.adminSelectedAnim.stopScript;" style="width:100%; background:#3b82f6; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-play"></i> Test Effect</button>
                     <button onclick="window.StoreApp.adminActionEditCode()" style="width:100%; background:rgba(255,255,255,0.06); color:#fff; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-pen"></i> Edit Effect</button>
                     <button onclick="window.StoreApp.adminActionDelete()" style="width:100%; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;"><i class="fas fa-trash-alt"></i> Delete Effect</button>
                 </div>
                 <button onclick="window.StoreApp.hideCustomModal()" style="margin-top:15px; background:transparent; border:none; color:var(--text-sub); font-size:12px; font-weight:bold; cursor:pointer;">Close</button>
-
-
-
-
-                
             `);
             return;
         }
 
+        if (String(anim.id) === '0') { this.stopAllEffects(); return; }
 
-
-
-
-    
-//        if (String(anim.id) === '0') { this.stopAllEffects(); return; }
-// if (isUnlocked || isFreeStrict) {
-//            this.closeStore(); this.stopAllEffects();
- //           try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; this.state.activeAnimId = String(anim.id); } catch(e){}
-
-
-
-
-if (String(anim.id) === '0') { this.stopAllEffects(); return; }
-        // 1. إغلاق المتجر وإيقاف أي تأثير سابق
+        // 👤 3. مسار المستخدم العادي (مجاني، مدفوع، أو تجريبي)
         this.closeStore(); 
         this.stopAllEffects();
-        // 🟢 2. إظهار الوصف تحت مكان العداد تماماً (ليعمل تلقائياً للمجاني والمدفوع والتجريبي)
-        if (anim.desc) {
-            let oldN = document.getElementById('universalEffectToast'); 
-            if (oldN) oldN.remove();
-            
-            let n = document.createElement('div');
-            n.id = 'universalEffectToast';
-            // top: 68px يجعله تحت دائرة العداد تماماً (التي تنتهي عند 60px)
-            n.style.cssText = 'position:fixed; top:68px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.95); border:1px solid #10b981; border-radius:20px; padding:6px 18px; z-index:10002; box-shadow:0 8px 25px rgba(0,0,0,0.7); color:#10b981; font-size:11px; font-weight:700; text-align:center; max-width:85%; pointer-events:none; font-family:sans-serif; transition:opacity 0.4s ease;';
-            n.innerHTML = `<i class="fas fa-shield-alt" style="margin-right:5px;"></i> ${anim.desc}`;
-            document.body.appendChild(n);      
-            setTimeout(() => { 
-                if (n) { 
-                    n.style.opacity = '0'; 
-                    setTimeout(() => n.remove(), 400); 
-                } 
-            }, 3500);
-        }
-        // 3. تشغيل التأثير
+        
+        // عرض الإشعار فوراً للمستخدم
+        this.showToastFx(anim.desc);
+
         if (isUnlocked || isFreeStrict) {
             try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; this.state.activeAnimId = String(anim.id); } catch(e){}
-
-
-            
-        
-         
-
-            
         } else {
-            this.closeStore(); this.stopAllEffects(); this.state.isPreviewing = true;
+            this.state.isPreviewing = true;
             try{ new Function(anim.playScript)(); this.state.activeStopScript = anim.stopScript; } catch(e){}
             
             this.previewCountdown.style.display = 'block';
@@ -1995,6 +1980,13 @@ if (String(anim.id) === '0') { this.stopAllEffects(); return; }
             }, 1000);
         }
     }
+
+    
+
+
+
+
+        
 
     showCheckout(anim, reqCode) {
         let userMsg = `Name: ${this.userName}\nTG ID: ${this.tgId}\nRequest Code: ${reqCode}`;
