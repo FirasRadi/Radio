@@ -2949,6 +2949,102 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
+
+
+
+// ===================================================
+// 📌 نظام تثبيت التأثيرات (Multi-Effect Pinning System)
+// ===================================================
+(function initEffectPinningSystem() {
+    // 1. ذاكرة التثبيت المحلية
+    window.pinnedEffects = JSON.parse(localStorage.getItem('pinned_effects') || '[]');
+
+    // 2. تعديل دالة إيقاف التأثيرات لكي لا تلمس "المثبت"
+    if (typeof PremiumStore !== 'undefined') {
+        const origStopAll = PremiumStore.prototype.stopAllEffects;
+        PremiumStore.prototype.stopAllEffects = function() {
+            // تنفيذ الإيقاف الأصلي
+            origStopAll.call(this);
+            
+            // إعادة تشغيل التأثيرات المثبتة فوراً بصمت
+            window.pinnedEffects.forEach(id => {
+                let anim = this.state.currentAllAnims.find(a => String(a.id) === String(id));
+                if (anim && anim.playScript && String(id) !== '0') {
+                    try { new Function(anim.playScript)(); } catch(e) {}
+                }
+            });
+        };
+
+        // 3. حقن أيقونات التثبيت (الدبوس) فوق كل تأثير في المتجر
+        const origRender = PremiumStore.prototype.renderAnimStore;
+        PremiumStore.prototype.renderAnimStore = async function() {
+            await origRender.call(this);
+            
+            setTimeout(() => {
+                document.querySelectorAll('#animStoreGrid > div').forEach(wrapper => {
+                    let idLabel = wrapper.querySelector('div:first-child'); // مكان الـ ID
+                    let idValue = idLabel.innerText.replace('#', '');
+                    
+                    // لا نضع تثبيت على زر الإيقاف (0)
+                    if (idValue === '0') return;
+
+                    // فحص هل التأثير مملوك للمستخدم؟
+                    let anim = this.state.currentAllAnims.find(a => String(a.id) === String(idValue));
+                    let isFree = String(anim?.isFree) === 'true';
+                    let isBuyer = anim?.buyers && anim.buyers.some(b => String(b.baseId) === String(this.baseId));
+                    
+                    if (isFree || isBuyer) {
+                        let isPinned = window.pinnedEffects.includes(idValue);
+                        
+                        // إنشاء أيقونة التثبيت (الفقسة)
+                        let pinBtn = document.createElement('div');
+                        pinBtn.innerHTML = isPinned ? '<i class="fas fa-thumbtack"></i>' : '<i class="fas fa-thumbtack" style="opacity:0.3"></i>';
+                        pinBtn.style.cssText = `
+                            position: absolute; top: -5px; right: -5px;
+                            width: 22px; height: 22px; background: ${isPinned ? '#10b981' : 'rgba(255,255,255,0.1)'};
+                            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                            font-size: 10px; color: #fff; cursor: pointer; z-index: 20;
+                            border: 1px solid rgba(255,255,255,0.2); transition: 0.3s;
+                        `;
+
+                        pinBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (isPinned) {
+                                window.pinnedEffects = window.pinnedEffects.filter(i => i !== idValue);
+                                pinBtn.style.background = 'rgba(255,255,255,0.1)';
+                                pinBtn.querySelector('i').style.opacity = '0.3';
+                                // إذا كان مانع إعلانات، نلغي الحظر فوراً عند فك التثبيت
+                                if(idValue === '99') localStorage.removeItem('user_manual_adblock_active');
+                            } else {
+                                window.pinnedEffects.push(idValue);
+                                pinBtn.style.background = '#10b981';
+                                pinBtn.querySelector('i').style.opacity = '1';
+                                // إذا كان مانع إعلانات، نفعل الحظر فوراً عند التثبيت
+                                if(idValue === '99') localStorage.setItem('user_manual_adblock_active', 'true');
+                            }
+                            localStorage.setItem('pinned_effects', JSON.stringify(window.pinnedEffects));
+                            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                        };
+                        
+                        wrapper.style.position = 'relative';
+                        wrapper.appendChild(pinBtn);
+                    }
+                });
+            }, 200);
+        };
+    }
+
+    // 4. دمج المنطق مع محرك الإعلانات (Ad Engine Sync)
+    // نعدل فحص الإعلانات ليعتمد على "التثبيت" الخاص بالتأثير رقم 99
+    const origTriggerAd = window.triggerSmartAd;
+    window.triggerSmartAd = function() {
+        let isAdBlockPinned = window.pinnedEffects.includes('99');
+        if (isAdBlockPinned) return; // إذا كان الدبوس مفعل على المانع، لا تظهر إعلانات أبداً
+        if (origTriggerAd) origTriggerAd.apply(this, arguments);
+    };
+})();
+
+
         
 
         
