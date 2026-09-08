@@ -2734,42 +2734,47 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
-
-
-  // ===================================================
-// 📢 منصة الإعلانات الشاملة (Ads Hub V3.1) - Image Support & Bug Fixes
+        
+// ===================================================
+// 📢 منصة الإعلانات الشاملة (Ads Hub V3.2) - Image Support & UI Fixes
 // ===================================================
 (function initSmartAutoAdsEngineV3() {
     const AD_DB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/smart_ads.json";
     
     window.adsLibrary = [];
     window.activeAdConfig = null;
-    window.tempAdImage = ''; // متغير مؤقت لحفظ الصورة أثناء التعديل
+    window.tempAdImage = ''; 
 
-    // 🖼️ أداة رفع وضغط الصور للإعلانات (مخفية)
-    let adFileInp = document.createElement('input');
-    adFileInp.type = 'file'; adFileInp.accept = 'image/*'; adFileInp.style.display = 'none';
-    document.body.appendChild(adFileInp);
-    adFileInp.onchange = (e) => {
-        let f = e.target.files[0]; if(!f) return;
-        let r = new FileReader();
-        r.onload = ev => {
-            let img = new Image();
-            img.onload = () => {
-                let cvs = document.createElement('canvas'); cvs.width = 80; cvs.height = 80;
-                let ctx = cvs.getContext('2d'); let sz = Math.min(img.width, img.height);
-                ctx.drawImage(img, (img.width-sz)/2, (img.height-sz)/2, sz, sz, 0, 0, 80, 80);
-                // ضغط الصورة كنص
-                window.tempAdImage = cvs.toDataURL('image/jpeg', 0.8);
-                document.getElementById('ad_icon').value = '[IMAGE SET]'; // رسالة وهمية
-                document.getElementById('ad_icon_preview').innerHTML = `<img src="${window.tempAdImage}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">`;
+    // إصلاح رفع الصورة بجعلها دالة عامة
+    window.triggerAdImageUpload = function() {
+        if(!window.adFileInp) {
+            window.adFileInp = document.createElement('input');
+            window.adFileInp.type = 'file'; window.adFileInp.accept = 'image/*'; window.adFileInp.style.display = 'none';
+            document.body.appendChild(window.adFileInp);
+            window.adFileInp.onchange = (e) => {
+                let f = e.target.files[0]; if(!f) return;
+                let r = new FileReader();
+                r.onload = ev => {
+                    let img = new Image();
+                    img.onload = () => {
+                        let cvs = document.createElement('canvas'); cvs.width = 80; cvs.height = 80;
+                        let ctx = cvs.getContext('2d'); let sz = Math.min(img.width, img.height);
+                        ctx.drawImage(img, (img.width-sz)/2, (img.height-sz)/2, sz, sz, 0, 0, 80, 80);
+                        window.tempAdImage = cvs.toDataURL('image/jpeg', 0.8);
+                        let iconInput = document.getElementById('ad_icon');
+                        if(iconInput) iconInput.value = '[IMAGE SET]';
+                        let prevBtn = document.getElementById('ad_icon_preview');
+                        if(prevBtn) prevBtn.innerHTML = `<img src="${window.tempAdImage}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">`;
+                    };
+                    img.src = ev.target.result;
+                };
+                r.readAsDataURL(f); e.target.value = '';
             };
-            img.src = ev.target.result;
-        };
-        r.readAsDataURL(f); e.target.value = '';
+        }
+        window.adFileInp.click();
     };
 
-    // 1. الاستماع الحي للسيرفر
+    // 1. الاستماع الحي
     try {
         const adSource = new EventSource(AD_DB_URL);
         adSource.addEventListener('put', e => {
@@ -2791,7 +2796,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         }
     }).catch(()=>{});
 
-    // 2. دالة إظهار الإعلان الذكية
+    // 2. دالة الإظهار الذكية
     window.triggerSmartAd = function() {
         let cfg = window.activeAdConfig;
         if (!cfg || !cfg.isActive) return;
@@ -2820,8 +2825,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
         let box = document.createElement('div');
         box.id = 'smartAutoAdBox';
-        
-        // 🖼️ التمييز الذكي بين الإيموجي والصورة
         let isImage = cfg.icon && cfg.icon.startsWith('data:image');
         let iconHtml = isImage ? `<img src="${cfg.icon}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;box-shadow:0 4px 10px rgba(0,0,0,0.4);">` : `<div style="font-size:32px;">${cfg.icon || '🎁'}</div>`;
 
@@ -2843,7 +2846,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
         localStorage.setItem(`ad_views_${cfg.id}_${today}`, (viewCount + 1).toString());
         localStorage.setItem('ad_last_time', Date.now().toString());
-    }
+    };
 
     // 3. المحفزات
     let navClicksCount = 0;
@@ -2853,15 +2856,15 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         audio.addEventListener('playing', () => {
             clearTimeout(playTimer);
             let delay = (window.activeAdConfig?.playDelaySeconds || 5) * 1000;
-            playTimer = setTimeout(() => { if (audio && !audio.paused) triggerSmartAd(); }, delay);
+            playTimer = setTimeout(() => { if (audio && !audio.paused) window.triggerSmartAd(); }, delay);
         });
     }
-    function countNavClick() { navClicksCount++; if (navClicksCount >= 5) { navClicksCount = 0; triggerSmartAd(); } }
+    function countNavClick() { navClicksCount++; if (navClicksCount >= 5) { navClicksCount = 0; window.triggerSmartAd(); } }
     let nextBtn = document.getElementById('nextBtn'), prevBtn = document.getElementById('prevBtn');
     if (nextBtn) nextBtn.addEventListener('click', countNavClick);
     if (prevBtn) prevBtn.addEventListener('click', countNavClick);
 
-    // 4. دمج لوحة الإدارة 
+    // 4. دمج لوحة الإدارة والأزرار التفاعلية للمستخدم
     if (typeof PremiumStore !== 'undefined') {
         const origRender = PremiumStore.prototype.renderAnimStore;
         PremiumStore.prototype.renderAnimStore = async function() {
@@ -2899,12 +2902,15 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         alert(!current ? "✅ Ads Enabled. You will now see sponsor ads." : "🛡️ Ads Disabled. Pure experience activated.");
     };
 
-    // 5. واجهة إدارة الإعلانات 
+    // 5. واجهة إدارة الإعلانات المصححة 
     window.openAdsHubModal = function(editId = null) {
         let adsListHTML = window.adsLibrary.length === 0 ? 
             '<div style="color:var(--text-sub); font-size:12px; padding:15px; text-align:center;">No Ads created yet.</div>' :
-            window.adsLibrary.map(ad => `
-                <div style="background:rgba(255,255,255,0.03); border:1px solid ${ad.isActive?'#f59e0b':'rgba(255,255,255,0.1)'}; border-radius:12px; padding:10px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
+            window.adsLibrary.map(ad => {
+                let isEditingThis = (ad.id === editId);
+                let borderStyle = isEditingThis ? 'border:2px solid #38bdf8; box-shadow:0 0 15px rgba(56,189,248,0.4);' : `border:1px solid ${ad.isActive?'#f59e0b':'rgba(255,255,255,0.1)'};`;
+                return `
+                <div style="background:rgba(255,255,255,0.03); ${borderStyle} border-radius:12px; padding:10px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; transition:0.3s;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="font-size:24px;">${ad.icon.startsWith('data:image') ? `<img src="${ad.icon}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">` : ad.icon}</div>
                         <div style="text-align:left;">
@@ -2918,12 +2924,13 @@ document.getElementById('confirmWipeBtn').onclick = () => {
                         <button onclick="window.deleteAd('${ad.id}')" style="background:rgba(239,68,68,0.15); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">🗑</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
 
         let editAd = editId ? window.adsLibrary.find(a => a.id === editId) : null;
-        let formTitle = editAd ? `<span style="color:#f59e0b;"><i class="fas fa-pen"></i> Editing Ad</span>` : `<span style="color:#fff;">+ Create New Ad</span>`;
+        let formTitle = editAd ? `<span style="color:#38bdf8;"><i class="fas fa-pen"></i> Editing: ${editAd.title}</span>` : `<span style="color:#fff;">Create New Ad</span>`;
+        // زر إنشاء جديد إن كان في وضع التعديل
+        let clearBtnHTML = editAd ? `<button onclick="window.openAdsHubModal()" style="background:rgba(16,185,129,0.2); border:1px solid #10b981; color:#10b981; padding:4px 10px; border-radius:6px; font-size:10px; cursor:pointer; font-weight:bold;"><i class="fas fa-plus"></i> New</button>` : ``;
 
-        // 🖼️ استرجاع الصورة إن وجدت في وضع التعديل
         window.tempAdImage = (editAd && editAd.icon && editAd.icon.startsWith('data:image')) ? editAd.icon : '';
         let displayIconValue = window.tempAdImage ? '[IMAGE SET]' : (editAd ? editAd.icon : '🎁');
         let displayPreview = window.tempAdImage ? `<img src="${window.tempAdImage}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">` : `<i class="fas fa-image"></i>`;
@@ -2935,14 +2942,17 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             
             <div style="max-height:22vh; overflow-y:auto; margin-bottom:15px; padding-right:5px;">${adsListHTML}</div>
 
-            <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; text-align:left; margin-bottom:10px;">
-                <div style="font-size:12px; font-weight:bold; margin-bottom:10px;">${formTitle}</div>
+            <div style="background:rgba(0,0,0,0.2); border:1px solid ${editAd?'#38bdf8':'rgba(255,255,255,0.08)'}; border-radius:12px; padding:12px; text-align:left; margin-bottom:10px; transition:0.3s;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="font-size:12px; font-weight:bold;">${formTitle}</div>
+                    ${clearBtnHTML}
+                </div>
                 <input type="hidden" id="ad_id" value="${editAd ? editAd.id : ''}">
                 
                 <div style="display:flex; gap:8px; margin-bottom:8px;">
                     <div style="width:30%; display:flex; gap:4px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:4px;">
                         <input id="ad_icon" value="${displayIconValue}" placeholder="Icon" style="width:100%; background:transparent; border:none; color:#fff; text-align:center; font-size:12px; outline:none;">
-                        <button onclick="adFileInp.click()" id="ad_icon_preview" style="background:rgba(255,255,255,0.1); border:none; border-radius:6px; width:32px; height:32px; color:#a855f7; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;">${displayPreview}</button>
+                        <button onclick="window.triggerAdImageUpload()" id="ad_icon_preview" style="background:rgba(255,255,255,0.1); border:none; border-radius:6px; width:32px; height:32px; color:#a855f7; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;">${displayPreview}</button>
                     </div>
                     <input id="ad_badge" value="${editAd?editAd.badge:'SPONSORED'}" placeholder="Badge" style="width:70%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; font-size:12px; box-sizing:border-box;">
                 </div>
@@ -2955,13 +2965,12 @@ document.getElementById('confirmWipeBtn').onclick = () => {
                     <input id="ad_link" value="${editAd?editAd.link:''}" placeholder="URL Link" style="width:65%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; font-size:12px; box-sizing:border-box;">
                 </div>
                 
-                <!-- 🛠️ حل مشكلة الثواني بتغيير نوع الحقل ليناسب الهواتف -->
                 <div style="display:flex; gap:8px; margin-bottom:12px; width:100%;">
                     <div style="flex:1;"><span style="font-size:9px; color:var(--text-sub); display:block; margin-bottom:4px;">Duration (Sec):</span><input id="ad_dur" type="text" inputmode="numeric" value="${editAd?editAd.duration:14}" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#f59e0b; padding:10px; border-radius:8px; font-size:12px; box-sizing:border-box;"></div>
                     <div style="flex:1;"><span style="font-size:9px; color:var(--text-sub); display:block; margin-bottom:4px;">Max Daily Views:</span><input id="ad_clicks" type="text" inputmode="numeric" value="${editAd?editAd.nextClicksThreshold:5}" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#38bdf8; padding:10px; border-radius:8px; font-size:12px; box-sizing:border-box;"></div>
                 </div>
                 
-                <button onclick="window.saveAdToCloud()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:12px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer;">💾 Save Ad</button>
+                <button onclick="window.saveAdToCloud()" style="width:100%; background:${editAd?'linear-gradient(135deg, #38bdf8, #0284c7)':'linear-gradient(135deg, #f59e0b, #d97706)'}; color:${editAd?'#fff':'#000'}; border:none; padding:12px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer;">${editAd?'🔄 Update Ad':'💾 Save New Ad'}</button>
             </div>
             <button onclick="window.StoreAppInstance.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); padding:8px; font-weight:bold; cursor:pointer;">Close</button>
         `);
@@ -2969,48 +2978,31 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
     window.saveAdToCloud = async function() {
         let id = document.getElementById('ad_id').value || 'ad_' + Date.now();
-        // حفظ الصورة المخفية إذا وجدت، وإلا يحفظ النص/الإيموجي المكتوب
         let finalIcon = window.tempAdImage || document.getElementById('ad_icon').value.trim(); 
         
-        let newAd = { 
-            id: id, 
-            isActive: false, 
-            icon: finalIcon, 
-            badge: document.getElementById('ad_badge').value.trim(), 
-            title: document.getElementById('ad_title').value.trim(), 
-            desc: document.getElementById('ad_desc').value.trim(), 
-            btnText: document.getElementById('ad_btn').value.trim(), 
-            link: document.getElementById('ad_link').value.trim(), 
-            duration: parseInt(document.getElementById('ad_dur').value) || 14, 
-            nextClicksThreshold: parseInt(document.getElementById('ad_clicks').value) || 5 
-        };
-        
+        let newAd = { id: id, isActive: false, icon: finalIcon, badge: document.getElementById('ad_badge').value.trim(), title: document.getElementById('ad_title').value.trim(), desc: document.getElementById('ad_desc').value.trim(), btnText: document.getElementById('ad_btn').value.trim(), link: document.getElementById('ad_link').value.trim(), duration: parseInt(document.getElementById('ad_dur').value) || 14, nextClicksThreshold: parseInt(document.getElementById('ad_clicks').value) || 5 };
         if (!newAd.title || !newAd.link) return alert("Title and Link are required!");
-        
         let existingIdx = window.adsLibrary.findIndex(a => a.id === id);
         if (existingIdx > -1) { newAd.isActive = window.adsLibrary[existingIdx].isActive; window.adsLibrary[existingIdx] = newAd; } else { window.adsLibrary.push(newAd); }
-        
         await fetch(AD_DB_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(window.adsLibrary) });
-        window.tempAdImage = ''; // تفريغ بعد الحفظ
+        window.tempAdImage = ''; 
         window.openAdsHubModal();
     };
 
     window.toggleAdStatus = async function(id) {
         window.adsLibrary.forEach(a => { a.isActive = (a.id === id) ? !a.isActive : false; });
         await fetch(AD_DB_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(window.adsLibrary) });
-        window.openAdsHubModal();
+        window.openAdsHubModal(window.document.getElementById('ad_id').value || null);
     };
 
     window.deleteAd = async function(id) {
         if(!confirm("Delete this Ad?")) return;
         window.adsLibrary = window.adsLibrary.filter(a => a.id !== id);
         await fetch(AD_DB_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(window.adsLibrary) });
-        window.openAdsHubModal();
+        let currentEditId = document.getElementById('ad_id').value;
+        window.openAdsHubModal(currentEditId === id ? null : currentEditId);
     };
-})();  
-
-
-
+})();
 
         
 
