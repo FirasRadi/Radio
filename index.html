@@ -2735,49 +2735,52 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
-
 // ===================================================
-// 📢 منصة الإعلانات الذكية التلقائية (Smart Ads Engine)
+// 📢 منصة الإعلانات الذكية المتعددة (Multi-Ads Hub Engine)
 // ===================================================
 (function initSmartAutoAdsEngine() {
-    const AD_DB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/ad_config.json";
+    const DB_BASE = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app";
+    const AD_ACTIVE_URL = `${DB_BASE}/ad_active.json`;
+    const AD_LIB_URL = `${DB_BASE}/ad_library.json`;
     
-    // الإعدادات الافتراضية
-    window.currentAdConfig = {
-        active: true,
-        icon: "🎁",
-        badge: "SPONSORED",
-        title: "Special VIP Access!",
-        desc: "Get unlimited premium radio features now.",
-        btnText: "Visit 🔗",
-        link: "https://t.me/Time_of_world_origins_bot",
-        duration: 14,
-        nextClicksThreshold: 5,
-        playDelaySeconds: 5
-    };
+    window.currentAdConfig = { active: false };
+    window.adsLibrary = {};
+    window.editingAdId = null;
 
-    // 1. الاستماع الحي لتحديثات الإعلان من Firebase
+    // 1. الاستماع المباشر للإعلان النشط من السيرفر
     try {
-        const adSource = new EventSource(AD_DB_URL);
+        const adSource = new EventSource(AD_ACTIVE_URL);
         adSource.addEventListener('put', e => {
             try {
                 let d = JSON.parse(e.data);
-                if (d && d.data) {
-                    window.currentAdConfig = { ...window.currentAdConfig, ...d.data };
+                if (d && d.data !== undefined) {
+                    window.currentAdConfig = d.data || { active: false };
                 }
             } catch(err){}
         });
     } catch(e){}
 
-    // جلب الإعدادات أول مرة
-    fetch(AD_DB_URL).then(r => r.json()).then(data => {
-        if (data) window.currentAdConfig = { ...window.currentAdConfig, ...data };
-    }).catch(()=>{});
+    fetch(AD_ACTIVE_URL).then(r=>r.json()).then(d=>{if(d)window.currentAdConfig=d;}).catch(()=>{});
 
-    // 2. دالة إظهار الإعلان مع الشريط المتناقص
-    function triggerSmartAd() {
-        if (!window.currentAdConfig || !window.currentAdConfig.active) return;
-        if (document.getElementById('smartAutoAdBox')) return; // منع التكرار فوق بعض
+    // 2. دالة رسم الإعلان في شاشة المستخدم
+    window.triggerSmartAd = function() {
+        let cfg = window.currentAdConfig;
+        if (!cfg || !cfg.active) return;
+        if (document.getElementById('smartAutoAdBox')) return;
+
+        // 🛡️ فحص امتلاك المستخدم لمانع الإعلانات (تأثير رقم 99)
+        if (window.StoreAppInstance && window.StoreAppInstance.state) {
+            let adBlocker = window.StoreAppInstance.state.currentAllAnims.find(a => String(a.id) === '99'); 
+            if (adBlocker) {
+                let isBuyer = adBlocker.buyers && adBlocker.buyers.some(b => String(b.baseId) === String(window.StoreAppInstance.baseId));
+                if (isBuyer || String(adBlocker.isFree) === 'true') return; // طرد الإعلان فوراً
+            }
+        }
+
+        let today = new Date().toISOString().slice(0, 10);
+        let viewCount = parseInt(localStorage.getItem('ad_views_'+cfg.id+'_'+today) || '0');
+        let maxViews = parseInt(cfg.maxViewsPerDay) || 3;
+        if (viewCount >= maxViews) return;
 
         if (!document.getElementById('smart-auto-ad-css')) {
             let st = document.createElement('style');
@@ -2790,7 +2793,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             document.head.appendChild(st);
         }
 
-        let cfg = window.currentAdConfig;
         let box = document.createElement('div');
         box.id = 'smartAutoAdBox';
         box.innerHTML = `
@@ -2806,7 +2808,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         `;
         document.body.appendChild(box);
 
-        // زر الفتح الآمن بتيليجرام
         document.getElementById('smartAdActionBtn').onclick = () => {
             if (typeof tg !== 'undefined' && tg && tg.openLink) { tg.openLink(cfg.link); }
             else { window.open(cfg.link, '_blank'); }
@@ -2816,176 +2817,190 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         const closeAd = () => { if (box) box.remove(); };
         document.getElementById('smartAdCloseBtn').onclick = closeAd;
 
-        // تشغيل شريط التناقص والإغلاق التلقائي
         let bar = document.getElementById('smartAdTimerProgress');
-        let dur = cfg.duration || 14;
+        let dur = parseInt(cfg.duration) || 14;
         setTimeout(() => { if (bar) bar.style.width = '0%'; }, 50);
         bar.style.transitionDuration = dur + 's';
         setTimeout(closeAd, dur * 1000);
+
+        localStorage.setItem('ad_views_'+cfg.id+'_'+today, (viewCount+1).toString());
+        localStorage.setItem('ad_last_time', Date.now().toString());
     }
 
-    // 3. محفزات الراديو (بعد 5 ثوانٍ من التشغيل + بعد 5 نقرات)
+    // 3. المحفزات التلقائية (Triggers)
     let navClicksCount = 0;
     let playTimer = null;
 
-    // أ) عند بدء تشغيل الصوت
     let audio = document.getElementById('audioPlayer');
     if (audio) {
         audio.addEventListener('playing', () => {
             clearTimeout(playTimer);
-            let delay = (window.currentAdConfig.playDelaySeconds || 5) * 1000;
-            playTimer = setTimeout(() => {
-                if (audio && !audio.paused) triggerSmartAd();
-            }, delay);
+            if(!window.currentAdConfig || !window.currentAdConfig.active) return;
+            let delay = (parseInt(window.currentAdConfig.playDelaySeconds) || 5) * 1000;
+            
+            let lastTime = parseInt(localStorage.getItem('ad_last_time') || '0');
+            let intervalMs = (parseInt(window.currentAdConfig.intervalMinutes) || 15) * 60 * 1000;
+            
+            if (Date.now() - lastTime > intervalMs) {
+                playTimer = setTimeout(() => { if (audio && !audio.paused) triggerSmartAd(); }, delay);
+            }
         });
     }
 
-    // ب) عند النقر 5 مرات على التالي أو السابق
     function countNavClick() {
+        if(!window.currentAdConfig || !window.currentAdConfig.active) return;
         navClicksCount++;
-        let target = window.currentAdConfig.nextClicksThreshold || 5;
+        let target = parseInt(window.currentAdConfig.nextClicksThreshold) || 5;
         if (navClicksCount >= target) {
             navClicksCount = 0;
-            triggerSmartAd();
+            let lastTime = parseInt(localStorage.getItem('ad_last_time') || '0');
+            let intervalMs = (parseInt(window.currentAdConfig.intervalMinutes) || 15) * 60 * 1000;
+            if (Date.now() - lastTime > intervalMs) triggerSmartAd();
         }
     }
-
-    let nextBtn = document.getElementById('nextBtn');
-    let prevBtn = document.getElementById('prevBtn');
+    let nextBtn = document.getElementById('nextBtn'); let prevBtn = document.getElementById('prevBtn');
     if (nextBtn) nextBtn.addEventListener('click', countNavClick);
     if (prevBtn) prevBtn.addEventListener('click', countNavClick);
 
-    // 4. دمج لوحة تحكم الإعلانات (Ads Hub) في المتجر للأدمن
-    if (typeof PremiumStore !== 'undefined') {
-        const origRender = PremiumStore.prototype.renderAnimStore;
-        PremiumStore.prototype.renderAnimStore = async function() {
-            await origRender.call(this);
-            
-            let isAdmin = !!StoreAPI.getMasterKey();
-            if (!isAdmin) return;
+    // 4. واجهة مدير الإعلانات (Ads Hub UI) للأدمن
+    window.openAdsHubModal = async function() {
+        if(!window.StoreAppInstance) return;
+        window.StoreAppInstance.showCustomModal('<div style="color:#f59e0b; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading Ads Hub...</div>');
 
-            setTimeout(() => {
-                let adminBar = document.getElementById('adminBarContainer');
-                if (adminBar && !document.getElementById('adsHubAdminBtn')) {
-                    adminBar.innerHTML = `
-                        <div style="display:flex; flex-direction:column; gap:6px; background:rgba(0,0,0,0.35); padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,0.06); margin-bottom:8px;">
-                            <!-- السطر الأول -->
-                            <div style="display:flex; gap:6px;">
-                                <button onclick="window.StoreApp.adminActionAdd()" style="flex:1; background:#10b981; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-plus"></i> + Add / Live</button>
-                                <button onclick="window.StoreApp.adminShowUsers()" style="flex:1; background:#3b82f6; color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-users"></i> Users DB</button>
-                            </div>
-                            <!-- السطر الثاني (برج البث + منصة الإعلانات) -->
-                            <div style="display:flex; gap:6px;">
-                                <button onclick="window.openLiveDashboard(window.StoreAppInstance)" style="flex:1; background:linear-gradient(135deg, #4f46e5, #0ea5e9); color:#fff; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-satellite-dish"></i> Live Center</button>
-                                <button id="adsHubAdminBtn" onclick="window.openAdsHubModal()" style="flex:1; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:8px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;"><i class="fas fa-bullhorn"></i> Ads Hub</button>
-                            </div>
-                            <!-- السطر الثالث النحيف الأنيق: تسجيل الخروج -->
-                            <button onclick="localStorage.removeItem('my_master_key'); window.StoreApp.renderAnimStore();" style="width:100%; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25); color:#ef4444; padding:5px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer; margin-top:2px;">
-                                <i class="fas fa-sign-out-alt"></i> Sign Out Admin
-                            </button>
-                        </div>
-                    `;
-                }
-            }, 100);
-        };
-    }
+        let [libRes, actRes] = await Promise.all([ fetch(AD_LIB_URL + '?t=' + Date.now()).catch(()=>null), fetch(AD_ACTIVE_URL + '?t=' + Date.now()).catch(()=>null) ]);
+        window.adsLibrary = libRes && libRes.ok ? await libRes.json() || {} : {};
+        let activeAd = actRes && actRes.ok ? await actRes.json() || {} : {};
+        window.editingAdId = null;
 
-    // 5. نافذة تحكم الإعلانات الفخمة (Ads Hub Modal)
-    window.openAdsHubModal = function() {
-        let cfg = window.currentAdConfig;
-        let isAct = cfg.active ? 'selected' : '';
-        let isDis = !cfg.active ? 'selected' : '';
-
-        window.StoreApp.showCustomModal(`
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:10px;">
-                <h3 style="color:#f59e0b; margin:0; font-size:16px;"><i class="fas fa-bullhorn"></i> Smart Ads Manager</h3>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:8px; text-align:left; max-height:55vh; overflow-y:auto; padding-right:4px;">
-                <!-- حالة التفعيل -->
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <span style="font-size:12px; color:#fff; font-weight:bold; flex:1;">Ad Status:</span>
-                    <select id="ad_active" style="flex:1.5; background:#0f172a; border:1px solid #f59e0b; color:#f59e0b; padding:8px; border-radius:8px; font-weight:bold;">
-                        <option value="true" ${isAct}>🟢 Running (Active)</option>
-                        <option value="false" ${isDis}>⚪ Paused (Disabled)</option>
-                    </select>
-                </div>
-
-                <div style="display:flex; gap:8px;">
-                    <input id="ad_icon" value="${cfg.icon || '🎁'}" placeholder="Icon" style="width:25%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; font-size:16px;">
-                    <input id="ad_badge" value="${cfg.badge || 'SPONSORED'}" placeholder="Badge" style="width:75%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
-                </div>
-
-                <input id="ad_title" value="${cfg.title || ''}" placeholder="Ad Title" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:12px;">
-                <textarea id="ad_desc" placeholder="Ad Description" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:11px;">${cfg.desc || ''}</textarea>
-
-                <div style="display:flex; gap:8px;">
-                    <input id="ad_btn" value="${cfg.btnText || 'Visit 🔗'}" placeholder="Button Text" style="width:35%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
-                    <input id="ad_link" value="${cfg.link || ''}" placeholder="URL Link (https://...)" style="width:65%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
-                </div>
-
-                <!-- إعدادات التوقيت -->
-                <div style="display:flex; gap:8px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
-                    <div style="flex:1;">
-                        <span style="font-size:10px; color:#94a3b8; display:block;">Duration (Sec):</span>
-                        <input id="ad_dur" type="number" value="${cfg.duration || 14}" style="width:100%; background:transparent; border:none; color:#f59e0b; font-size:14px; font-weight:bold;">
-                    </div>
-                    <div style="flex:1;">
-                        <span style="font-size:10px; color:#94a3b8; display:block;">Next Clicks:</span>
-                        <input id="ad_clicks" type="number" value="${cfg.nextClicksThreshold || 5}" style="width:100%; background:transparent; border:none; color:#38bdf8; font-size:14px; font-weight:bold;">
-                    </div>
-                    <div style="flex:1;">
-                        <span style="font-size:10px; color:#94a3b8; display:block;">Play Delay (Sec):</span>
-                        <input id="ad_delay" type="number" value="${cfg.playDelaySeconds || 5}" style="width:100%; background:transparent; border:none; color:#10b981; font-size:14px; font-weight:bold;">
-                    </div>
-                </div>
-
-                <button onclick="window.saveAdConfigToCloud()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:12px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer; margin-top:5px;">
-                    💾 Save & Deploy Ad (Live Sync)
-                </button>
-                <button onclick="triggerSmartAd(); window.StoreApp.hideCustomModal();" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:11px; cursor:pointer;">
-                    👁️ Test Ad on My Screen Now
-                </button>
-            </div>
-            <button onclick="window.StoreApp.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); padding:8px; font-weight:bold; cursor:pointer; margin-top:5px;">Close</button>
-        `);
+        window.renderAdsDashboard(window.StoreAppInstance, activeAd);
     };
 
-    // 6. حفظ إعدادات الإعلان ونشرها في Firebase
-    window.saveAdConfigToCloud = async function() {
-        let newCfg = {
-            active: document.getElementById('ad_active').value === 'true',
-            icon: document.getElementById('ad_icon').value.trim() || '🎁',
-            badge: document.getElementById('ad_badge').value.trim() || 'SPONSORED',
-            title: document.getElementById('ad_title').value.trim(),
-            desc: document.getElementById('ad_desc').value.trim(),
-            btnText: document.getElementById('ad_btn').value.trim() || 'Visit 🔗',
-            link: document.getElementById('ad_link').value.trim(),
-            duration: parseInt(document.getElementById('ad_dur').value) || 14,
-            nextClicksThreshold: parseInt(document.getElementById('ad_clicks').value) || 5,
-            playDelaySeconds: parseInt(document.getElementById('ad_delay').value) || 5
+    window.renderAdsDashboard = function(appInstance, activeAd) {
+        let isEditing = !!window.editingAdId;
+        let listHTML = Object.keys(window.adsLibrary).length === 0 ?
+            '<div style="color:var(--text-sub); font-size:12px; padding:20px; text-align:center;">No ads in Library.<br>Create your first campaign below!</div>' :
+            Object.keys(window.adsLibrary).map(id => {
+                let ad = window.adsLibrary[id];
+                let isRunning = (activeAd && activeAd.active && activeAd.id === id);
+                let toggleColor = isRunning ? '#10b981' : 'rgba(255,255,255,0.05)';
+                let toggleText = isRunning ? '🟢 Running' : '▶️ Run';
+                let toggleBorder = isRunning ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.1)';
+
+                return `
+                <div style="background:rgba(0,0,0,0.4); border:1px solid ${isRunning?'rgba(16,185,129,0.4)':'rgba(245,158,11,0.2)'}; border-radius:12px; padding:10px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div style="font-size:22px; flex-shrink:0;">${ad.icon || '🎁'}</div>
+                        <div style="color:#fff; font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ad.title}</div>
+                    </div>
+                    <div style="display:flex; gap:6px; flex-shrink:0;">
+                        <button onclick="window.runAdCampaign('${id}')" style="background:${toggleColor}; border:1px solid ${toggleBorder}; color:#fff; padding:6px 10px; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">${toggleText}</button>
+                        <button onclick="window.editAd('${id}')" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;" title="Edit">✏️</button>
+                        <button onclick="window.deleteAd('${id}')" style="background:rgba(239,68,68,0.15); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;" title="Delete">🗑</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+        let formTitle = isEditing ? `<span style="color:#38bdf8;"><i class="fas fa-pen"></i> Edit Campaign</span> <button onclick="window.cancelAdEdit()" style="float:right; background:none; border:none; color:#ef4444; font-size:10px; font-weight:bold; cursor:pointer;">Cancel ✖</button>` : `<span style="color:#fff;">+ New Ad Campaign</span>`;
+        
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                <h3 style="color:#f59e0b; margin:0; font-size:16px; font-weight:800;"><i class="fas fa-bullhorn"></i> Ads Hub</h3>
+            </div>
+            
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <button onclick="window.stopAllAds()" style="flex:1; background:#ef4444; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:12px; cursor:pointer;"><i class="fas fa-stop-circle"></i> 🛑 Stop All Ads</button>
+            </div>
+
+            <div style="max-height:30vh; overflow-y:auto; padding-right:5px; margin-bottom:15px;">
+                ${listHTML}
+            </div>
+
+            <div style="background:rgba(0,0,0,0.2); border:1px solid ${isEditing ? 'rgba(56,189,248,0.3)' : 'rgba(255,255,255,0.08)'}; border-radius:12px; padding:12px; text-align:left; margin-bottom:10px; transition:0.3s;">
+                <div style="font-size:12px; font-weight:bold; margin-bottom:10px;">${formTitle}</div>
+                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <input id="ad_icon" placeholder="Icon 🎁" style="width:25%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:13px; text-align:center;">
+                    <input id="ad_badge" placeholder="Badge (SPONSORED)" style="width:75%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                </div>
+                <input id="ad_title" placeholder="Ad Title" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px; margin-bottom:8px; box-sizing:border-box;">
+                <textarea id="ad_desc" placeholder="Ad Description" rows="2" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; margin-bottom:8px; font-size:11px; box-sizing:border-box;"></textarea>
+                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <input id="ad_btn" placeholder="Btn Text (Visit)" style="width:35%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:11px;">
+                    <input id="ad_link" placeholder="https://..." style="width:65%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:11px;">
+                </div>
+                <div style="display:flex; gap:8px; background:rgba(255,255,255,0.02); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.05); margin-bottom:8px;">
+                    <div style="flex:1;"><span style="font-size:9px; color:#94a3b8;">Duration(s):</span><input id="ad_dur" type="number" value="14" style="width:100%; background:none; border:none; color:#f59e0b; font-size:13px; font-weight:bold;"></div>
+                    <div style="flex:1;"><span style="font-size:9px; color:#94a3b8;">Max/Day:</span><input id="ad_max" type="number" value="3" style="width:100%; background:none; border:none; color:#38bdf8; font-size:13px; font-weight:bold;"></div>
+                    <div style="flex:1;"><span style="font-size:9px; color:#94a3b8;">Wait(m):</span><input id="ad_wait" type="number" value="15" style="width:100%; background:none; border:none; color:#10b981; font-size:13px; font-weight:bold;"></div>
+                </div>
+                <button onclick="window.saveAdToLibrary()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:12px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer;">💾 Save Campaign</button>
+            </div>
+            <button onclick="window.StoreAppInstance.hideCustomModal()" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Close</button>
+        `;
+        appInstance.showCustomModal(html);
+    };
+
+    window.editAd = function(id) {
+        let ad = window.adsLibrary[id]; if(!ad) return;
+        window.editingAdId = id; window.renderAdsDashboard(window.StoreAppInstance, window.currentAdConfig);
+        setTimeout(() => {
+            document.getElementById('ad_icon').value = ad.icon||''; document.getElementById('ad_badge').value = ad.badge||'';
+            document.getElementById('ad_title').value = ad.title||''; document.getElementById('ad_desc').value = ad.desc||'';
+            document.getElementById('ad_btn').value = ad.btnText||''; document.getElementById('ad_link').value = ad.link||'';
+            document.getElementById('ad_dur').value = ad.duration||14; document.getElementById('ad_max').value = ad.maxViewsPerDay||3;
+            document.getElementById('ad_wait').value = ad.intervalMinutes||15;
+        }, 50);
+    };
+
+    window.cancelAdEdit = function() { window.editingAdId = null; window.renderAdsDashboard(window.StoreAppInstance, window.currentAdConfig); };
+
+    window.saveAdToLibrary = async function() {
+        let title = document.getElementById('ad_title').value.trim(); let link = document.getElementById('ad_link').value.trim();
+        if (!title || !link) { alert("Title and Link are required!"); return; }
+
+        let id = window.editingAdId ? window.editingAdId : ('ad_' + Date.now());
+        let payload = {
+            id: id, icon: document.getElementById('ad_icon').value.trim()||'🎁', badge: document.getElementById('ad_badge').value.trim()||'SPONSORED',
+            title: title, desc: document.getElementById('ad_desc').value.trim(), btnText: document.getElementById('ad_btn').value.trim()||'Visit 🔗', link: link,
+            duration: parseInt(document.getElementById('ad_dur').value)||14, maxViewsPerDay: parseInt(document.getElementById('ad_max').value)||3,
+            intervalMinutes: parseInt(document.getElementById('ad_wait').value)||15, playDelaySeconds: 5
         };
 
-        if (!newCfg.title || !newCfg.link) {
-            alert("⚠️ Title and Link are required!");
-            return;
+        await fetch(AD_LIB_URL.replace('.json', `/${id}.json`), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        window.adsLibrary[id] = payload;
+        window.editingAdId = null;
+        
+        // إذا كان هذا الإعلان هو المشتغل حالياً، نحدثه حياً
+        if (window.currentAdConfig && window.currentAdConfig.active && window.currentAdConfig.id === id) {
+            payload.active = true;
+            await fetch(AD_ACTIVE_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            window.currentAdConfig = payload;
         }
+        window.renderAdsDashboard(window.StoreAppInstance, window.currentAdConfig);
+    };
 
-        try {
-            // يتم حفظها عبر ميزة الحماية لـ Firebase
-            await fetch(AD_DB_URL, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newCfg)
-            });
-            window.currentAdConfig = newCfg;
-            alert("✅ Ad Configuration Deployed Globally via Firebase!");
-            window.StoreApp.hideCustomModal();
-        } catch(e) {
-            alert("Error saving ad configuration.");
-        }
+    window.runAdCampaign = async function(id) {
+        let ad = window.adsLibrary[id]; if (!ad) return;
+        ad.active = true;
+        await fetch(AD_ACTIVE_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ad) });
+        window.currentAdConfig = ad;
+        window.renderAdsDashboard(window.StoreAppInstance, ad);
+    };
+
+    window.stopAllAds = async function() {
+        await fetch(AD_ACTIVE_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: false }) });
+        window.currentAdConfig = { active: false };
+        window.renderAdsDashboard(window.StoreAppInstance, { active: false });
+    };
+
+    window.deleteAd = async function(id) {
+        if(!confirm("Delete this Ad?")) return;
+        if(window.currentAdConfig && window.currentAdConfig.id === id) window.stopAllAds();
+        await fetch(AD_LIB_URL.replace('.json', `/${id}.json`), { method: 'DELETE' });
+        delete window.adsLibrary[id];
+        window.renderAdsDashboard(window.StoreAppInstance, window.currentAdConfig);
     };
 })();
+
 
         
 
