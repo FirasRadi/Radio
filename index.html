@@ -2734,8 +2734,10 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
-// ===================================================
-// 📢 منصة الإعلانات الشاملة (Ads Hub V2) - Firebase
+
+
+        // ===================================================
+// 📢 منصة الإعلانات الشاملة (Ads Hub V3) - Firebase
 // ===================================================
 (function initSmartAutoAdsEngine() {
     const AD_DB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/smart_ads.json";
@@ -2749,7 +2751,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         adSource.addEventListener('put', e => {
             try {
                 let d = JSON.parse(e.data);
-                let data = (d.path === "/") ? d.data : null; // لتبسيط المنطق نستدعي القائمة كاملة
+                let data = (d.path === "/") ? d.data : null; 
                 if (data) {
                     window.adsLibrary = Array.isArray(data) ? data : Object.values(data);
                     window.activeAdConfig = window.adsLibrary.find(a => a.isActive) || null;
@@ -2758,7 +2760,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         });
     } catch(e){}
 
-    // جلب أولي صامت
     fetch(AD_DB_URL + `?t=${Date.now()}`).then(r => r.json()).then(data => {
         if (data) {
             window.adsLibrary = Array.isArray(data) ? data : Object.values(data);
@@ -2772,20 +2773,20 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         if (!cfg || !cfg.isActive) return;
         if (document.getElementById('smartAutoAdBox')) return;
 
-        // 🛡️ درع فحص الـ VIP (هل يمتلك التأثير 99 وهل لم يوقفه برغبته؟)
+        // 🛡️ درع فحص الـ VIP (يعاملك كباقي البشر إلا إذا أوقفته أنت برغبتك)
         if (window.StoreAppInstance && window.StoreAppInstance.state) {
             let isUserPaused = localStorage.getItem('user_paused_adblock') === 'true';
+            // ⚠️ تأكد أن الرقم 99 هو ID تأثير حظر الإعلانات
             let adBlocker = window.StoreAppInstance.state.currentAllAnims.find(a => String(a.id) === '99'); 
             if (adBlocker && !isUserPaused) {
                 let isBuyer = adBlocker.buyers && adBlocker.buyers.some(b => String(b.baseId) === String(window.StoreAppInstance.baseId));
-                if (isBuyer || String(adBlocker.isFree) === 'true') return; // حظر الإعلان فوراً!
+                if (isBuyer || String(adBlocker.isFree) === 'true') return; // حظر الإعلان فوراً لمن يمتلك التأثير ولم يوقفه!
             }
         }
 
-        // فحص سقف الظهور اليومي للإعلان النشط
         let today = new Date().toISOString().slice(0, 10);
         let viewCount = parseInt(localStorage.getItem(`ad_views_${cfg.id}_${today}`) || '0');
-        if (viewCount >= (cfg.nextClicksThreshold || 5)) return; // نستخدم نفس خانة الكليكات كحد يومي للتسهيل
+        if (viewCount >= (cfg.nextClicksThreshold || 5)) return; 
 
         if (!document.getElementById('smart-auto-ad-css')) {
             let st = document.createElement('style'); st.id = 'smart-auto-ad-css';
@@ -2822,10 +2823,9 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         setTimeout(closeAd, dur * 1000);
 
         localStorage.setItem(`ad_views_${cfg.id}_${today}`, (viewCount + 1).toString());
-        localStorage.setItem('ad_last_time', Date.now().toString());
     }
 
-    // 3. المحفزات (بعد 5 ثوانٍ + بعد 5 نقرات)
+    // 3. المحفزات (التشغيل والنقرات)
     let navClicksCount = 0;
     let playTimer = null;
 
@@ -2846,17 +2846,59 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     if (nextBtn) nextBtn.addEventListener('click', countNavClick);
     if (prevBtn) prevBtn.addEventListener('click', countNavClick);
 
-    // 4. دمج لوحة Ads Hub للأدمن
+    // 4. دمج لوحة الإعلانات وزر التحكم الخاص بالمستخدمين في المتجر
     if (typeof PremiumStore !== 'undefined') {
         const origRender = PremiumStore.prototype.renderAnimStore;
         PremiumStore.prototype.renderAnimStore = async function() {
             await origRender.call(this);
-            let isAdmin = !!StoreAPI.getMasterKey();
-            if (!isAdmin) return;
-
+            
             setTimeout(() => {
+                // أ) زراعة زر (تشغيل/إيقاف الإعلانات) للمستخدم داخل المتجر مباشرة
+                let wrappers = document.querySelectorAll('#animStoreGrid > div');
+                wrappers.forEach(w => {
+                    // البحث عن تأثير حظر الإعلانات (رقم 99)
+                    if (w.innerHTML.includes('#99')) {
+                        if (w.innerHTML.includes('UNLOCKED') || w.innerHTML.includes('FREE')) {
+                            if (!w.querySelector('.adblock-toggle-btn')) {
+                                let isPaused = localStorage.getItem('user_paused_adblock') === 'true';
+                                let btn = document.createElement('button');
+                                btn.className = 'adblock-toggle-btn';
+                                btn.innerHTML = isPaused ? '<i class="fas fa-eye"></i> ADS: ON' : '<i class="fas fa-shield-alt"></i> ADS: OFF';
+                                btn.style.cssText = `margin-top:8px; width:100%; padding:6px 0; border-radius:10px; border:none; font-size:10px; font-weight:800; cursor:pointer; color:#fff; transition:0.3s; background:${isPaused ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}; border:1px solid ${isPaused ? '#ef4444' : '#10b981'};`;
+                                
+                                btn.onclick = (e) => {
+                                    e.stopPropagation(); // لمنع تشغيل التأثير الأصلي
+                                    let currentlyPaused = localStorage.getItem('user_paused_adblock') === 'true';
+                                    let oldToast = document.getElementById('adToggleToastFx'); if(oldToast) oldToast.remove();
+                                    let t = document.createElement('div'); t.id = 'adToggleToastFx';
+                                    t.style.cssText = `position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#0f172a;border-radius:25px;padding:8px 22px;z-index:100005;font-size:11px;font-weight:800;text-align:center;pointer-events:none;transition:0.4s;box-shadow:0 15px 35px rgba(0,0,0,0.9);`;
+                                    
+                                    if (currentlyPaused) {
+                                        localStorage.removeItem('user_paused_adblock');
+                                        btn.innerHTML = '<i class="fas fa-shield-alt"></i> ADS: OFF';
+                                        btn.style.background = 'rgba(16,185,129,0.2)'; btn.style.borderColor = '#10b981';
+                                        t.style.color = '#10b981'; t.style.border = '1.5px solid #10b981';
+                                        t.innerHTML = '<i class="fas fa-shield-alt"></i> VIP AD-BLOCK ACTIVE';
+                                    } else {
+                                        localStorage.setItem('user_paused_adblock', 'true');
+                                        btn.innerHTML = '<i class="fas fa-eye"></i> ADS: ON';
+                                        btn.style.background = 'rgba(239,68,68,0.2)'; btn.style.borderColor = '#ef4444';
+                                        t.style.color = '#ef4444'; t.style.border = '1.5px solid #ef4444';
+                                        t.innerHTML = '<i class="fas fa-eye"></i> ADS ENABLED';
+                                    }
+                                    document.body.appendChild(t);
+                                    setTimeout(()=>{ if(t){ t.style.opacity='0'; setTimeout(()=>t.remove(),400); } }, 3000);
+                                };
+                                w.appendChild(btn);
+                            }
+                        }
+                    }
+                });
+
+                // ب) لوحة تحكم الأدمن العلوية
+                let isAdmin = !!StoreAPI.getMasterKey();
                 let adminBar = document.getElementById('adminBarContainer');
-                if (adminBar && !document.getElementById('adsHubAdminBtn')) {
+                if (isAdmin && adminBar && !document.getElementById('adsHubAdminBtn')) {
                     adminBar.innerHTML = `
                         <div style="display:flex; flex-direction:column; gap:6px; background:rgba(0,0,0,0.35); padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,0.06); margin-bottom:8px;">
                             <div style="display:flex; gap:6px;">
@@ -2871,24 +2913,24 @@ document.getElementById('confirmWipeBtn').onclick = () => {
                         </div>
                     `;
                 }
-            }, 100);
+            }, 150);
         };
     }
 
-    // 5. واجهة إدارة الإعلانات الشاملة (Ads Manager)
+    // 5. واجهة إدارة الإعلانات الصارمة التصميم (Ads Hub Modal)
     window.openAdsHubModal = function(editId = null) {
         let adsListHTML = window.adsLibrary.length === 0 ? 
             '<div style="color:var(--text-sub); font-size:12px; padding:15px; text-align:center;">No Ads created yet.</div>' :
             window.adsLibrary.map(ad => `
                 <div style="background:rgba(255,255,255,0.03); border:1px solid ${ad.isActive?'#f59e0b':'rgba(255,255,255,0.1)'}; border-radius:12px; padding:10px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="font-size:24px;">${ad.icon}</div>
-                        <div style="text-align:left;">
-                            <div style="color:#fff; font-size:13px; font-weight:bold;">${ad.title}</div>
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                        <div style="font-size:24px; flex-shrink:0;">${ad.icon}</div>
+                        <div style="text-align:left; min-width:0;">
+                            <div style="color:#fff; font-size:13px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ad.title}</div>
                             <div style="color:${ad.isActive?'#10b981':'#ef4444'}; font-size:10px; font-weight:bold;">${ad.isActive?'🟢 ACTIVE':'🔴 PAUSED'}</div>
                         </div>
                     </div>
-                    <div style="display:flex; gap:6px;">
+                    <div style="display:flex; gap:6px; flex-shrink:0;">
                         <button onclick="window.toggleAdStatus('${ad.id}')" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">${ad.isActive?'Pause':'Activate'}</button>
                         <button onclick="window.openAdsHubModal('${ad.id}')" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">✏️</button>
                         <button onclick="window.deleteAd('${ad.id}')" style="background:rgba(239,68,68,0.15); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">🗑</button>
@@ -2904,25 +2946,46 @@ document.getElementById('confirmWipeBtn').onclick = () => {
                 <h3 style="color:#f59e0b; margin:0; font-size:16px;"><i class="fas fa-bullhorn"></i> Ads Hub</h3>
             </div>
             
-            <div style="max-height:25vh; overflow-y:auto; margin-bottom:15px; padding-right:5px;">${adsListHTML}</div>
+            <div style="max-height:25vh; overflow-y:auto; margin-bottom:15px; padding-right:5px; overflow-x:hidden;">${adsListHTML}</div>
 
             <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; text-align:left; margin-bottom:10px;">
                 <div style="font-size:12px; font-weight:bold; margin-bottom:10px;">${formTitle}</div>
                 <input type="hidden" id="ad_id" value="${editAd ? editAd.id : ''}">
-                <div style="display:flex; gap:8px; margin-bottom:8px;">
-                    <input id="ad_icon" value="${editAd?editAd.icon:'🎁'}" placeholder="Icon" style="width:25%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; font-size:14px;">
-                    <input id="ad_badge" value="${editAd?editAd.badge:'SPONSORED'}" placeholder="Badge" style="width:75%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                <div style="display:flex; gap:8px; margin-bottom:8px; width:100%; box-sizing:border-box;">
+                    <div style="flex:1; min-width:0;">
+                        <input id="ad_icon" value="${editAd?editAd.icon:'🎁'}" placeholder="Icon" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; text-align:center; font-size:14px; box-sizing:border-box; outline:none;">
+                    </div>
+                    <div style="flex:3; min-width:0;">
+                        <input id="ad_badge" value="${editAd?editAd.badge:'SPONSORED'}" placeholder="Badge" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px; box-sizing:border-box; outline:none;">
+                    </div>
                 </div>
-                <input id="ad_title" value="${editAd?editAd.title:''}" placeholder="Ad Title" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:12px; margin-bottom:8px; box-sizing:border-box;">
-                <textarea id="ad_desc" placeholder="Ad Description" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:11px; margin-bottom:8px; box-sizing:border-box;">${editAd?editAd.desc:''}</textarea>
-                <div style="display:flex; gap:8px; margin-bottom:8px;">
-                    <input id="ad_btn" value="${editAd?editAd.btnText:'Visit 🔗'}" placeholder="Btn Text" style="width:35%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
-                    <input id="ad_link" value="${editAd?editAd.link:''}" placeholder="URL Link" style="width:65%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px;">
+                <input id="ad_title" value="${editAd?editAd.title:''}" placeholder="Ad Title" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:12px; margin-bottom:8px; box-sizing:border-box; outline:none;">
+                <textarea id="ad_desc" placeholder="Ad Description" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:9px; border-radius:8px; font-size:11px; margin-bottom:8px; box-sizing:border-box; outline:none;">${editAd?editAd.desc:''}</textarea>
+                <div style="display:flex; gap:8px; margin-bottom:10px; width:100%; box-sizing:border-box;">
+                    <div style="flex:1; min-width:0;">
+                        <input id="ad_btn" value="${editAd?editAd.btnText:'Visit 🔗'}" placeholder="Btn Text" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px; box-sizing:border-box; outline:none;">
+                    </div>
+                    <div style="flex:2; min-width:0;">
+                        <input id="ad_link" value="${editAd?editAd.link:''}" placeholder="URL Link" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px; border-radius:8px; font-size:12px; box-sizing:border-box; outline:none;">
+                    </div>
                 </div>
-                <div style="display:flex; gap:8px; margin-bottom:10px;">
-                    <input id="ad_dur" type="number" placeholder="Sec" value="${editAd?editAd.duration:14}" title="Duration in Seconds" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#f59e0b; padding:8px; border-radius:8px; font-size:12px;">
-                    <input id="ad_clicks" type="number" placeholder="Views" value="${editAd?editAd.nextClicksThreshold:5}" title="Max Views / Day" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#38bdf8; padding:8px; border-radius:8px; font-size:12px;">
+                
+                <!-- الإصلاح الشامل لمشكلة الأرقام والتمدد (3 أعمدة آمنة) -->
+                <div style="display:flex; gap:8px; margin-bottom:10px; width:100%; box-sizing:border-box;">
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">
+                        <span style="font-size:9px; color:#94a3b8; font-weight:bold;">Duration(s)</span>
+                        <input id="ad_dur" type="number" value="${editAd?editAd.duration:14}" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#f59e0b; padding:8px; border-radius:8px; font-size:12px; box-sizing:border-box; outline:none;">
+                    </div>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">
+                        <span style="font-size:9px; color:#94a3b8; font-weight:bold;">Clicks Limit</span>
+                        <input id="ad_clicks" type="number" value="${editAd?editAd.nextClicksThreshold:5}" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#38bdf8; padding:8px; border-radius:8px; font-size:12px; box-sizing:border-box; outline:none;">
+                    </div>
+                    <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">
+                        <span style="font-size:9px; color:#94a3b8; font-weight:bold;">Delay(s)</span>
+                        <input id="ad_delay" type="number" value="${editAd?editAd.playDelaySeconds:5}" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#10b981; padding:8px; border-radius:8px; font-size:12px; box-sizing:border-box; outline:none;">
+                    </div>
                 </div>
+
                 <button onclick="window.saveAdToCloud()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:12px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer;">💾 Save Ad</button>
             </div>
             <button onclick="window.StoreAppInstance.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); padding:8px; font-weight:bold; cursor:pointer;">Close</button>
@@ -2933,15 +2996,16 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         let id = document.getElementById('ad_id').value || 'ad_' + Date.now();
         let newAd = {
             id: id,
-            isActive: false, // يتم إضافته كمعطل افتراضياً حتى تفعله
-            icon: document.getElementById('ad_icon').value.trim(),
+            isActive: false, 
+            icon: document.getElementById('ad_icon').value.trim() || '🎁',
             badge: document.getElementById('ad_badge').value.trim(),
             title: document.getElementById('ad_title').value.trim(),
             desc: document.getElementById('ad_desc').value.trim(),
             btnText: document.getElementById('ad_btn').value.trim(),
             link: document.getElementById('ad_link').value.trim(),
             duration: parseInt(document.getElementById('ad_dur').value) || 14,
-            nextClicksThreshold: parseInt(document.getElementById('ad_clicks').value) || 5
+            nextClicksThreshold: parseInt(document.getElementById('ad_clicks').value) || 5,
+            playDelaySeconds: parseInt(document.getElementById('ad_delay').value) || 5
         };
 
         if (!newAd.title || !newAd.link) return alert("Title and Link are required!");
@@ -2959,7 +3023,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     };
 
     window.toggleAdStatus = async function(id) {
-        // إطفاء كل الإعلانات وتشغيل المختار فقط
         window.adsLibrary.forEach(a => { a.isActive = (a.id === id) ? !a.isActive : false; });
         await fetch(AD_DB_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(window.adsLibrary) });
         window.openAdsHubModal();
@@ -2969,66 +3032,10 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         if(!confirm("Delete this Ad?")) return;
         window.adsLibrary = window.adsLibrary.filter(a => a.id !== id);
         await fetch(AD_DB_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(window.adsLibrary) });
-        // 5. واجهة إدارة الإعلانات الشاملة (Ads Manager) - تم إصلاح الأبعاد
-    window.openAdsHubModal = function(editId = null) {
-        let adsListHTML = window.adsLibrary.length === 0 ? 
-            '<div style="color:var(--text-sub); font-size:12px; padding:15px; text-align:center;">No Ads created yet.</div>' :
-            window.adsLibrary.map(ad => `
-                <div style="background:rgba(255,255,255,0.03); border:1px solid ${ad.isActive?'#f59e0b':'rgba(255,255,255,0.1)'}; border-radius:12px; padding:10px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="font-size:24px;">${ad.icon}</div>
-                        <div style="text-align:left;">
-                            <div style="color:#fff; font-size:13px; font-weight:bold; width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ad.title}</div>
-                            <div style="color:${ad.isActive?'#10b981':'#ef4444'}; font-size:10px; font-weight:bold;">${ad.isActive?'🟢 ACTIVE':'🔴 PAUSED'}</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <button onclick="window.toggleAdStatus('${ad.id}')" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">${ad.isActive?'Pause':'Activate'}</button>
-                        <button onclick="window.openAdsHubModal('${ad.id}')" style="background:rgba(56,189,248,0.15); color:#38bdf8; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">✏️</button>
-                        <button onclick="window.deleteAd('${ad.id}')" style="background:rgba(239,68,68,0.15); color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">🗑</button>
-                    </div>
-                </div>
-            `).join('');
-
-        let editAd = editId ? window.adsLibrary.find(a => a.id === editId) : null;
-        let formTitle = editAd ? `<span style="color:#f59e0b;"><i class="fas fa-pen"></i> Editing Ad</span> <button onclick="window.openAdsHubModal()" style="float:right;background:none;border:none;color:#ef4444;font-size:10px;cursor:pointer;">Cancel Edit ✖</button>` : `<span style="color:#fff;">+ Create New Ad</span>`;
-
-        window.StoreAppInstance.showCustomModal(`
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:10px;">
-                <h3 style="color:#f59e0b; margin:0; font-size:16px;"><i class="fas fa-bullhorn"></i> Ads Hub</h3>
-            </div>
-            
-            <div style="max-height:25vh; overflow-y:auto; margin-bottom:15px; padding-right:5px;">${adsListHTML}</div>
-
-            <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; text-align:left; margin-bottom:10px;">
-                <div style="font-size:12px; font-weight:bold; margin-bottom:10px; width:100%; display:block;">${formTitle}</div>
-                <input type="hidden" id="ad_id" value="${editAd ? editAd.id : ''}">
-                <div style="display:flex; gap:8px; margin-bottom:8px; width:100%;">
-                    <input id="ad_icon" value="${editAd?editAd.icon:'🎁'}" placeholder="Icon" style="width:25%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; text-align:center; font-size:14px; box-sizing:border-box;">
-                    <input id="ad_badge" value="${editAd?editAd.badge:'SPONSORED'}" placeholder="Badge" style="width:75%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; font-size:12px; box-sizing:border-box;">
-                </div>
-                <input id="ad_title" value="${editAd?editAd.title:''}" placeholder="Ad Title" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; font-size:12px; margin-bottom:8px; box-sizing:border-box;">
-                <textarea id="ad_desc" placeholder="Ad Description" rows="2" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; font-size:11px; margin-bottom:8px; box-sizing:border-box;">${editAd?editAd.desc:''}</textarea>
-                <div style="display:flex; gap:8px; margin-bottom:8px; width:100%;">
-                    <input id="ad_btn" value="${editAd?editAd.btnText:'Visit 🔗'}" placeholder="Btn Text" style="width:35%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; font-size:12px; box-sizing:border-box;">
-                    <input id="ad_link" value="${editAd?editAd.link:''}" placeholder="URL Link" style="width:65%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:8px; font-size:12px; box-sizing:border-box;">
-                </div>
-                <div style="display:flex; gap:8px; margin-bottom:10px; width:100%;">
-                    <input id="ad_dur" type="number" placeholder="Duration (Sec)" value="${editAd?editAd.duration:14}" title="Duration in Seconds" style="width:50%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#f59e0b; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; box-sizing:border-box;">
-                    <input id="ad_clicks" type="number" placeholder="Trigger Clicks" value="${editAd?editAd.nextClicksThreshold:5}" title="Trigger after X Clicks" style="width:50%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#38bdf8; padding:10px; border-radius:8px; font-size:12px; font-weight:bold; box-sizing:border-box;">
-                </div>
-                <button onclick="window.saveAdConfigToCloud()" style="width:100%; background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; border:none; padding:12px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer;">💾 Save Ad</button>
-            </div>
-            <button onclick="window.StoreAppInstance.hideCustomModal()" style="width:100%; background:transparent; border:none; color:var(--text-sub); padding:8px; font-weight:bold; cursor:pointer;">Close</button>
-        `);
+        window.openAdsHubModal();
     };
 
-
-
-        
-
 })();
-
 
 
 
