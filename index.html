@@ -330,80 +330,33 @@
 
 
 
-
 <!-- Share Menu Modal -->
-    <div class="sheet-overlay" id="shareOverlay"></div>
-    <div class="bottom-sheet" id="shareSheet" style="padding-bottom: 25px;">
-        <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share Global Radio</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
-        
-        <!-- 🖼️ بطاقة المشاركة الفاخرة الجديدة -->
-        <div style="width: 100%; margin: 15px 0; background: rgba(15, 23, 42, 0.8); border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column;">
-            
-            <!-- منطقة الصورة (بيضاء ومرتبة لظهور الـ QR بشكل مثالي) -->
-            <div style="width: 100%; height: 180px; background: #ffffff; display: flex; align-items: center; justify-content: center; position: relative;">
-                <img id="sharePromoImg" src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width: 100%; height: 100%; object-fit: contain; padding: 15px;">
-            </div>
-            
-            <!-- منطقة النصوص وزر التحميل -->
-            <div style="padding: 15px; text-align: center; background: linear-gradient(180deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));">
-                <div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; letter-spacing: 0.5px;">Time of World Radio</div>
-                <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 15px;">Invite your friends to enjoy global stations!</div>
-                
-                <!-- زر التحميل الأنيق -->
-                <button onclick="downloadPromoImage()" style="width: 100%; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 10px; border-radius: 12px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i class="fas fa-download"></i> Download QR Code
-                </button>
-            </div>
-        </div>
-
-        <div class="share-options">
-            <button class="share-app-btn" data-app="whatsapp" style="background:#25D366;"><i class="fab fa-whatsapp"></i></button>
-            <button class="share-app-btn" data-app="twitter" style="background:#000;"><i class="fab fa-twitter"></i></button>
-            <button class="share-app-btn" data-app="facebook" style="background:#1877F2;"><i class="fab fa-facebook-f"></i></button>
-            <button class="share-app-btn" data-app="telegram" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></button>
-            <button class="share-app-btn" data-app="copy" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2);"><i class="fas fa-copy"></i></button>
-        </div>
+<div class="sheet-overlay" id="shareOverlay"></div>
+<div class="bottom-sheet" id="shareSheet">
+    <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share to App</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
+    <div class="share-options">
+        <button class="share-app-btn" data-app="whatsapp" style="background:#25D366;"><i class="fab fa-whatsapp"></i></button>
+        <button class="share-app-btn" data-app="twitter" style="background:#000;"><i class="fab fa-twitter"></i></button>
+        <button class="share-app-btn" data-app="facebook" style="background:#1877F2;"><i class="fab fa-facebook-f"></i></button>
+        <button class="share-app-btn" data-app="telegram" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></button>
+        <button class="share-app-btn" data-app="copy" style="background:var(--border-glass);"><i class="fas fa-copy"></i></button>
     </div>
+</div>
 
-    <!-- كود ذكي لتفعيل التحميل المباشر للصورة -->
-    <script>
-        function downloadPromoImage() {
-            const imgUrl = document.getElementById('sharePromoImg').src;
-            let btn = document.querySelector('button[onclick="downloadPromoImage()"]');
-            let oldHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-            
-            fetch(imgUrl)
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = 'TimeOfWorld_Radio.jpg';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-                    btn.style.color = '#10b981';
-                    btn.style.borderColor = '#10b981';
-                    btn.style.background = 'rgba(16, 185, 129, 0.15)';
-                    if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                    setTimeout(() => {
-                        btn.innerHTML = oldHTML;
-                        btn.style.color = '#38bdf8';
-                        btn.style.borderColor = 'rgba(56, 189, 248, 0.4)';
-                        btn.style.background = 'rgba(56, 189, 248, 0.15)';
-                    }, 3000);
-                })
-                .catch(() => {
-                    window.open(imgUrl, '_blank');
-                    btn.innerHTML = oldHTML;
-                });
-        }
-    </script>
-    
+<div class="sheet-overlay" id="timerOverlay"></div>
+<div class="bottom-sheet" id="timerSheet">
+    <div class="sheet-header"><div><i class="fas fa-stopwatch" style="color:var(--primary); margin-right:5px;"></i> Auto Timers <span id="sheetHeaderTimer" class="sheet-header-timer"></span></div><button class="close-sheet" id="closeTimerBtn"><i class="fas fa-times"></i></button></div>
+    <div class="compact-timer-row"><div class="timer-info"><div class="timer-info-left"><i class="fas fa-moon" style="color:#60a5fa"></i> Sleep</div><span class="digital-timer" id="sleepDigital">00:00</span></div><div class="timer-actions" id="sleepActions"><button data-min="1">1m</button><button data-min="5">5m</button><button data-min="15">15m</button><button data-min="30">30m</button><button data-min="60">1h</button></div><button class="cancel-timer-btn" id="sleepCancelBtn">Cancel Sleep Timer</button></div>
+    <div class="compact-timer-row"><div class="timer-info"><div class="timer-info-left"><i class="fas fa-clock" style="color:#4ade80"></i> Start</div><span class="digital-timer" id="startDigital">00:00</span></div><div class="timer-actions" id="startActions"><button data-min="1">1m</button><button data-min="5">5m</button><button data-min="15">15m</button><button data-min="30">30m</button><button data-min="60">1h</button></div><button class="cancel-timer-btn" id="startCancelBtn">Cancel Start Timer</button></div>
+</div>
+
+<div class="sheet-overlay" id="themeOverlay"></div>
+<div class="bottom-sheet" id="themeSheet"><div class="sheet-header"><div><i class="fas fa-palette" style="color:var(--primary); margin-right:5px;"></i> Pick a Theme</div><button class="close-sheet" id="closeThemeBtn"><i class="fas fa-times"></i></button></div><div class="theme-colors" id="themeColors"></div></div>
+
+<div class="sheet-overlay" id="searchOverlay"></div>
+<div class="bottom-sheet" id="searchSheet"><div class="sheet-header"><div><i class="fas fa-search" style="color:var(--primary); margin-right:5px;"></i> Search Station</div><button class="close-sheet" id="closeSearchBtn"><i class="fas fa-times"></i></button></div><input type="text" id="searchInput" placeholder="Type station name..." autocomplete="off" /><ul id="searchResults"></ul></div>
+
+<div class="modal" id="favModal"><div class="modal-header"><span>Your Favorites</span><button class="close-modal" id="closeFavsBtn"><i class="fas fa-times"></i></button></div><ul class="fav-list" id="favList"></ul></div>
     
 
 
