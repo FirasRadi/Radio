@@ -329,36 +329,61 @@
 
 
 
-
 <!-- Share Menu Modal -->
-<div class="sheet-overlay" id="shareOverlay"></div>
-<div class="bottom-sheet" id="shareSheet">
-    <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share to App</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
-    <div class="share-options">
-        <button class="share-app-btn" data-app="whatsapp" style="background:#25D366;"><i class="fab fa-whatsapp"></i></button>
-        <button class="share-app-btn" data-app="twitter" style="background:#000;"><i class="fab fa-twitter"></i></button>
-        <button class="share-app-btn" data-app="facebook" style="background:#1877F2;"><i class="fab fa-facebook-f"></i></button>
-        <button class="share-app-btn" data-app="telegram" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></button>
-        <button class="share-app-btn" data-app="copy" style="background:var(--border-glass);"><i class="fas fa-copy"></i></button>
+    <div class="sheet-overlay" id="shareOverlay"></div>
+    <div class="bottom-sheet" id="shareSheet">
+        <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share to App</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
+        
+        <!-- 🖼️ صورة الـ QR / البانر مع زر التحميل -->
+        <div style="width: 100%; margin: 15px 0 12px 0; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 20px rgba(0,0,0,0.5); background: rgba(0,0,0,0.2); display: flex; flex-direction: column;">
+            <img src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width: 100%; height: 160px; object-fit: cover; pointer-events: none;">
+            
+            <div style="padding: 12px; text-align: center; background: rgba(15, 23, 42, 0.6);">
+                <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 3px;">Time of World Radio</div>
+                <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 12px;">Scan the QR or share the link with friends!</div>
+                
+                <!-- زر التحميل الأنيق -->
+                <button onclick="downloadQRCode()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16,185,129,0.3); transition: 0.2s;">
+                    <i class="fas fa-download"></i> Save QR Code
+                </button>
+            </div>
+        </div>
+
+        <div class="share-options" style="margin-top: 5px;">
+            <button class="share-app-btn" data-app="whatsapp" style="background:#25D366;"><i class="fab fa-whatsapp"></i></button>
+            <button class="share-app-btn" data-app="twitter" style="background:#000;"><i class="fab fa-twitter"></i></button>
+            <button class="share-app-btn" data-app="facebook" style="background:#1877F2;"><i class="fab fa-facebook-f"></i></button>
+            <button class="share-app-btn" data-app="telegram" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></button>
+            <button class="share-app-btn" data-app="copy" style="background:rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);"><i class="fas fa-copy"></i></button>
+        </div>
     </div>
-</div>
-
-<div class="sheet-overlay" id="timerOverlay"></div>
-<div class="bottom-sheet" id="timerSheet">
-    <div class="sheet-header"><div><i class="fas fa-stopwatch" style="color:var(--primary); margin-right:5px;"></i> Auto Timers <span id="sheetHeaderTimer" class="sheet-header-timer"></span></div><button class="close-sheet" id="closeTimerBtn"><i class="fas fa-times"></i></button></div>
-    <div class="compact-timer-row"><div class="timer-info"><div class="timer-info-left"><i class="fas fa-moon" style="color:#60a5fa"></i> Sleep</div><span class="digital-timer" id="sleepDigital">00:00</span></div><div class="timer-actions" id="sleepActions"><button data-min="1">1m</button><button data-min="5">5m</button><button data-min="15">15m</button><button data-min="30">30m</button><button data-min="60">1h</button></div><button class="cancel-timer-btn" id="sleepCancelBtn">Cancel Sleep Timer</button></div>
-    <div class="compact-timer-row"><div class="timer-info"><div class="timer-info-left"><i class="fas fa-clock" style="color:#4ade80"></i> Start</div><span class="digital-timer" id="startDigital">00:00</span></div><div class="timer-actions" id="startActions"><button data-min="1">1m</button><button data-min="5">5m</button><button data-min="15">15m</button><button data-min="30">30m</button><button data-min="60">1h</button></div><button class="cancel-timer-btn" id="startCancelBtn">Cancel Start Timer</button></div>
-</div>
-
-<div class="sheet-overlay" id="themeOverlay"></div>
-<div class="bottom-sheet" id="themeSheet"><div class="sheet-header"><div><i class="fas fa-palette" style="color:var(--primary); margin-right:5px;"></i> Pick a Theme</div><button class="close-sheet" id="closeThemeBtn"><i class="fas fa-times"></i></button></div><div class="theme-colors" id="themeColors"></div></div>
-
-<div class="sheet-overlay" id="searchOverlay"></div>
-<div class="bottom-sheet" id="searchSheet"><div class="sheet-header"><div><i class="fas fa-search" style="color:var(--primary); margin-right:5px;"></i> Search Station</div><button class="close-sheet" id="closeSearchBtn"><i class="fas fa-times"></i></button></div><input type="text" id="searchInput" placeholder="Type station name..." autocomplete="off" /><ul id="searchResults"></ul></div>
-
-<div class="modal" id="favModal"><div class="modal-header"><span>Your Favorites</span><button class="close-modal" id="closeFavsBtn"><i class="fas fa-times"></i></button></div><ul class="fav-list" id="favList"></ul></div>
     
-
+    <!-- سكريبت تحميل الصورة مباشرة -->
+    <script>
+        function downloadQRCode() {
+            const imgUrl = 'https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg';
+            // جلب الصورة كبيانات (Blob) لتنزيلها مباشرة بدون فتح صفحة جديدة
+            fetch(imgUrl)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'TimeOfWorld_QR.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    // إعطاء اهتزاز نجاح إذا كان في تيليجرام
+                    if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                })
+                .catch(() => {
+                    // في حال منع المتصفح التحميل المباشر، نفتح الصورة ليحفظها المستخدم يدوياً
+                    window.open(imgUrl, '_blank');
+                });
+        }
+    </script>
 
     
 
