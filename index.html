@@ -872,23 +872,19 @@
 
 
 window.downloadQRCode = function() {
-    const imgUrl = 'https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg';
-    fetch(imgUrl)
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'TimeOfWorld_QR.jpg';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
-            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        })
-        .catch(() => { window.open(imgUrl, '_blank'); });
-};
+            const imgUrl = 'https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg';
+            fetch(imgUrl).then(response => response.blob()).then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none'; a.href = url; a.download = 'TimeOfWorld_QR.jpg';
+                document.body.appendChild(a); a.click();
+                window.URL.revokeObjectURL(url); a.remove();
+                if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            }).catch(() => { window.open(imgUrl, '_blank'); });
+        };
+
+
+        
 
 
         
