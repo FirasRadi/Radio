@@ -331,13 +331,13 @@
 
 
 
+
+    
+
 <!-- Share Menu Modal -->
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
-        <div class="sheet-header">
-            <div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share to App</div>
-            <button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button>
-        </div>
+        <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share to App</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
         
         <!-- 📱 قسم الـ QR Code الجديد -->
         <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin: 15px 0;">
@@ -356,7 +356,27 @@
         </div>
     </div>
 
+    <div class="sheet-overlay" id="timerOverlay"></div>
+    <div class="bottom-sheet" id="timerSheet">
+        <div class="sheet-header"><div><i class="fas fa-stopwatch" style="color:var(--primary); margin-right:5px;"></i> Auto Timers <span id="sheetHeaderTimer" class="sheet-header-timer"></span></div><button class="close-sheet" id="closeTimerBtn"><i class="fas fa-times"></i></button></div>
+        <div class="compact-timer-row"><div class="timer-info"><div class="timer-info-left"><i class="fas fa-moon" style="color:#60a5fa"></i> Sleep</div><span class="digital-timer" id="sleepDigital">00:00</span></div><div class="timer-actions" id="sleepActions"><button data-min="1">1m</button><button data-min="5">5m</button><button data-min="15">15m</button><button data-min="30">30m</button><button data-min="60">1h</button></div><button class="cancel-timer-btn" id="sleepCancelBtn">Cancel Sleep Timer</button></div>
+        <div class="compact-timer-row"><div class="timer-info"><div class="timer-info-left"><i class="fas fa-clock" style="color:#4ade80"></i> Start</div><span class="digital-timer" id="startDigital">00:00</span></div><div class="timer-actions" id="startActions"><button data-min="1">1m</button><button data-min="5">5m</button><button data-min="15">15m</button><button data-min="30">30m</button><button data-min="60">1h</button></div><button class="cancel-timer-btn" id="startCancelBtn">Cancel Start Timer</button></div>
+    </div>
+    
+    <div class="sheet-overlay" id="themeOverlay"></div>
+    <div class="bottom-sheet" id="themeSheet"><div class="sheet-header"><div><i class="fas fa-palette" style="color:var(--primary); margin-right:5px;"></i> Pick a Theme</div><button class="close-sheet" id="closeThemeBtn"><i class="fas fa-times"></i></button></div><div class="theme-colors" id="themeColors"></div></div>
+    
+    <div class="sheet-overlay" id="searchOverlay"></div>
+    <div class="bottom-sheet" id="searchSheet"><div class="sheet-header"><div><i class="fas fa-search" style="color:var(--primary); margin-right:5px;"></i> Search Station</div><button class="close-sheet" id="closeSearchBtn"><i class="fas fa-times"></i></button></div><input type="text" id="searchInput" placeholder="Type station name..." autocomplete="off" /><ul id="searchResults"></ul></div>
+    
+    <div class="modal" id="favModal"><div class="modal-header"><span>Your Favorites</span><button class="close-modal" id="closeFavsBtn"><i class="fas fa-times"></i></button></div><ul class="fav-list" id="favList"></ul></div>
 
+
+
+
+
+
+    
 
 
 
