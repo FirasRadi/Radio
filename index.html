@@ -329,12 +329,14 @@
 
 
 
-<!-- Share Menu Modal -->
+
+
+    <!-- Share Menu Modal -->
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
-        <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share to App</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
+        <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share Global Radio</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
         
-        <!-- 🖼️ صورة الـ QR / البانر مع زر التحميل -->
+        <!-- 🖼️ صورة المشاركة الأنيقة -->
         <div style="width: 100%; margin: 15px 0 12px 0; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 20px rgba(0,0,0,0.5); background: rgba(0,0,0,0.2); display: flex; flex-direction: column;">
             <img src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width: 100%; height: 160px; object-fit: cover; pointer-events: none;">
             
@@ -342,8 +344,8 @@
                 <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 3px;">Time of World Radio</div>
                 <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 12px;">Scan the QR or share the link with friends!</div>
                 
-                <!-- زر التحميل الأنيق -->
-                <button onclick="downloadQRCode()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16,185,129,0.3); transition: 0.2s;">
+                <!-- زر التحميل -->
+                <button onclick="window.downloadQRCode()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16,185,129,0.3); transition: 0.2s;">
                     <i class="fas fa-download"></i> Save QR Code
                 </button>
             </div>
@@ -358,32 +360,7 @@
         </div>
     </div>
     
-    <!-- سكريبت تحميل الصورة مباشرة -->
-    <script>
-        function downloadQRCode() {
-            const imgUrl = 'https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg';
-            // جلب الصورة كبيانات (Blob) لتنزيلها مباشرة بدون فتح صفحة جديدة
-            fetch(imgUrl)
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = 'TimeOfWorld_QR.jpg';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    // إعطاء اهتزاز نجاح إذا كان في تيليجرام
-                    if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                })
-                .catch(() => {
-                    // في حال منع المتصفح التحميل المباشر، نفتح الصورة ليحفظها المستخدم يدوياً
-                    window.open(imgUrl, '_blank');
-                });
-        }
-    </script>
+
 
     
 
@@ -895,6 +872,36 @@
         DOM.audio.addEventListener('error', () => audioController.handleError());
         
         DOM.shareBtn.addEventListener('click', () => { 
+
+
+
+
+
+// وظيفة تحميل صورة הـ QR Code مباشرة للهاتف
+        window.downloadQRCode = function() {
+            const imgUrl = 'https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg';
+            fetch(imgUrl)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'TimeOfWorld_QR.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                })
+                .catch(() => {
+                    window.open(imgUrl, '_blank');
+                });
+        };
+
+
+
+        
             if (navigator.share) {
                 navigator.share({ 
                     title: 'Global Radio Player', 
