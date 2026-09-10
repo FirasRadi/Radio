@@ -897,30 +897,20 @@ window.downloadQRCode = function() {
 
 
 
+// 🔗 كود قائمة المشاركة (تم إجبار التطبيق على فتح قائمتك الأنيقة دائماً)
+        DOM.shareBtn.addEventListener('click', () => { 
+            DOM.shareSheet.classList.add('open');
+            DOM.shareOverlay.classList.add('open');
+        });
+        
+
+
 
 
 
 
 
         
-        // 🔗 كود قائمة المشاركة الأساسي يظل هنا في الأسفل
-        DOM.shareBtn.addEventListener('click', () => { 
-            if (navigator.share) {
-                navigator.share({ 
-                    title: 'Global Radio Player',
-                    text: 'Listen to radio stations from around the world!', 
-                    url: 'https://t.me/Time_of_world_origins_bot?start=object'
-                }).catch((err) => {
-                    if (err.name !== 'AbortError') {
-                        DOM.shareSheet.classList.add('open');
-                        DOM.shareOverlay.classList.add('open');
-                    }
-                });
-            } else {
-                DOM.shareSheet.classList.add('open');
-                DOM.shareOverlay.classList.add('open');
-            }
-        });
 
         const toggleShareSheet = () => { DOM.shareSheet.classList.toggle('open'); DOM.shareOverlay.classList.toggle('open'); };
         DOM.closeShareBtn.addEventListener('click', toggleShareSheet);
