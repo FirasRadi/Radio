@@ -329,21 +329,23 @@
 
 
 
-
 <!-- Share Menu Modal -->
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
-        <div class="sheet-header"><div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share Global Radio</div><button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button></div>
+        <div class="sheet-header">
+            <div><i class="fas fa-share-alt" style="color:var(--primary); margin-right:5px;"></i> Share Global Radio</div>
+            <button class="close-sheet" id="closeShareBtn"><i class="fas fa-times"></i></button>
+        </div>
         
-        <!-- 🖼️ صورة المشاركة الأنيقة مع زر التحميل -->
-        <div style="width: 100%; margin: 15px 0 12px 0; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 20px rgba(0,0,0,0.5); background: rgba(0,0,0,0.2); display: flex; flex-direction: column;">
-            <img src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width: 100%; height: 160px; object-fit: cover; pointer-events: none;">
+        <!-- 🖼️ إطار الصورة الأنيق -->
+        <div style="width: 100%; margin: 15px 0 12px 0; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: rgba(15, 23, 42, 0.4);">
+            <img src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width: 100%; height: 170px; object-fit: cover; display: block;">
             
-            <div style="padding: 12px; text-align: center; background: rgba(15, 23, 42, 0.6);">
-                <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 3px;">Time of World Radio</div>
-                <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 12px;">Scan the QR or share the link with friends!</div>
+            <div style="padding: 15px; text-align: center; background: rgba(30, 41, 59, 0.5);">
+                <div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px;">Time of World Radio</div>
+                <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 14px;">Scan QR or share the link with friends!</div>
                 
-                <button onclick="window.downloadQRCode()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(16,185,129,0.3); transition: 0.2s;">
+                <button onclick="downloadImage('https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg', 'Radio-QR.jpg')" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 9px 24px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s;">
                     <i class="fas fa-download"></i> Save QR Code
                 </button>
             </div>
@@ -354,10 +356,9 @@
             <button class="share-app-btn" data-app="twitter" style="background:#000;"><i class="fab fa-twitter"></i></button>
             <button class="share-app-btn" data-app="facebook" style="background:#1877F2;"><i class="fab fa-facebook-f"></i></button>
             <button class="share-app-btn" data-app="telegram" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></button>
-            <button class="share-app-btn" data-app="copy" style="background:rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);"><i class="fas fa-copy"></i></button>
+            <button class="share-app-btn" data-app="copy" style="background:rgba(255,255,255,0.1);"><i class="fas fa-copy"></i></button>
         </div>
     </div>
-
 
     
 
