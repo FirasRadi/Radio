@@ -870,12 +870,9 @@
         DOM.prevBtn.addEventListener('click', () => UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length)); 
         DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
         DOM.audio.addEventListener('error', () => audioController.handleError());
+
+
         
-        DOM.shareBtn.addEventListener('click', () => { 
-
-
-
-
 
 // وظيفة تحميل صورة הـ QR Code مباشرة للهاتف
         window.downloadQRCode = function() {
@@ -901,6 +898,11 @@
 
 
 
+
+
+
+        
+        DOM.shareBtn.addEventListener('click', () => { 
         
             if (navigator.share) {
                 navigator.share({ 
