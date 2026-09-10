@@ -917,56 +917,38 @@
 
 
 
-
-
-// 📥 برمجة زر تحميل صورة الـ QR Code
+// 📥 برمجة زر الـ QR Code المتوافقة مع أمان تيليجرام
         document.getElementById('downloadQrBtn').addEventListener('click', function() {
             const btn = this;
             const originalHtml = btn.innerHTML;
             const imgUrl = "https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg";
             
-            // تغيير شكل الزر ليعطي إحساساً بالتحميل
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
             
-            // جلب الصورة كبيانات (Blob) وتحميلها للمستخدم
-            fetch(imgUrl)
-                .then(response => response.blob())
-                .then(blob => {
-                    const blobUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = blobUrl;
-                    a.download = 'Time_of_World_QR.jpg'; // اسم الملف المحفوظ
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(blobUrl);
-                    a.remove();
-                    
-                    // تغيير الزر للون الأخضر عند النجاح
-                    btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-                    btn.style.color = '#10b981';
-                    btn.style.borderColor = 'rgba(16,185,129,0.4)';
-                    btn.style.background = 'rgba(16,185,129,0.15)';
-                    
-                    setTimeout(() => {
-                        btn.innerHTML = originalHtml;
-                        btn.style.color = '#38bdf8';
-                        btn.style.borderColor = 'rgba(56,189,248,0.3)';
-                        btn.style.background = 'rgba(56,189,248,0.15)';
-                    }, 3000);
-                })
-                .catch(() => {
-                    // إذا منع المتصفح التحميل المباشر بسبب الأمان، نفتح الصورة ليحفظها يدوياً
-                    if (tg && tg.openLink) {
-                        tg.openLink(imgUrl);
-                    } else {
-                        window.open(imgUrl, '_blank');
-                    }
+            setTimeout(() => {
+                // نستخدم أمر تيليجرام الرسمي لفتح الصورة بأمان خارج الجدار الأمني
+                if (typeof tg !== 'undefined' && tg && tg.openLink) { 
+                    tg.openLink(imgUrl); 
+                } else { 
+                    window.open(imgUrl, '_blank'); 
+                }
+                
+                // تحويل الزر للون الأخضر للتأكيد
+                btn.innerHTML = '<i class="fas fa-check"></i> Opened!';
+                btn.style.color = '#10b981';
+                btn.style.borderColor = 'rgba(16,185,129,0.4)';
+                btn.style.background = 'rgba(16,185,129,0.15)';
+                
+                // إعادة الزر لشكله الأصلي بعد 3 ثوانٍ
+                setTimeout(() => {
                     btn.innerHTML = originalHtml;
-                });
+                    btn.style.cssText = "background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 8px 20px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);";
+                }, 3000);
+            }, 400);
         });
 
 
+    
         
 
 
