@@ -329,6 +329,8 @@
 
 
 
+
+
 <!-- Share Menu Modal -->
     <div class="sheet-overlay" id="shareOverlay"></div>
     <div class="bottom-sheet" id="shareSheet">
@@ -338,20 +340,20 @@
         </div>
         
         <!-- 🖼️ إطار الصورة الأنيق -->
-        <div style="width: 100%; margin: 15px 0 12px 0; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: rgba(15, 23, 42, 0.4);">
-            <img src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width: 100%; height: 170px; object-fit: cover; display: block;">
+        <div style="width: 100%; margin: 10px 0; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: rgba(15, 23, 42, 0.4);">
+            <img src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width: 100%; height: 160px; object-fit: cover; display: block;">
             
-            <div style="padding: 15px; text-align: center; background: rgba(30, 41, 59, 0.5);">
-                <div style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px;">Time of World Radio</div>
-                <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 14px;">Scan QR or share the link with friends!</div>
+            <div style="padding: 12px; text-align: center; background: rgba(30, 41, 59, 0.5);">
+                <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px;">Time of World Radio</div>
+                <div style="font-size: 10px; color: var(--text-sub); margin-bottom: 12px;">Scan QR or share the link with friends!</div>
                 
-                <button onclick="downloadImage('https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg', 'Radio-QR.jpg')" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 9px 24px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s;">
+                <button onclick="window.downloadQRCode()" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 8px 20px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s;">
                     <i class="fas fa-download"></i> Save QR Code
                 </button>
             </div>
         </div>
 
-        <div class="share-options" style="margin-top: 5px;">
+        <div class="share-options" style="margin-top: 0;">
             <button class="share-app-btn" data-app="whatsapp" style="background:#25D366;"><i class="fab fa-whatsapp"></i></button>
             <button class="share-app-btn" data-app="twitter" style="background:#000;"><i class="fab fa-twitter"></i></button>
             <button class="share-app-btn" data-app="facebook" style="background:#1877F2;"><i class="fab fa-facebook-f"></i></button>
@@ -359,6 +361,8 @@
             <button class="share-app-btn" data-app="copy" style="background:rgba(255,255,255,0.1);"><i class="fas fa-copy"></i></button>
         </div>
     </div>
+    
+
 
     
 
@@ -872,30 +876,33 @@
 
 
 
-        
-        // 📥 وظيفة تحميل الـ QR Code المستقلة 
-        window.downloadQRCode = function() {
-            const imgUrl = 'https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg';
-            fetch(imgUrl)
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = 'TimeOfWorld_QR.jpg';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                })
-                .catch(() => {
-                    window.open(imgUrl, '_blank');
-                });
-        };
-        
+window.downloadQRCode = function() {
+    const imgUrl = 'https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg';
+    fetch(imgUrl)
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'TimeOfWorld_QR.jpg';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            if(typeof tg !== 'undefined' && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        })
+        .catch(() => { window.open(imgUrl, '_blank'); });
+};
 
+
+
+
+
+
+
+
+        
         // 🔗 كود قائمة المشاركة الأساسي يظل هنا في الأسفل
         DOM.shareBtn.addEventListener('click', () => { 
             if (navigator.share) {
