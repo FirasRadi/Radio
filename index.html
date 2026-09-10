@@ -916,40 +916,65 @@
 
 
 
-// 📥 برمجة زر الـ QR Code (البقاء داخل التطبيق 100%)
-        document.getElementById('downloadQrBtn').addEventListener('click', function() {
-            // إغلاق قائمة المشاركة السفلية
-            let sh = document.getElementById('shareSheet');
-            let ov = document.getElementById('shareOverlay');
-            if(sh) sh.classList.remove('open');
-            if(ov) ov.classList.remove('open');
 
-            // إنشاء شاشة زجاجية فخمة لعرض الـ QR
-            let qrModal = document.createElement('div');
-            qrModal.id = 'qrFullscreenFx';
-            qrModal.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.96); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:0.3s ease; text-align:center; padding:20px;';
+        
+
+// 📥 برمجة زر الحفظ المباشر لمعرض الهاتف
+        document.getElementById('downloadQrBtn').addEventListener('click', async function() {
+            const btn = this;
+            const originalHtml = btn.innerHTML;
+            const imgUrl = "https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg";
             
-            qrModal.innerHTML = `
-                <button onclick="document.getElementById('qrFullscreenFx').style.opacity='0'; setTimeout(()=>document.getElementById('qrFullscreenFx').remove(), 300);" style="position:absolute; top:35px; right:25px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); border-radius:16px; width:50px; height:50px; color:#ef4444; font-size:24px; cursor:pointer; transition:0.2s; box-shadow:0 8px 25px rgba(239,68,68,0.2);"><i class="fas fa-times"></i></button>
-                
-                <h3 style="color:#38bdf8; margin-bottom:5px; font-size:24px; font-weight:800; letter-spacing:1px;">Share The Vibe!</h3>
-                <p style="color:#94a3b8; font-size:12px; margin-bottom:30px;">Let your friends tune in 📻</p>
-                
-                <div style="background:#fff; padding:15px; border-radius:24px; box-shadow:0 15px 40px rgba(0,0,0,0.8); border:3px solid #38bdf8; margin-bottom:30px; transform:scale(0.9); animation:popQr 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;">
-                    <img src="https://i.postimg.cc/zGQKXMqS/IMG-20260813-191926.jpg" style="width:220px; height:220px; border-radius:12px; object-fit:cover; pointer-events:auto;">
-                </div>
-                
-                <div style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); padding:12px 25px; border-radius:15px; color:#10b981; font-weight:bold; font-size:13px; display:flex; align-items:center; gap:10px; box-shadow:0 0 15px rgba(16,185,129,0.2);">
-                    <i class="fas fa-hand-pointer" style="font-size:18px; animation:bounceGift 1s infinite;"></i> Long-press the QR to Save or Share
-                </div>
-                
-                <style>@keyframes popQr { 100% { transform:scale(1); } }</style>
-            `;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             
-            document.body.appendChild(qrModal);
-            setTimeout(() => qrModal.style.opacity = '1', 50);
+            try {
+                // جلب الصورة كبيانات حقيقية
+                const response = await fetch(imgUrl);
+                const blob = await response.blob();
+                
+                // تحويلها إلى ملف حقيقي
+                const file = new File([blob], 'Radio_QR.jpg', { type: blob.type });
+
+                // 1. محاولة فتح قائمة النظام الأصلية (التي تحتوي زر "حفظ في المعرض")
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Radio QR Code'
+                    });
+                } else {
+                    // 2. التحميل الإجباري كبديل إذا كان الهاتف لا يدعم القائمة
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'Radio_QR.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                }
+
+                // تأثير بصري للنجاح
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                btn.style.color = '#10b981';
+                btn.style.borderColor = 'rgba(16,185,129,0.4)';
+                btn.style.background = 'rgba(16,185,129,0.15)';
+                
+            } catch(e) {
+                // إذا ألغى المستخدم العملية
+                btn.innerHTML = originalHtml;
+            }
+
+            // إعادة الزر لشكله بعد 3 ثوانٍ
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.style.color = '#38bdf8';
+                btn.style.borderColor = 'rgba(56,189,248,0.3)';
+                btn.style.background = 'rgba(56,189,248,0.15)';
+            }, 3000);
         });
 
+        
 
     
         
