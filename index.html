@@ -3174,6 +3174,76 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
         
 
+
+
+
+
+
+// ===================================================
+// 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Kill Switch)
+// ===================================================
+(function initEmergencySub() {
+    let pressTimer;
+    const EMERGENCY_PASS = "1234510";
+
+    // دالة التطهير الشاملة
+    window.forceStopAllLiveScripts = function() {
+        console.log("!!! EMERGENCY STOP ACTIVATED !!!");
+        
+        // 1. إغلاق اتصال السيرفر الحي (Firebase/SSE)
+        if (window.chatSource) window.chatSource.close();
+        if (window.adStSource) window.adStSource.close();
+        if (window.npSource) window.npSource.close();
+        if (window._liveEventSource) window._liveEventSource.close(); // إذا كان موجوداً
+
+        // 2. قتل كل حلقات التكرار (Intervals)
+        let id = window.setInterval(function() {}, 0);
+        while (id--) window.clearInterval(id);
+
+        // 3. قتل كل الإطارات المتحركة (Animation Frames)
+        if (window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
+
+        // 4. مسح كل العناصر التي أضيفت بواسطة السيرفر (live-fx)
+        document.querySelectorAll('.live-fx, #daylight-game-overlay, #threeD-game-overlay, #smartAutoAdBox, #chatWrapperFx').forEach(el => {
+            el.remove();
+        });
+
+        // 5. استعادة الـ CSS الأصلي للجسم (في حال تم تغييره بوضع القيادة مثلاً)
+        document.body.style.overflow = 'auto';
+        document.body.style.background = '';
+        if (document.getElementById('drive-mode-css')) document.getElementById('drive-mode-css').remove();
+        if (document.getElementById('deer-style')) document.getElementById('deer-style').remove();
+
+        alert("✅ All Live Scripts Terminated. Radio Restored.");
+    };
+
+    // مراقبة الضغط المطول (10 ثوانٍ) في أي مكان على الشاشة
+    const startPress = (e) => {
+        pressTimer = setTimeout(() => {
+            let pass = prompt("⚠️ EMERGENCY SYSTEM OVERRIDE\nEnter Security Code:");
+            if (pass === EMERGENCY_PASS) {
+                window.forceStopAllLiveScripts();
+            } else if (pass !== null) {
+                alert("❌ Wrong Code.");
+            }
+        }, 10000); // 10 ثوانٍ
+    };
+
+    const cancelPress = () => {
+        clearTimeout(pressTimer);
+    };
+
+    // ربط الأحداث لتعمل على الموبايل والكمبيوتر
+    window.addEventListener('mousedown', startPress);
+    window.addEventListener('touchstart', startPress);
+    window.addEventListener('mouseup', cancelPress);
+    window.addEventListener('touchend', cancelPress);
+})();
+
+
+
+
+        
         
         
         
