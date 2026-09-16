@@ -3177,69 +3177,86 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
-
-
 // ===================================================
-// 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Kill Switch)
+// 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Kill Switch - Admin Only / One Shot)
 // ===================================================
 (function initEmergencySub() {
     let pressTimer;
+    let promptShown = false; // 🔒 قفل الفرصة الواحدة
     const EMERGENCY_PASS = "1234510";
+    const MY_TG_ID = "5350129816";
 
-    // دالة التطهير الشاملة
     window.forceStopAllLiveScripts = function() {
-        console.log("!!! EMERGENCY STOP ACTIVATED !!!");
-        
-        // 1. إغلاق اتصال السيرفر الحي (Firebase/SSE)
+        // 1. إغلاق اتصالات السيرفر الحية
         if (window.chatSource) window.chatSource.close();
         if (window.adStSource) window.adStSource.close();
         if (window.npSource) window.npSource.close();
-        if (window._liveEventSource) window._liveEventSource.close(); // إذا كان موجوداً
+        if (window._liveEventSource) window._liveEventSource.close();
 
-        // 2. قتل كل حلقات التكرار (Intervals)
-        let id = window.setInterval(function() {}, 0);
-        while (id--) window.clearInterval(id);
-
-        // 3. قتل كل الإطارات المتحركة (Animation Frames)
+        // 2. إيقاف الإطارات المتحركة (Animations)
         if (window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
+        if (window.deerLoop) clearInterval(window.deerLoop);
 
-        // 4. مسح كل العناصر التي أضيفت بواسطة السيرفر (live-fx)
+        // 3. التطهير المرئي: مسح كل العناصر الدخيلة والشاشات المعلقة
         document.querySelectorAll('.live-fx, #daylight-game-overlay, #threeD-game-overlay, #smartAutoAdBox, #chatWrapperFx').forEach(el => {
             el.remove();
         });
 
-        // 5. استعادة الـ CSS الأصلي للجسم (في حال تم تغييره بوضع القيادة مثلاً)
-        document.body.style.overflow = 'auto';
+        // 4. تنظيف الـ CSS الخاص بالجسم (لاسترجاع الراديو إذا كان بخلفية سوداء)
+        document.body.style.overflow = '';
         document.body.style.background = '';
         if (document.getElementById('drive-mode-css')) document.getElementById('drive-mode-css').remove();
-        if (document.getElementById('deer-style')) document.getElementById('deer-style').remove();
+        
+        // 5. محاولة إرسال أمر تفريغ لفايربيس (اختياري، ليوقف البث من المصدر)
+        try {
+            fetch("https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/live_event.json", {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({play: "", stop: "document.querySelectorAll('.live-fx').forEach(e=>e.remove());", timestamp: Date.now()})
+            });
+        } catch(e){}
 
-        alert("✅ All Live Scripts Terminated. Radio Restored.");
+        alert("✅ System Purged! All Live Scripts Terminated.");
     };
 
-    // مراقبة الضغط المطول (10 ثوانٍ) في أي مكان على الشاشة
     const startPress = (e) => {
+        // 1. إذا تم ظهور النافذة مسبقاً، توقف تماماً (لا تكرر أبداً)
+        if (promptShown) return;
+
+        // 2. فحص الهوية: هل هذا المستخدم هو الأدمن؟
+        let isAdmin = !!localStorage.getItem('my_master_key');
+        let tgUser = (typeof tg !== 'undefined' && tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+        let isTrueAdmin = tgUser && String(tgUser.id) === MY_TG_ID;
+        
+        // إذا لم يكن أدمن، لا تبدأ العداد أصلاً
+        if (!isAdmin && !isTrueAdmin) return;
+
+        // 3. تشغيل العداد التنازلي للأدمن
         pressTimer = setTimeout(() => {
+            promptShown = true; // إغلاق القفل لمنع التكرار في نفس الجلسة
+            
             let pass = prompt("⚠️ EMERGENCY SYSTEM OVERRIDE\nEnter Security Code:");
             if (pass === EMERGENCY_PASS) {
                 window.forceStopAllLiveScripts();
             } else if (pass !== null) {
-                alert("❌ Wrong Code.");
+                alert("❌ Wrong Code. System Locked.");
             }
-        }, 10000); // 10 ثوانٍ
+        }, 10000); // 10 ثوانٍ من الضغط المتواصل
     };
 
     const cancelPress = () => {
-        clearTimeout(pressTimer);
+        if (pressTimer) clearTimeout(pressTimer);
     };
 
-    // ربط الأحداث لتعمل على الموبايل والكمبيوتر
+    // ربط الأحداث (بدون منع اللمس المتنقل لكي لا نفسد تجربة تصفح الراديو)
     window.addEventListener('mousedown', startPress);
     window.addEventListener('touchstart', startPress);
+    
+    // إلغاء العداد إذا رفع إصبعه أو تم إلغاء اللمس
     window.addEventListener('mouseup', cancelPress);
     window.addEventListener('touchend', cancelPress);
+    window.addEventListener('touchcancel', cancelPress);
 })();
-
 
 
 
