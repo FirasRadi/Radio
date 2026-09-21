@@ -3178,16 +3178,20 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
+
+        
+
 // ===================================================
 // 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Kill Switch - Admin Only / One Shot)
 // ===================================================
 (function initEmergencySub() {
     let pressTimer;
-    let promptShown = false; // 🔒 قفل الفرصة الواحدة
+    let promptShown = false; 
+    let isHolding = false; // 🛡️ متغير حماية إضافي لمنع اللمس العشوائي
     const EMERGENCY_PASS = "1234510";
     const MY_TG_ID = "5350129816";
 
-    window.forceStopAllLiveScripts = function() {
+    window.forceStopAllLiveScripts = async function() {
         // 1. إغلاق اتصالات السيرفر الحية
         if (window.chatSource) window.chatSource.close();
         if (window.adStSource) window.adStSource.close();
@@ -3198,43 +3202,54 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         if (window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
         if (window.deerLoop) clearInterval(window.deerLoop);
 
-        // 3. التطهير المرئي: مسح كل العناصر الدخيلة والشاشات المعلقة
+        // 3. 🛑 الخروج الإجباري من الشاشة الكاملة (لإنهاء الألعاب والعودة للراديو)
+        try {
+            if (document.exitFullscreen) await document.exitFullscreen().catch(()=>{});
+            else if (document.webkitExitFullscreen) await document.webkitExitFullscreen().catch(()=>{});
+        } catch(e) {}
+
+        // 4. التطهير المرئي: مسح كل العناصر الدخيلة
         document.querySelectorAll('.live-fx, #daylight-game-overlay, #threeD-game-overlay, #smartAutoAdBox, #chatWrapperFx').forEach(el => {
             el.remove();
         });
 
-        // 4. تنظيف الـ CSS الخاص بالجسم (لاسترجاع الراديو إذا كان بخلفية سوداء)
+        // 5. تنظيف الـ CSS والـ Body
         document.body.style.overflow = '';
         document.body.style.background = '';
         if (document.getElementById('drive-mode-css')) document.getElementById('drive-mode-css').remove();
         
-        // 5. محاولة إرسال أمر تفريغ لفايربيس (اختياري، ليوقف البث من المصدر)
+        // 6. 🛑 الضربة القاضية للسيرفر (إيقاف البث الفردي والمتعدد معاً)
         try {
-            fetch("https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app/live_event.json", {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({play: "", stop: "document.querySelectorAll('.live-fx').forEach(e=>e.remove());", timestamp: Date.now()})
-            });
+            const DB_URL = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app";
+            // حذف كل السكريبتات المتعددة
+            await fetch(`${DB_URL}/live_streams.json`, { method: 'DELETE' });
+            // حذف الحدث المنفرد القديم
+            await fetch(`${DB_URL}/live_event.json`, { method: 'DELETE' });
         } catch(e){}
 
-        alert("✅ System Purged! All Live Scripts Terminated.");
+        alert("✅ System Purged! All Live Scripts Terminated. Returned to Radio.");
     };
 
     const startPress = (e) => {
-        // 1. إذا تم ظهور النافذة مسبقاً، توقف تماماً (لا تكرر أبداً)
+        // منع التفعيل إذا ضغطت على زر أو مربع نصي
+        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea')) return;
+        
         if (promptShown) return;
 
-        // 2. فحص الهوية: هل هذا المستخدم هو الأدمن؟
         let isAdmin = !!localStorage.getItem('my_master_key');
         let tgUser = (typeof tg !== 'undefined' && tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
         let isTrueAdmin = tgUser && String(tgUser.id) === MY_TG_ID;
         
-        // إذا لم يكن أدمن، لا تبدأ العداد أصلاً
         if (!isAdmin && !isTrueAdmin) return;
 
-        // 3. تشغيل العداد التنازلي للأدمن
+        isHolding = true;
         pressTimer = setTimeout(() => {
-            promptShown = true; // إغلاق القفل لمنع التكرار في نفس الجلسة
+            if (!isHolding) return; // تأكيد أخير أن الإصبع لم يتحرك
+            
+            promptShown = true; 
+            
+            // اهتزاز تحذيري في الهاتف قبل ظهور كلمة السر
+            if (typeof tg !== 'undefined' && tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
             
             let pass = prompt("⚠️ EMERGENCY SYSTEM OVERRIDE\nEnter Security Code:");
             if (pass === EMERGENCY_PASS) {
@@ -3242,394 +3257,24 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             } else if (pass !== null) {
                 alert("❌ Wrong Code. System Locked.");
             }
-        }, 10000); // 10 ثوانٍ من الضغط المتواصل
+        }, 10000); 
     };
 
     const cancelPress = () => {
+        isHolding = false;
         if (pressTimer) clearTimeout(pressTimer);
     };
 
-    // ربط الأحداث (بدون منع اللمس المتنقل لكي لا نفسد تجربة تصفح الراديو)
     window.addEventListener('mousedown', startPress);
-    window.addEventListener('touchstart', startPress);
+    window.addEventListener('touchstart', startPress, {passive: true});
     
-    // إلغاء العداد إذا رفع إصبعه أو تم إلغاء اللمس
     window.addEventListener('mouseup', cancelPress);
     window.addEventListener('touchend', cancelPress);
     window.addEventListener('touchcancel', cancelPress);
-})();
-
-
-
-
-
-
-
-
-
-(async function initSafeZombieSurvivor() {
-    // ========== 1. واجهة اللعبة (UI) ==========
-    let overlay = document.createElement('div');
-    overlay.id = 'zombie-survivor-overlay';
-    overlay.style.cssText = 'position:fixed; inset:0; background:#0f172a; z-index:999999; overflow:hidden; touch-action:none; font-family:sans-serif; user-select:none; -webkit-user-select:none; color:#fff;';
-    overlay.innerHTML = `
-        <div style="position:absolute; top:0; left:0; width:100%; height:15px; background:#1e293b; z-index:1000000;">
-            <div id="xpBar" style="width:0%; height:100%; background:linear-gradient(90deg, #22c55e, #4ade80); transition: width 0.2s;"></div>
-        </div>
-        
-        <div style="position:absolute; top:25px; left:20px; z-index:1000000; font-weight:bold; font-size:18px; text-shadow:0 2px 4px #000;">
-            LEVEL <span id="levelText">1</span> | SCORE: <span id="scoreText">0</span>
-        </div>
-
-        <!-- زر الخروج (تم إصلاحه وتأمين استجابته) -->
-        <button id="close3D" style="position:absolute; top:20px; right:20px; background:rgba(239,68,68,0.3); border:2px solid #ef4444; color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:bold; font-size:16px; z-index:1000003; backdrop-filter:blur(5px); pointer-events:auto;">Exit Game 🚪</button>
-        
-        <!-- عصا التحكم -->
-        <div id="joyZone" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); width:140px; height:140px; background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.2); border-radius:50%; z-index:1000000; backdrop-filter:blur(4px);">
-            <div id="joyStick" style="position:absolute; top:45px; left:45px; width:50px; height:50px; background:rgba(255,255,255,0.8); border-radius:50%; pointer-events:none; box-shadow:0 0 15px rgba(255,255,255,0.5);"></div>
-        </div>
-
-        <!-- شاشة الترقية (Level Up) -->
-        <div id="levelUpScreen" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); z-index:1000001; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(5px); pointer-events:auto;">
-            <h1 style="color:#facc15; font-size:40px; text-shadow:0 0 20px #facc15; margin-bottom:30px; letter-spacing:3px;">LEVEL UP!</h1>
-            <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
-                <button id="upgDamage" class="upg-btn" style="background:#1e3a8a; border:2px solid #3b82f6; color:#fff; padding:20px; border-radius:15px; font-size:18px; cursor:pointer; width:160px; pointer-events:auto;">🗡️<br><br>+ Damage</button>
-                <button id="upgSpeed" class="upg-btn" style="background:#14532d; border:2px solid #22c55e; color:#fff; padding:20px; border-radius:15px; font-size:18px; cursor:pointer; width:160px; pointer-events:auto;">🏃‍♂️<br><br>+ Move Speed</button>
-                <button id="upgFireRate" class="upg-btn" style="background:#7f1d1d; border:2px solid #ef4444; color:#fff; padding:20px; border-radius:15px; font-size:18px; cursor:pointer; width:160px; pointer-events:auto;">🔫<br><br>+ Fire Rate</button>
-            </div>
-        </div>
-
-        <!-- شاشة النهاية (Game Over) -->
-        <div id="gameOverScreen" style="display:none; position:absolute; inset:0; background:rgba(15,23,42,0.95); z-index:1000002; flex-direction:column; align-items:center; justify-content:center; pointer-events:auto;">
-            <h1 style="color:#ef4444; font-size:50px; margin-bottom:10px;">GAME OVER</h1>
-            <h2 style="color:#fff; margin-bottom:30px;">Final Score: <span id="finalScore">0</span></h2>
-            <button id="btnRestart" style="background:#22c55e; border:none; padding:15px 30px; border-radius:10px; color:#fff; font-size:20px; font-weight:bold; cursor:pointer; pointer-events:auto;">Play Again</button>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-
-    // ========== 2. محرك الصوت الاصطناعي (Audio) ==========
-    const actx = new (window.AudioContext || window.webkitAudioContext)();
-    let isAudioUnlocked = false;
-    const playSfx = (type) => {
-        if(!isAudioUnlocked || actx.state === 'closed') return;
-        const t = actx.currentTime;
-        const osc = actx.createOscillator(); const gain = actx.createGain();
-        osc.connect(gain); gain.connect(actx.destination);
-        if(type === 'shoot') {
-            osc.type = 'square'; osc.frequency.setValueAtTime(400, t); osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-            gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1); osc.start(t); osc.stop(t+0.1);
-        } else if(type === 'hit') {
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(20, t + 0.1);
-            gain.gain.setValueAtTime(0.2, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1); osc.start(t); osc.stop(t+0.1);
-        } else if(type === 'gem') {
-            osc.type = 'sine'; osc.frequency.setValueAtTime(800, t); osc.frequency.linearRampToValueAtTime(1200, t + 0.1);
-            gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.1); osc.start(t); osc.stop(t+0.1);
-        } else if(type === 'lvlup') {
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(400, t); osc.frequency.linearRampToValueAtTime(600, t+0.2); osc.frequency.linearRampToValueAtTime(800, t+0.4);
-            gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t+0.6); osc.start(t); osc.stop(t+0.6);
-        }
-    };
-    const unlockAudio = () => { if(!isAudioUnlocked && actx.state !== 'closed') { actx.resume(); isAudioUnlocked = true; } };
-
-    // ========== 3. وظيفة الخروج الآمنة والقاطعة (Kill Switch) ==========
-    const exitGame = (e) => {
-        if(e) { e.preventDefault(); e.stopPropagation(); }
-        if (window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
-        if (actx && actx.state !== 'closed') actx.close(); // إيقاف محرك الصوت
-        window.removeEventListener('keydown', keydownHandler);
-        window.removeEventListener('keyup', keyupHandler);
-        overlay.remove(); // تدمير الواجهة نهائياً
-    };
     
-    // ربط زر الخروج بلمس الشاشة والماوس ليضمن الاستجابة
-    const closeBtn = document.getElementById('close3D');
-    closeBtn.onclick = exitGame;
-    closeBtn.ontouchstart = exitGame;
-
-    // تحميل Three.js
-    if (!window.THREE) await new Promise(r => { let s = document.createElement('script'); s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"; s.onload = r; document.head.appendChild(s); });
-
-    // ========== 4. إعداد المشهد 3D ==========
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f172a);
-    scene.fog = new THREE.FogExp2(0x0f172a, 0.015);
-    
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    overlay.appendChild(renderer.domElement);
-
-    scene.add(new THREE.AmbientLight(0x334155, 1.2));
-    const dLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dLight.position.set(20, 50, 20); dLight.castShadow = true;
-    dLight.shadow.mapSize.set(1024, 1024); dLight.shadow.camera.left = -50; dLight.shadow.camera.right = 50; dLight.shadow.camera.top = 50; dLight.shadow.camera.bottom = -50;
-    scene.add(dLight);
-
-    const grid = new THREE.GridHelper(200, 100, 0x334155, 0x1e293b);
-    grid.position.y = 0; scene.add(grid);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({color: 0x0f172a, roughness:0.8}));
-    floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
-
-    // ========== 5. الكيانات (اللاعب والزومبي) ==========
-    let gameState = 'playing'; 
-    let playerStats = { speed: 12, damage: 1, fireRate: 0.5, hp: 100, maxHp: 100, level: 1, xp: 0, nextXp: 10, range: 25 };
-    const player = new THREE.Group();
-    const pBody = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 1), new THREE.MeshStandardMaterial({color: 0x38bdf8, emissive:0x0284c7}));
-    pBody.position.y = 0.75; pBody.castShadow = true; player.add(pBody);
-    
-    const hpCanvas = document.createElement('canvas'); hpCanvas.width = 128; hpCanvas.height = 16;
-    const hpCtx = hpCanvas.getContext('2d');
-    const hpTex = new THREE.CanvasTexture(hpCanvas);
-    const hpSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: hpTex }));
-    hpSprite.position.y = 2.5; hpSprite.scale.set(3, 0.4, 1);
-    player.add(hpSprite);
-    scene.add(player);
-
-    function updateHpBar() {
-        hpCtx.clearRect(0,0,128,16);
-        hpCtx.fillStyle = '#ef4444'; hpCtx.fillRect(0,0,128,16);
-        hpCtx.fillStyle = '#22c55e'; hpCtx.fillRect(0,0, 128 * (playerStats.hp/playerStats.maxHp), 16);
-        hpTex.needsUpdate = true;
-    }
-    updateHpBar();
-
-    const zGeo = new THREE.BoxGeometry(1, 1.5, 1);
-    const zMat = new THREE.MeshStandardMaterial({color: 0x22c55e});
-    const zDmgMat = new THREE.MeshStandardMaterial({color: 0xffffff}); 
-    const bGeo = new THREE.SphereGeometry(0.2, 8, 8);
-    const bMat = new THREE.MeshBasicMaterial({color: 0xfacc15});
-    const gGeo = new THREE.OctahedronGeometry(0.3);
-    const gMat = new THREE.MeshStandardMaterial({color: 0x4ade80, emissive: 0x16a34a});
-
-    let zombies = [], bullets = [], gems = [], score = 0;
-
-    function spawnZombie() {
-        if(gameState !== 'playing' || zombies.length > 80) return;
-        const z = new THREE.Mesh(zGeo, zMat);
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 30;
-        z.position.set(player.position.x + Math.cos(angle)*dist, 0.75, player.position.z + Math.sin(angle)*dist);
-        z.castShadow = true;
-        z.hp = 2 + (playerStats.level * 0.5);
-        z.speed = 3 + Math.random()*2;
-        scene.add(z); zombies.push(z);
-    }
-
-    // ========== 6. التحكم (إصلاح مشكلة اللمس) ==========
-    let jx = 0, jy = 0, joyTouchId = null;
-    const joyZone = document.getElementById('joyZone'), joyStick = document.getElementById('joyStick');
-
-    const handleTouch = (e) => {
-        unlockAudio();
-        // ⚡ الحل السحري: السماح للمتصفح بالنقر على الأزرار وتجاهل المنع
-        if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-        if(gameState !== 'playing') return;
-        
-        e.preventDefault(); // نمنع سحب الشاشة فقط إذا كنا نلمس الخلفية أو عصا التحكم
-        const r = joyZone.getBoundingClientRect();
-        for(let t of e.changedTouches) {
-            if(!joyTouchId && t.clientY > r.top - 50) joyTouchId = t.identifier;
-            if(t.identifier === joyTouchId) {
-                const cx = r.left + 70, cy = r.top + 70;
-                const dx = t.clientX - cx, dy = t.clientY - cy;
-                const dist = Math.min(Math.hypot(dx, dy), 40), angle = Math.atan2(dy, dx);
-                joyStick.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-                jx = (Math.cos(angle)*dist)/40; jy = (Math.sin(angle)*dist)/40;
-            }
-        }
-    };
-    const endTouch = (e) => {
-        for(let t of e.changedTouches) {
-            if(t.identifier === joyTouchId) { joyTouchId = null; jx=0; jy=0; joyStick.style.transform = `translate(0,0)`; }
-        }
-    };
-    overlay.addEventListener('touchstart', handleTouch, {passive:false});
-    overlay.addEventListener('touchmove', handleTouch, {passive:false});
-    overlay.addEventListener('touchend', endTouch); overlay.addEventListener('touchcancel', endTouch);
-
-    // الكيبورد
-    const keys = {};
-    const keydownHandler = e => keys[e.code] = true;
-    const keyupHandler = e => keys[e.code] = false;
-    window.addEventListener('keydown', keydownHandler);
-    window.addEventListener('keyup', keyupHandler);
-
-    // ========== 7. منطق اللعبة والتطوير ==========
-    let lastShootTime = 0;
-    
-    function levelUp() {
-        gameState = 'levelup';
-        playSfx('lvlup');
-        document.getElementById('levelUpScreen').style.display = 'flex';
-        // تصفير الحركة
-        jx=0; jy=0; joyStick.style.transform = `translate(0,0)`;
-    }
-
-    const applyUpgrade = (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const id = e.target.closest('button').id;
-        if(id === 'upgDamage') playerStats.damage += 1;
-        else if(id === 'upgSpeed') playerStats.speed += 2;
-        else if(id === 'upgFireRate') playerStats.fireRate = Math.max(0.1, playerStats.fireRate - 0.05);
-        
-        document.getElementById('levelUpScreen').style.display = 'none';
-        playerStats.level++; playerStats.xp = 0; playerStats.nextXp = Math.floor(playerStats.nextXp * 1.5);
-        document.getElementById('levelText').innerText = playerStats.level;
-        document.getElementById('xpBar').style.width = '0%';
-        playerStats.hp = Math.min(playerStats.maxHp, playerStats.hp + 20); updateHpBar();
-        
-        gameState = 'playing';
-    };
-
-    document.querySelectorAll('.upg-btn').forEach(btn => {
-        btn.onclick = applyUpgrade;
-        btn.ontouchstart = applyUpgrade;
-    });
-
-    function gameOver() {
-        gameState = 'gameover';
-        document.getElementById('gameOverScreen').style.display = 'flex';
-        document.getElementById('finalScore').innerText = score;
-    }
-
-    const restartGame = (e) => {
-        e.preventDefault(); e.stopPropagation();
-        zombies.forEach(z => scene.remove(z)); zombies = [];
-        bullets.forEach(b => scene.remove(b)); bullets = [];
-        gems.forEach(g => scene.remove(g)); gems = [];
-        playerStats = { speed: 12, damage: 1, fireRate: 0.5, hp: 100, maxHp: 100, level: 1, xp: 0, nextXp: 10, range: 25 };
-        score = 0; player.position.set(0,0,0);
-        document.getElementById('levelText').innerText = playerStats.level;
-        document.getElementById('scoreText').innerText = score;
-        document.getElementById('xpBar').style.width = '0%';
-        updateHpBar();
-        document.getElementById('gameOverScreen').style.display = 'none';
-        gameState = 'playing';
-    };
-    
-    document.getElementById('btnRestart').onclick = restartGame;
-    document.getElementById('btnRestart').ontouchstart = restartGame;
-
-    const clock = new THREE.Clock();
-    let spawnTimer = 0;
-
-    function animate() {
-        window.gameAnimFrame = requestAnimationFrame(animate);
-        const dt = Math.min(clock.getDelta(), 0.1);
-
-        if(gameState !== 'playing') {
-            renderer.render(scene, camera); return;
-        }
-
-        // حركة اللاعب
-        let moveX = jx, moveZ = jy;
-        if(keys['KeyW'] || keys['ArrowUp']) moveZ = -1;
-        if(keys['KeyS'] || keys['ArrowDown']) moveZ = 1;
-        if(keys['KeyA'] || keys['ArrowLeft']) moveX = -1;
-        if(keys['KeyD'] || keys['ArrowRight']) moveX = 1;
-        
-        if(moveX !== 0 || moveZ !== 0) {
-            const angle = Math.atan2(moveZ, moveX);
-            player.position.x += Math.cos(angle) * playerStats.speed * dt;
-            player.position.z += Math.sin(angle) * playerStats.speed * dt;
-            pBody.rotation.y = -angle + Math.PI/2;
-        }
-
-        camera.position.lerp(new THREE.Vector3(player.position.x, 22, player.position.z + 18), 0.1);
-        camera.lookAt(player.position);
-
-        // الزومبي
-        spawnTimer += dt;
-        if(spawnTimer > Math.max(0.2, 1.5 - (playerStats.level * 0.1))) { spawnZombie(); spawnTimer = 0; }
-
-        for(let i=zombies.length-1; i>=0; i--) {
-            let z = zombies[i];
-            const dx = player.position.x - z.position.x, dz = player.position.z - z.position.z;
-            const dist = Math.hypot(dx, dz);
-            
-            if(dist > 0.5) {
-                z.position.x += (dx/dist) * z.speed * dt; z.position.z += (dz/dist) * z.speed * dt;
-                z.rotation.y = Math.atan2(-dx, -dz);
-            }
-
-            if(dist < 1.2) {
-                playerStats.hp -= 10 * dt; updateHpBar();
-                if(playerStats.hp <= 0) gameOver();
-            }
-            
-            if(z.material === zDmgMat) {
-                z.flashTimer = (z.flashTimer || 0) + dt;
-                if(z.flashTimer > 0.1) { z.material = zMat; z.flashTimer = 0; }
-            }
-        }
-
-        // إطلاق النار (Auto-Aim)
-        lastShootTime += dt;
-        if(lastShootTime >= playerStats.fireRate) {
-            let nearestZ = null, minDist = playerStats.range;
-            zombies.forEach(z => {
-                const dist = player.position.distanceTo(z.position);
-                if(dist < minDist) { minDist = dist; nearestZ = z; }
-            });
-
-            if(nearestZ) {
-                playSfx('shoot'); lastShootTime = 0;
-                const b = new THREE.Mesh(bGeo, bMat);
-                b.position.copy(player.position); b.position.y = 1;
-                const dir = new THREE.Vector3().subVectors(nearestZ.position, b.position).normalize();
-                b.velocity = dir.multiplyScalar(30);
-                scene.add(b); bullets.push(b);
-                pBody.rotation.y = Math.atan2(-dir.x, -dir.z);
-            }
-        }
-
-        // الرصاص
-        for(let i=bullets.length-1; i>=0; i--) {
-            let b = bullets[i];
-            b.position.addScaledVector(b.velocity, dt);
-            
-            let hit = false;
-            for(let j=zombies.length-1; j>=0; j--) {
-                let z = zombies[j];
-                if(b.position.distanceTo(z.position) < 1.0) {
-                    hit = true; playSfx('hit');
-                    z.hp -= playerStats.damage; z.material = zDmgMat; 
-                    if(z.hp <= 0) {
-                        const g = new THREE.Mesh(gGeo, gMat);
-                        g.position.copy(z.position); g.position.y = 0.5;
-                        scene.add(g); gems.push(g);
-                        scene.remove(z); zombies.splice(j, 1);
-                        score += 10; document.getElementById('scoreText').innerText = score;
-                    }
-                    break; 
-                }
-            }
-            if(hit || b.position.distanceTo(player.position) > playerStats.range * 1.5) { scene.remove(b); bullets.splice(i, 1); }
-        }
-
-        // الجواهر (المغناطيس)
-        const magnetRange = 5 + (playerStats.level * 0.5); // المغناطيس يقوى مع التلفيل
-        for(let i=gems.length-1; i>=0; i--) {
-            let g = gems[i]; g.rotation.y += dt * 2; 
-            const dist = player.position.distanceTo(g.position);
-            if(dist < magnetRange) {
-                const dir = new THREE.Vector3().subVectors(player.position, g.position).normalize();
-                g.position.addScaledVector(dir, 15 * dt);
-            }
-            if(dist < 1.5) {
-                playSfx('gem'); scene.remove(g); gems.splice(i, 1);
-                playerStats.xp += 1;
-                document.getElementById('xpBar').style.width = `${(playerStats.xp / playerStats.nextXp) * 100}%`;
-                if(playerStats.xp >= playerStats.nextXp) levelUp();
-            }
-        }
-
-        renderer.render(scene, camera);
-    }
-
-    animate();
+    // 🛡️ التعديل الأهم: إلغاء العداد فوراً إذا تم "سحب/تمرير" الشاشة
+    window.addEventListener('mousemove', cancelPress);
+    window.addEventListener('touchmove', cancelPress, {passive: true});
 })();
 
         
