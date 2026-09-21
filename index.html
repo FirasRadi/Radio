@@ -3267,7 +3267,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         } catch(e){}
 
         alert("☢️ EMERGENCY WIPE COMPLETE: Welcome back to Radio!");
-        promptShown = false;
+     //   promptShown = false;
     };
 
     const startPress = (e) => {
@@ -3281,16 +3281,20 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
         if (!isAdmin && !isTrueAdmin) return;
 
-        pressTimer = setTimeout(() => {
-            promptShown = true; 
+
+
+
+
+pressTimer = setTimeout(() => {
+            promptShown = true; // 🔒 تم تفعيل القفل هنا
             let pass = prompt("⚠️ SYSTEM ADMIN OVERRIDE\nEnter Security Code to Purge Server:");
             if (pass === EMERGENCY_PASS) {
                 window.forceStopAllLiveScripts();
             } else {
                 if (pass !== null) alert("❌ Access Denied.");
-                promptShown = false;
+                // لا نضع promptShown = false هنا لكي لا تظهر مرة أخرى
             }
-        }, 10000); 
+        }, 10000);
     };
 
     const cancelPress = () => { if (pressTimer) clearTimeout(pressTimer); };
