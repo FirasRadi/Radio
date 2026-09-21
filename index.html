@@ -3177,14 +3177,14 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
-
 // ===================================================
-// 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Server Kill Switch)
+// 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Server Kill Switch - Admin Only)
 // ===================================================
 (function initEmergencySub() {
     let pressTimer;
     let promptShown = false; 
     const EMERGENCY_PASS = "1234510";
+    const MY_TG_ID = "5350129816";
 
     window.forceStopAllLiveScripts = async function() {
         // 1. الخروج الإجباري من وضع ملء الشاشة
@@ -3195,7 +3195,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             }
         } catch(e){}
 
-        // 2. تدمير الرسوميات (WebGL) للألعاب لتفريغ الرام
+        // 2. تدمير الرسوميات (WebGL) للألعاب
         try {
             document.querySelectorAll('canvas').forEach(canvas => {
                 if(canvas.id !== 'decorCanvas' && canvas.id !== 'gameCanvas') {
@@ -3205,79 +3205,98 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             });
         } catch(e){}
 
-        // 3. قطع كل اتصالات السيرفر الحية
+        // 3. قطع كل اتصالات السيرفر الحية (EventSource)
         try {
             if (window.chatSource) { window.chatSource.close(); window.chatSource = null; }
             if (window.adStSource) { window.adStSource.close(); window.adStSource = null; }
             if (window.npSource) { window.npSource.close(); window.npSource = null; }
             if (window._liveEventSource) { window._liveEventSource.close(); window._liveEventSource = null; }
+            if (window.chatSource) window.chatSource.close();
         } catch(e){}
 
-        // 4. إيقاف كل الإطارات المتحركة والمؤقتات
+        // 4. إيقاف كل الحلقات (Loops) والمؤقتات
         try {
             if (window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
-            let ints = [window.deerLoop, window.deerInterval, window.snowInt, window.hwFx, window.rStarsV2, window.countryFxInt, window.mNotes, window.meteorRain, window.neonHearts];
-            ints.forEach(i => { if(i) clearInterval(i); });
+            let allIntervals = [window.deerLoop, window.deerInterval, window.snowInt, window.hwFx, window.rStarsV2, window.countryFxInt, window.mNotes, window.meteorRain, window.neonHearts, window.cdSyncInt];
+            allIntervals.forEach(i => { if(i) clearInterval(i); });
         } catch(e){}
 
-        // 5. 🔪 التطهير العنيف للشاشات (هذا ما سيضمن خروجك للراديو 100%)
+        // 5. 🔪 التطهير العنيف: حذف كل الواجهات الدخيلة من الـ DOM
         try {
-            const garbageIds = ['threeD-game-overlay', 'daylight-game-overlay', 'smartAutoAdBox', 'chatWrapperFx', 'cleanShotOverlay', 'profileModalFx', 'liveOnlineCounterFx'];
-            garbageIds.forEach(id => {
+            const garbage = [
+                'threeD-game-overlay', 'daylight-game-overlay', 'fb-game-overlay', 
+                'smartAutoAdBox', 'chatWrapperFx', 'cleanShotOverlay', 
+                'profileModalFx', 'instantShotOverlay', 'carDashFx', 'qrFullscreenFx'
+            ];
+            garbage.forEach(id => {
                 let el = document.getElementById(id);
                 if (el) el.remove();
             });
             document.querySelectorAll('.live-fx').forEach(el => el.remove());
         } catch(e){}
 
-        // 6. استعادة ستايل الراديو الأصلي
+        // 6. ✨ استعادة الراديو (إجبار كارت الراديو على الظهور)
         try {
             document.body.style.overflow = '';
             document.body.style.background = '';
-            let dmCss = document.getElementById('drive-mode-css');
-            if (dmCss) dmCss.remove();
+            
+            // إظهار كارت الراديو قسراً وحذف أي إخفاء مفروض عليه
+            let playerCard = document.querySelector('.player-card');
+            if (playerCard) {
+                playerCard.style.setProperty('display', 'flex', 'important');
+                playerCard.style.setProperty('visibility', 'visible', 'important');
+                playerCard.style.setProperty('opacity', '1', 'important');
+            }
+
+            // إظهار الأزرار التي قد تكون اللعبة أخفتها
+            document.querySelectorAll('.header-left, .header-right, .actions-bar, .vis-container').forEach(el => {
+                el.style.setProperty('display', 'flex', 'important');
+            });
+
+            // حذف ستايلات "وضع القيادة" أو أي ستايلات إضافية
+            document.querySelectorAll('style[id$="-css"], style[id$="-style"]').forEach(st => {
+                if (st.id !== 'store-core-styles') st.remove();
+            });
         } catch(e){}
         
-        // 7. 💥 مسح السيرفر (Firebase)
+        // 7. 💥 تصفير السيرفر (Firebase)
         try {
             const DB = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app";
             await fetch(`${DB}/live_event.json`, { method: 'DELETE' });
             await fetch(`${DB}/live_streams.json`, { method: 'DELETE' });
         } catch(e){}
 
-        alert("✅ System Purged! Returned safely to Radio.");
-        promptShown = false; // إعادة الفتح للمستقبل
+        alert("☢️ EMERGENCY WIPE COMPLETE: Welcome back to Radio!");
+        promptShown = false;
     };
 
     const startPress = (e) => {
         if (promptShown) return;
-        // تجاهل الأزرار وحقول الإدخال لتجنب التداخل
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
 
-        // بدء العد 10 ثوانٍ (متاح للجميع وليس للأدمن فقط)
+        // 🛡️ شرط الإدارة الصارم
+        let isAdmin = !!localStorage.getItem('my_master_key');
+        let tgUser = (typeof tg !== 'undefined' && tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+        let isTrueAdmin = tgUser && String(tgUser.id) === MY_TG_ID;
+
+        if (!isAdmin && !isTrueAdmin) return;
+
         pressTimer = setTimeout(() => {
             promptShown = true; 
-            let pass = prompt("⚠️ EMERGENCY SYSTEM OVERRIDE\nEnter Security Code to Kill Servers:");
+            let pass = prompt("⚠️ SYSTEM ADMIN OVERRIDE\nEnter Security Code to Purge Server:");
             if (pass === EMERGENCY_PASS) {
                 window.forceStopAllLiveScripts();
-            } else if (pass !== null) {
-                alert("❌ Wrong Code. System Locked.");
-                promptShown = false;
             } else {
+                if (pass !== null) alert("❌ Access Denied.");
                 promptShown = false;
             }
         }, 10000); 
     };
 
-    const cancelPress = () => {
-        if (pressTimer) clearTimeout(pressTimer);
-    };
+    const cancelPress = () => { if (pressTimer) clearTimeout(pressTimer); };
 
-    // التشغيل عند وضع الإصبع 
     window.addEventListener('mousedown', startPress);
     window.addEventListener('touchstart', startPress, {passive: true});
-    
-    // الإلغاء إذا رُفع الإصبع
     window.addEventListener('mouseup', cancelPress);
     window.addEventListener('touchend', cancelPress);
     window.addEventListener('touchcancel', cancelPress);
