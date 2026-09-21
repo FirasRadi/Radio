@@ -3267,9 +3267,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
 
 
-
-
-(async function initZombieSurvivorSafe() {
+(async function initSafeZombieSurvivor() {
     // ========== 1. واجهة اللعبة (UI) ==========
     let overlay = document.createElement('div');
     overlay.id = 'zombie-survivor-overlay';
@@ -3283,13 +3281,16 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             LEVEL <span id="levelText">1</span> | SCORE: <span id="scoreText">0</span>
         </div>
 
-        <button id="close3D" style="position:absolute; top:20px; right:20px; background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#fff; padding:8px 16px; border-radius:12px; cursor:pointer; font-weight:bold; z-index:1000000; pointer-events:auto;">Exit</button>
+        <!-- زر الخروج (تم إصلاحه وتأمين استجابته) -->
+        <button id="close3D" style="position:absolute; top:20px; right:20px; background:rgba(239,68,68,0.3); border:2px solid #ef4444; color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:bold; font-size:16px; z-index:1000003; backdrop-filter:blur(5px); pointer-events:auto;">Exit Game 🚪</button>
         
+        <!-- عصا التحكم -->
         <div id="joyZone" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); width:140px; height:140px; background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.2); border-radius:50%; z-index:1000000; backdrop-filter:blur(4px);">
             <div id="joyStick" style="position:absolute; top:45px; left:45px; width:50px; height:50px; background:rgba(255,255,255,0.8); border-radius:50%; pointer-events:none; box-shadow:0 0 15px rgba(255,255,255,0.5);"></div>
         </div>
 
-        <div id="levelUpScreen" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); z-index:1000001; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <!-- شاشة الترقية (Level Up) -->
+        <div id="levelUpScreen" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); z-index:1000001; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(5px); pointer-events:auto;">
             <h1 style="color:#facc15; font-size:40px; text-shadow:0 0 20px #facc15; margin-bottom:30px; letter-spacing:3px;">LEVEL UP!</h1>
             <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
                 <button id="upgDamage" class="upg-btn" style="background:#1e3a8a; border:2px solid #3b82f6; color:#fff; padding:20px; border-radius:15px; font-size:18px; cursor:pointer; width:160px; pointer-events:auto;">🗡️<br><br>+ Damage</button>
@@ -3298,7 +3299,8 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             </div>
         </div>
 
-        <div id="gameOverScreen" style="display:none; position:absolute; inset:0; background:rgba(15,23,42,0.95); z-index:1000002; flex-direction:column; align-items:center; justify-content:center;">
+        <!-- شاشة النهاية (Game Over) -->
+        <div id="gameOverScreen" style="display:none; position:absolute; inset:0; background:rgba(15,23,42,0.95); z-index:1000002; flex-direction:column; align-items:center; justify-content:center; pointer-events:auto;">
             <h1 style="color:#ef4444; font-size:50px; margin-bottom:10px;">GAME OVER</h1>
             <h2 style="color:#fff; margin-bottom:30px;">Final Score: <span id="finalScore">0</span></h2>
             <button id="btnRestart" style="background:#22c55e; border:none; padding:15px 30px; border-radius:10px; color:#fff; font-size:20px; font-weight:bold; cursor:pointer; pointer-events:auto;">Play Again</button>
@@ -3306,24 +3308,8 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     `;
     document.body.appendChild(overlay);
 
-    // ========== 2. دالة الخروج الآمن (Safe Exit) ==========
+    // ========== 2. محرك الصوت الاصطناعي (Audio) ==========
     const actx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    function exitGame(e) {
-        if(e) e.stopPropagation();
-        if(window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
-        if(actx && actx.state !== 'closed') actx.close();
-        window.removeEventListener('keydown', onKeyDown);
-        window.removeEventListener('keyup', onKeyUp);
-        overlay.remove();
-    }
-    const closeBtn = document.getElementById('close3D');
-    closeBtn.addEventListener('click', exitGame);
-    closeBtn.addEventListener('touchstart', exitGame);
-
-    if (!window.THREE) await new Promise(r => { let s = document.createElement('script'); s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"; s.onload = r; document.head.appendChild(s); });
-
-    // ========== 3. محرك الصوت ==========
     let isAudioUnlocked = false;
     const playSfx = (type) => {
         if(!isAudioUnlocked || actx.state === 'closed') return;
@@ -3344,15 +3330,31 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t+0.6); osc.start(t); osc.stop(t+0.6);
         }
     };
-    
     const unlockAudio = () => { if(!isAudioUnlocked && actx.state !== 'closed') { actx.resume(); isAudioUnlocked = true; } };
-    overlay.addEventListener('touchstart', unlockAudio, {once:true});
-    overlay.addEventListener('mousedown', unlockAudio, {once:true});
+
+    // ========== 3. وظيفة الخروج الآمنة والقاطعة (Kill Switch) ==========
+    const exitGame = (e) => {
+        if(e) { e.preventDefault(); e.stopPropagation(); }
+        if (window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
+        if (actx && actx.state !== 'closed') actx.close(); // إيقاف محرك الصوت
+        window.removeEventListener('keydown', keydownHandler);
+        window.removeEventListener('keyup', keyupHandler);
+        overlay.remove(); // تدمير الواجهة نهائياً
+    };
+    
+    // ربط زر الخروج بلمس الشاشة والماوس ليضمن الاستجابة
+    const closeBtn = document.getElementById('close3D');
+    closeBtn.onclick = exitGame;
+    closeBtn.ontouchstart = exitGame;
+
+    // تحميل Three.js
+    if (!window.THREE) await new Promise(r => { let s = document.createElement('script'); s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"; s.onload = r; document.head.appendChild(s); });
 
     // ========== 4. إعداد المشهد 3D ==========
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f172a);
     scene.fog = new THREE.FogExp2(0x0f172a, 0.015);
+    
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -3370,7 +3372,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({color: 0x0f172a, roughness:0.8}));
     floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
 
-    // ========== 5. الكيانات (Player, Zombies, Bullets, Gems) ==========
+    // ========== 5. الكيانات (اللاعب والزومبي) ==========
     let gameState = 'playing'; 
     let playerStats = { speed: 12, damage: 1, fireRate: 0.5, hp: 100, maxHp: 100, level: 1, xp: 0, nextXp: 10, range: 25 };
     const player = new THREE.Group();
@@ -3380,8 +3382,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     const hpCanvas = document.createElement('canvas'); hpCanvas.width = 128; hpCanvas.height = 16;
     const hpCtx = hpCanvas.getContext('2d');
     const hpTex = new THREE.CanvasTexture(hpCanvas);
-    const hpMat = new THREE.SpriteMaterial({ map: hpTex });
-    const hpSprite = new THREE.Sprite(hpMat);
+    const hpSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: hpTex }));
     hpSprite.position.y = 2.5; hpSprite.scale.set(3, 0.4, 1);
     player.add(hpSprite);
     scene.add(player);
@@ -3394,32 +3395,39 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     }
     updateHpBar();
 
-    const zGeo = new THREE.BoxGeometry(1, 1.5, 1), zMat = new THREE.MeshStandardMaterial({color: 0x22c55e});
+    const zGeo = new THREE.BoxGeometry(1, 1.5, 1);
+    const zMat = new THREE.MeshStandardMaterial({color: 0x22c55e});
     const zDmgMat = new THREE.MeshStandardMaterial({color: 0xffffff}); 
-    const bGeo = new THREE.SphereGeometry(0.2, 8, 8), bMat = new THREE.MeshBasicMaterial({color: 0xfacc15});
-    const gGeo = new THREE.OctahedronGeometry(0.3), gMat = new THREE.MeshStandardMaterial({color: 0x4ade80, emissive: 0x16a34a});
+    const bGeo = new THREE.SphereGeometry(0.2, 8, 8);
+    const bMat = new THREE.MeshBasicMaterial({color: 0xfacc15});
+    const gGeo = new THREE.OctahedronGeometry(0.3);
+    const gMat = new THREE.MeshStandardMaterial({color: 0x4ade80, emissive: 0x16a34a});
 
     let zombies = [], bullets = [], gems = [], score = 0;
 
     function spawnZombie() {
         if(gameState !== 'playing' || zombies.length > 80) return;
         const z = new THREE.Mesh(zGeo, zMat);
-        const angle = Math.random() * Math.PI * 2, dist = 30; 
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 30;
         z.position.set(player.position.x + Math.cos(angle)*dist, 0.75, player.position.z + Math.sin(angle)*dist);
-        z.castShadow = true; z.hp = 2 + (playerStats.level * 0.5); z.speed = 3 + Math.random()*2;
+        z.castShadow = true;
+        z.hp = 2 + (playerStats.level * 0.5);
+        z.speed = 3 + Math.random()*2;
         scene.add(z); zombies.push(z);
     }
 
-    // ========== 6. التحكم (آمن على الأزرار) ==========
+    // ========== 6. التحكم (إصلاح مشكلة اللمس) ==========
     let jx = 0, jy = 0, joyTouchId = null;
     const joyZone = document.getElementById('joyZone'), joyStick = document.getElementById('joyStick');
 
     const handleTouch = (e) => {
-        // حماية هامة: إذا كان اللمس على زر، لا تعطل الحدث الافتراضي!
-        if(e.target.closest('button')) return; 
-        e.preventDefault();
-        
+        unlockAudio();
+        // ⚡ الحل السحري: السماح للمتصفح بالنقر على الأزرار وتجاهل المنع
+        if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
         if(gameState !== 'playing') return;
+        
+        e.preventDefault(); // نمنع سحب الشاشة فقط إذا كنا نلمس الخلفية أو عصا التحكم
         const r = joyZone.getBoundingClientRect();
         for(let t of e.changedTouches) {
             if(!joyTouchId && t.clientY > r.top - 50) joyTouchId = t.identifier;
@@ -3433,7 +3441,6 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         }
     };
     const endTouch = (e) => {
-        if(e.target.closest('button')) return;
         for(let t of e.changedTouches) {
             if(t.identifier === joyTouchId) { joyTouchId = null; jx=0; jy=0; joyStick.style.transform = `translate(0,0)`; }
         }
@@ -3442,51 +3449,53 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     overlay.addEventListener('touchmove', handleTouch, {passive:false});
     overlay.addEventListener('touchend', endTouch); overlay.addEventListener('touchcancel', endTouch);
 
+    // الكيبورد
     const keys = {};
-    const onKeyDown = e => keys[e.code] = true;
-    const onKeyUp = e => keys[e.code] = false;
-    window.addEventListener('keydown', onKeyDown); window.addEventListener('keyup', onKeyUp);
+    const keydownHandler = e => keys[e.code] = true;
+    const keyupHandler = e => keys[e.code] = false;
+    window.addEventListener('keydown', keydownHandler);
+    window.addEventListener('keyup', keyupHandler);
 
     // ========== 7. منطق اللعبة والتطوير ==========
     let lastShootTime = 0;
     
     function levelUp() {
         gameState = 'levelup';
-        jx = 0; jy = 0; joyStick.style.transform = `translate(0,0)`; // إيقاف اللاعب
         playSfx('lvlup');
         document.getElementById('levelUpScreen').style.display = 'flex';
+        // تصفير الحركة
+        jx=0; jy=0; joyStick.style.transform = `translate(0,0)`;
     }
 
-    const selectUpgrade = (e) => {
-        const btn = e.target.closest('button');
-        if(!btn || gameState !== 'levelup') return;
-        
-        if(btn.id === 'upgDamage') playerStats.damage += 1;
-        else if(btn.id === 'upgSpeed') playerStats.speed += 2;
-        else if(btn.id === 'upgFireRate') playerStats.fireRate = Math.max(0.1, playerStats.fireRate - 0.05);
+    const applyUpgrade = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const id = e.target.closest('button').id;
+        if(id === 'upgDamage') playerStats.damage += 1;
+        else if(id === 'upgSpeed') playerStats.speed += 2;
+        else if(id === 'upgFireRate') playerStats.fireRate = Math.max(0.1, playerStats.fireRate - 0.05);
         
         document.getElementById('levelUpScreen').style.display = 'none';
         playerStats.level++; playerStats.xp = 0; playerStats.nextXp = Math.floor(playerStats.nextXp * 1.5);
         document.getElementById('levelText').innerText = playerStats.level;
         document.getElementById('xpBar').style.width = '0%';
-        playerStats.hp = Math.min(playerStats.maxHp, playerStats.hp + 20);
-        updateHpBar();
+        playerStats.hp = Math.min(playerStats.maxHp, playerStats.hp + 20); updateHpBar();
+        
         gameState = 'playing';
     };
+
     document.querySelectorAll('.upg-btn').forEach(btn => {
-        btn.addEventListener('click', selectUpgrade);
-        btn.addEventListener('touchstart', selectUpgrade); // دعم لمس الهواتف للترقية
+        btn.onclick = applyUpgrade;
+        btn.ontouchstart = applyUpgrade;
     });
 
     function gameOver() {
         gameState = 'gameover';
-        jx = 0; jy = 0; joyStick.style.transform = `translate(0,0)`;
         document.getElementById('gameOverScreen').style.display = 'flex';
         document.getElementById('finalScore').innerText = score;
     }
 
     const restartGame = (e) => {
-        if(e) e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         zombies.forEach(z => scene.remove(z)); zombies = [];
         bullets.forEach(b => scene.remove(b)); bullets = [];
         gems.forEach(g => scene.remove(g)); gems = [];
@@ -3499,17 +3508,20 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         document.getElementById('gameOverScreen').style.display = 'none';
         gameState = 'playing';
     };
-    const btnRestart = document.getElementById('btnRestart');
-    btnRestart.addEventListener('click', restartGame);
-    btnRestart.addEventListener('touchstart', restartGame);
+    
+    document.getElementById('btnRestart').onclick = restartGame;
+    document.getElementById('btnRestart').ontouchstart = restartGame;
 
-    const clock = new THREE.Clock(); let spawnTimer = 0;
+    const clock = new THREE.Clock();
+    let spawnTimer = 0;
 
     function animate() {
         window.gameAnimFrame = requestAnimationFrame(animate);
         const dt = Math.min(clock.getDelta(), 0.1);
 
-        if(gameState !== 'playing') { renderer.render(scene, camera); return; }
+        if(gameState !== 'playing') {
+            renderer.render(scene, camera); return;
+        }
 
         // حركة اللاعب
         let moveX = jx, moveZ = jy;
@@ -3528,7 +3540,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         camera.position.lerp(new THREE.Vector3(player.position.x, 22, player.position.z + 18), 0.1);
         camera.lookAt(player.position);
 
-        // حركة الزومبي
+        // الزومبي
         spawnTimer += dt;
         if(spawnTimer > Math.max(0.2, 1.5 - (playerStats.level * 0.1))) { spawnZombie(); spawnTimer = 0; }
 
@@ -3546,6 +3558,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
                 playerStats.hp -= 10 * dt; updateHpBar();
                 if(playerStats.hp <= 0) gameOver();
             }
+            
             if(z.material === zDmgMat) {
                 z.flashTimer = (z.flashTimer || 0) + dt;
                 if(z.flashTimer > 0.1) { z.material = zMat; z.flashTimer = 0; }
@@ -3560,6 +3573,7 @@ document.getElementById('confirmWipeBtn').onclick = () => {
                 const dist = player.position.distanceTo(z.position);
                 if(dist < minDist) { minDist = dist; nearestZ = z; }
             });
+
             if(nearestZ) {
                 playSfx('shoot'); lastShootTime = 0;
                 const b = new THREE.Mesh(bGeo, bMat);
@@ -3571,31 +3585,36 @@ document.getElementById('confirmWipeBtn').onclick = () => {
             }
         }
 
-        // حركة الرصاص
+        // الرصاص
         for(let i=bullets.length-1; i>=0; i--) {
-            let b = bullets[i]; b.position.addScaledVector(b.velocity, dt);
+            let b = bullets[i];
+            b.position.addScaledVector(b.velocity, dt);
+            
             let hit = false;
             for(let j=zombies.length-1; j>=0; j--) {
                 let z = zombies[j];
                 if(b.position.distanceTo(z.position) < 1.0) {
-                    hit = true; playSfx('hit'); z.hp -= playerStats.damage; z.material = zDmgMat; 
+                    hit = true; playSfx('hit');
+                    z.hp -= playerStats.damage; z.material = zDmgMat; 
                     if(z.hp <= 0) {
-                        const g = new THREE.Mesh(gGeo, gMat); g.position.copy(z.position); g.position.y = 0.5;
+                        const g = new THREE.Mesh(gGeo, gMat);
+                        g.position.copy(z.position); g.position.y = 0.5;
                         scene.add(g); gems.push(g);
                         scene.remove(z); zombies.splice(j, 1);
                         score += 10; document.getElementById('scoreText').innerText = score;
                     }
-                    break;
+                    break; 
                 }
             }
             if(hit || b.position.distanceTo(player.position) > playerStats.range * 1.5) { scene.remove(b); bullets.splice(i, 1); }
         }
 
-        // جمع الجواهر
+        // الجواهر (المغناطيس)
+        const magnetRange = 5 + (playerStats.level * 0.5); // المغناطيس يقوى مع التلفيل
         for(let i=gems.length-1; i>=0; i--) {
             let g = gems[i]; g.rotation.y += dt * 2; 
             const dist = player.position.distanceTo(g.position);
-            if(dist < 5) {
+            if(dist < magnetRange) {
                 const dir = new THREE.Vector3().subVectors(player.position, g.position).normalize();
                 g.position.addScaledVector(dir, 15 * dt);
             }
@@ -3609,10 +3628,11 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
         renderer.render(scene, camera);
     }
+
     animate();
 })();
 
-
+        
 
     
 
