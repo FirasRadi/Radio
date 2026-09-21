@@ -3181,10 +3181,8 @@ document.getElementById('confirmWipeBtn').onclick = () => {
 
         
 
-        
-
-    // ===================================================
-// 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Kill Switch - Admin Only / One Shot)
+// ===================================================
+// 🚨 نظام طوارئ إيقاف السكريبتات (Emergency Server Kill Switch)
 // ===================================================
 (function initEmergencySub() {
     let pressTimer;
@@ -3192,60 +3190,55 @@ document.getElementById('confirmWipeBtn').onclick = () => {
     const EMERGENCY_PASS = "1234510";
     const MY_TG_ID = "5350129816";
 
-    // جعلنا الدالة async لتستطيع مسح السيرفر بهدوء
     window.forceStopAllLiveScripts = async function() {
-        // 1. الخروج الإجباري من وضع ملء الشاشة (Fullscreen) لكي يظهر الراديو!
+        // 1. الخروج من وضع الشاشة الكاملة فوراً
         if (document.fullscreenElement || document.webkitFullscreenElement) {
             if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
             else if (document.webkitExitFullscreen) document.webkitExitFullscreen().catch(()=>{});
         }
 
-        // 2. إعدام محرك الرسوميات (WebGL) للألعاب لكي لا يستهلك الرام
-        document.querySelectorAll('#threeD-game-overlay canvas, #daylight-game-overlay canvas').forEach(canvas => {
-            let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-            if (gl) { let ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
+        // 2. إعدام محرك الرسوميات للألعاب بصمت (لتفريغ الرام)
+        document.querySelectorAll('canvas').forEach(canvas => {
+            if(canvas.id !== 'decorCanvas' && canvas.id !== 'gameCanvas') {
+                let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) { let ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
+            }
         });
 
-        // 3. إغلاق اتصالات السيرفر الحية
+        // 3. 🔪 قطع نحر لكل اتصالات السيرفر المفتوحة (الاستماع الحي)
         if (window.chatSource) { window.chatSource.close(); window.chatSource = null; }
         if (window.adStSource) { window.adStSource.close(); window.adStSource = null; }
         if (window.npSource) { window.npSource.close(); window.npSource = null; }
         if (window._liveEventSource) { window._liveEventSource.close(); window._liveEventSource = null; }
 
-        // 4. إيقاف الإطارات المتحركة والمؤقتات
+        // 4. إيقاف كل الحلقات والمؤقتات المتمردة
         if (window.gameAnimFrame) cancelAnimationFrame(window.gameAnimFrame);
         let ints = [window.deerLoop, window.deerInterval, window.snowInt, window.hwFx, window.rStarsV2, window.countryFxInt, window.mNotes, window.meteorRain, window.neonHearts];
         ints.forEach(i => { if(i) clearInterval(i); });
 
-        // 5. مسح أحداث اللمس الخاصة بالألعاب
-        if (window.gamePointerDown) {
-            window.removeEventListener('pointerdown', window.gamePointerDown);
-            window.removeEventListener('touchstart', window.gamePointerDown);
-        }
-
-        // 6. التطهير المرئي الجذري للشاشات الدخيلة
+        // 5. التطهير الجسدي للشاشة (حذف كل عناصر الـ DOM الدخيلة)
         document.querySelectorAll('.live-fx, #daylight-game-overlay, #threeD-game-overlay, #smartAutoAdBox, #chatWrapperFx, #cleanShotOverlay').forEach(el => {
             el.remove();
         });
 
-        // 7. تنظيف الـ CSS لاسترجاع الراديو بشكله الأصلي
+        // 6. استعادة وضع الراديو الأساسي
         document.body.style.overflow = '';
         document.body.style.background = '';
         if (document.getElementById('drive-mode-css')) document.getElementById('drive-mode-css').remove();
         
-        // 8. تفريغ فايربيس بالكامل لضمان عدم عودة الألعاب
+        // 7. 💥 مسح السيرفر: حذف السكريبتات من فايربيس لإيقافها عند كل المستخدمين الآخرين
         try {
             const DB = "https://radio-radi-default-rtdb.europe-west1.firebasedatabase.app";
             await fetch(`${DB}/live_event.json`, { method: 'DELETE' });
             await fetch(`${DB}/live_streams.json`, { method: 'DELETE' });
         } catch(e){}
 
-        alert("✅ System Purged! Returned safely to Radio.");
+        alert("✅ Server Connections Terminated & System Purged!");
     };
 
     const startPress = (e) => {
         if (promptShown) return;
-        // تجاهل الضغط إذا كان على حقل نصي أو زر لتجنب الأخطاء
+        // تجاهل الأزرار وحقول الإدخال لتجنب التداخل
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
 
         let isAdmin = !!localStorage.getItem('my_master_key');
@@ -3254,9 +3247,10 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         
         if (!isAdmin && !isTrueAdmin) return;
 
+        // بدء العد 10 ثوانٍ (لن يقطعه تحريك الإصبع)
         pressTimer = setTimeout(() => {
             promptShown = true; 
-            let pass = prompt("⚠️ EMERGENCY SYSTEM OVERRIDE\nEnter Security Code:");
+            let pass = prompt("⚠️ EMERGENCY SYSTEM OVERRIDE\nEnter Security Code to Kill Servers:");
             if (pass === EMERGENCY_PASS) {
                 window.forceStopAllLiveScripts();
             } else if (pass !== null) {
@@ -3269,16 +3263,15 @@ document.getElementById('confirmWipeBtn').onclick = () => {
         if (pressTimer) clearTimeout(pressTimer);
     };
 
-    // ربط الأحداث مع (إلغاء العداد فوراً عند تحريك الإصبع) لمنع ظهوره بالخطأ
+    // التشغيل عند وضع الإصبع (أو الماوس)
     window.addEventListener('mousedown', startPress);
     window.addEventListener('touchstart', startPress, {passive: true});
     
+    // الإلغاء فقط عند "رفع" الإصبع عن الشاشة (لا يهم إن تحرك)
     window.addEventListener('mouseup', cancelPress);
     window.addEventListener('touchend', cancelPress);
     window.addEventListener('touchcancel', cancelPress);
-    window.addEventListener('mousemove', cancelPress); // 🛑 مهم: يلغي إذا حركت الماوس
-    window.addEventListener('touchmove', cancelPress, {passive: true}); // 🛑 مهم: يلغي إذا سحبت إصبعك
-})();
+})();        
 
 
 
