@@ -882,13 +882,12 @@
                 DOM.playIcon.style.paddingLeft = '0';
                 DOM.logo.classList.add('playing');
             }).catch(err => {
+                // نعالج فقط مشكلة عدم السماح بالتشغيل التلقائي، ونتجاهل الباقي ليقوم المتصفح باصطياد الخطأ بشكل طبيعي
                 if (err.name === 'NotAllowedError') {
                     isPlaying = false;
                     DOM.playIcon.className = 'fas fa-play';
                     DOM.playIcon.style.paddingLeft = '3px';
                     DOM.logo.classList.remove('playing');
-                } else if (err.name !== 'AbortError') {
-                    this.handleError();
                 }
             });
         }
@@ -926,6 +925,7 @@
         }, 100);
     },
     handleError() {
+        // إذا كان عدد المحطات المعطلة المتتالية أقل من 30 نتخطى فوراً
         if (stations.length > 1 && errorCount < 30 && !isExternalFavPlaying) {
             errorCount++;
             let dir = window.navDirection || 1;
