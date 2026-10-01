@@ -860,7 +860,95 @@
                 } catch(e) { return []; } 
             } 
         };
-        const audioController = { play() { const prom = DOM.audio.play(); if (prom) { prom.then(() => { isPlaying = true; errorCount = 0; DOM.playIcon.className = 'fas fa-pause'; DOM.playIcon.style.paddingLeft = '0'; DOM.logo.classList.add('playing'); }).catch(err => { if (err.name === 'NotAllowedError') { isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); } else if (err.name !== 'AbortError') { this.handleError(); } }); } }, pause() { DOM.audio.pause(); isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); }, toggle() { isPlaying ? this.pause() : this.play(); }, forceStart() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIController.loadIndex(0); this.play(); } }, fadeOut() { const initVol = DOM.audio.volume; if(initVol <= 0 || !isPlaying) return this.pause(); const step = initVol / 20; let c = 0; const i = setInterval(() => { c++; DOM.audio.volume = Math.max(0, initVol - (step * c)); if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } }, 100); }, handleError() { if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) { errorCount++; DOM.sub.textContent = "Offline. Skipping..."; DOM.logo.classList.remove('playing'); DOM.playIcon.className = 'fas fa-spinner fa-spin'; clearTimeout(skipTimeout); autoSkipInProgress = true; skipTimeout = setTimeout(() => { UIController.loadIndex((currentIndex + 1) % stations.length); autoSkipInProgress = false; }, 1500); } else { this.pause(); DOM.sub.textContent = "Stream Unavailable"; } } };
+
+
+
+
+
+
+
+
+        
+       // const audioController = { play() { const prom = DOM.audio.play(); if (prom) { prom.then(() => { isPlaying = true; errorCount = 0; DOM.playIcon.className = 'fas fa-pause'; DOM.playIcon.style.paddingLeft = '0'; DOM.logo.classList.add('playing'); }).catch(err => { if (err.name === 'NotAllowedError') { isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); } else if (err.name !== 'AbortError') { this.handleError(); } }); } }, pause() { DOM.audio.pause(); isPlaying = false; DOM.playIcon.className = 'fas fa-play'; DOM.playIcon.style.paddingLeft = '3px'; DOM.logo.classList.remove('playing'); }, toggle() { isPlaying ? this.pause() : this.play(); }, forceStart() { if(DOM.audio.src || stations.length) { if(!DOM.audio.src) UIController.loadIndex(0); this.play(); } }, fadeOut() { const initVol = DOM.audio.volume; if(initVol <= 0 || !isPlaying) return this.pause(); const step = initVol / 20; let c = 0; const i = setInterval(() => { c++; DOM.audio.volume = Math.max(0, initVol - (step * c)); if(c >= 20) { clearInterval(i); this.pause(); DOM.audio.volume = initVol; DOM.vol.value = initVol; } }, 100); }, handleError() { if (stations.length > 1 && errorCount < 10 && !isExternalFavPlaying) { errorCount++; DOM.sub.textContent = "Offline. Skipping..."; DOM.logo.classList.remove('playing'); DOM.playIcon.className = 'fas fa-spinner fa-spin'; clearTimeout(skipTimeout); autoSkipInProgress = true; skipTimeout = setTimeout(() => { UIController.loadIndex((currentIndex + 1) % stations.length); autoSkipInProgress = false; }, 1500); } else { this.pause(); DOM.sub.textContent = "Stream Unavailable"; } } };
+         
+        const audioController = {
+    play() {
+        const prom = DOM.audio.play();
+        if (prom) {
+            prom.then(() => {
+                isPlaying = true;
+                errorCount = 0;
+                DOM.playIcon.className = 'fas fa-pause';
+                DOM.playIcon.style.paddingLeft = '0';
+                DOM.logo.classList.add('playing');
+            }).catch(err => {
+                if (err.name === 'NotAllowedError') {
+                    isPlaying = false;
+                    DOM.playIcon.className = 'fas fa-play';
+                    DOM.playIcon.style.paddingLeft = '3px';
+                    DOM.logo.classList.remove('playing');
+                } else if (err.name !== 'AbortError') {
+                    this.handleError();
+                }
+            });
+        }
+    },
+    pause() {
+        DOM.audio.pause();
+        isPlaying = false;
+        DOM.playIcon.className = 'fas fa-play';
+        DOM.playIcon.style.paddingLeft = '3px';
+        DOM.logo.classList.remove('playing');
+    },
+    toggle() {
+        isPlaying ? this.pause() : this.play();
+    },
+    forceStart() {
+        if (DOM.audio.src || stations.length) {
+            if (!DOM.audio.src) UIController.loadIndex(0);
+            this.play();
+        }
+    },
+    fadeOut() {
+        const initVol = DOM.audio.volume;
+        if (initVol <= 0 || !isPlaying) return this.pause();
+        const step = initVol / 20;
+        let c = 0;
+        const i = setInterval(() => {
+            c++;
+            DOM.audio.volume = Math.max(0, initVol - (step * c));
+            if (c >= 20) {
+                clearInterval(i);
+                this.pause();
+                DOM.audio.volume = initVol;
+                DOM.vol.value = initVol;
+            }
+        }, 100);
+    },
+    handleError() {
+        if (stations.length > 1 && errorCount < 30 && !isExternalFavPlaying) {
+            errorCount++;
+            let dir = window.navDirection || 1;
+            let nextIndex = (currentIndex + dir + stations.length) % stations.length;
+            UIController.loadIndex(nextIndex);
+            this.play();
+        } else {
+            this.pause();
+            DOM.sub.textContent = "Stream Unavailable";
+        }
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
         
         const UIController = { 
             loadIndex(index) { 
@@ -876,8 +964,19 @@
         };
 
         DOM.playBtn.addEventListener('click', () => audioController.toggle()); 
-        DOM.nextBtn.addEventListener('click', () => UIController.loadIndex((currentIndex + 1) % stations.length)); 
-        DOM.prevBtn.addEventListener('click', () => UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length)); 
+
+
+        
+    //    DOM.nextBtn.addEventListener('click', () => UIController.loadIndex((currentIndex + 1) % stations.length)); 
+    //   DOM.prevBtn.addEventListener('click', () => UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length)); 
+
+        window.navDirection = 1; // الاتجاه الافتراضي للأمام
+DOM.nextBtn.addEventListener('click', () => { window.navDirection = 1; UIController.loadIndex((currentIndex + 1) % stations.length); }); 
+DOM.prevBtn.addEventListener('click', () => { window.navDirection = -1; UIController.loadIndex((currentIndex - 1 + stations.length) % stations.length); }); 
+
+
+
+        
         DOM.vol.addEventListener('input', e => DOM.audio.volume = e.target.value); 
         DOM.audio.addEventListener('error', () => audioController.handleError());
         
