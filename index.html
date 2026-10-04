@@ -3415,7 +3415,7 @@ pressTimer = setTimeout(() => {
 // نظام المراقبة الذاتي (Heartbeat) والإنعاش التلقائي للراديو
 setInterval(() => {
     // نتحقق: هل يفترض أن الراديو يعمل؟ ولكن المشغل متوقف فعلياً أو انقطع اتصاله؟
-    if (isPlaying && (DOM.audio.paused || DOM.audio.networkState === 2 || DOM.audio.readyState === 0)) {
+    if (isPlaying && (DOM.audio.paused || DOM.audio.networkState === 7 || DOM.audio.readyState === 0)) {
         console.log("تم اكتشاف انقطاع.. جاري إنعاش الراديو تلقائياً");
         
         // إعادة تهيئة الرابط وجلب بث جديد
