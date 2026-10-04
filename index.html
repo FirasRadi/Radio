@@ -3412,27 +3412,20 @@ pressTimer = setTimeout(() => {
 
 
 
-// نظام المراقبة الذاتي (Heartbeat) والإنعاش التلقائي للراديو
+// نظام المراقبة الذاتي (Heartbeat) - نسخة مستقرة 
 setInterval(() => {
-    // نتحقق: هل يفترض أن الراديو يعمل؟ ولكن المشغل متوقف فعلياً أو انقطع اتصاله؟
-    if (isPlaying && (DOM.audio.paused || DOM.audio.networkState === 7 || DOM.audio.readyState === 0)) {
+    // نتدخل فقط إذا كان من المفترض أن يعمل، ولكنه تعرض للإيقاف الإجباري أو ظهر خطأ شبكة
+    if (isPlaying && (DOM.audio.paused || DOM.audio.networkState === 3 || DOM.audio.error)) {
         console.log("تم اكتشاف انقطاع.. جاري إنعاش الراديو تلقائياً");
         
-        // إعادة تهيئة الرابط وجلب بث جديد
         DOM.audio.load();
         const prom = DOM.audio.play();
         
         if (prom) {
-            prom.then(() => {
-                DOM.playIcon.className = 'fas fa-pause';
-                DOM.logo.classList.add('playing');
-            }).catch(() => {
-                // تجاهل أخطاء التشغيل التلقائي الصامتة
-            });
+            prom.catch(() => {}); // تجاهل أخطاء التشغيل التلقائي
         }
     }
-}, 3000); // الفحص يتم كل 3 ثوانٍ
-
+}, 3000); // الفحص يتم بهدوء كل 3 ثوانٍ
 
 
         
