@@ -1082,6 +1082,27 @@ DOM.prevBtn.addEventListener('click', () => { window.navDirection = -1; UIContro
         const toggleSearchSheet = () => { DOM.searchSheet.classList.toggle('open'); DOM.searchOverlay.classList.toggle('open'); DOM.searchInput.value = ''; DOM.searchResults.innerHTML = ''; DOM.searchInput.focus(); }; DOM.searchBtn.addEventListener('click', toggleSearchSheet); DOM.closeSearchBtn.addEventListener('click', toggleSearchSheet); DOM.searchOverlay.addEventListener('click', toggleSearchSheet); DOM.searchInput.addEventListener('input', () => { const term = DOM.searchInput.value.toLowerCase().trim(); if (!term) { DOM.searchResults.innerHTML = ''; return; } const filtered = stations.filter(s => s.name.toLowerCase().includes(term)); DOM.searchResults.innerHTML = filtered.map((s, idx) => { const realIndex = stations.indexOf(s); return `<li data-index="${realIndex}">${s.name}</li>`; }).join(''); }); DOM.searchResults.addEventListener('click', e => { const li = e.target.closest('li'); if (!li) return; UIController.loadIndex(parseInt(li.dataset.index)); toggleSearchSheet(); audioController.play(); });
         const checkFavState = id => { const fav = savedStations.some(s => s.id === id); DOM.saveBtn.className = fav ? 'action-btn active-fav' : 'action-btn'; DOM.saveBtn.innerHTML = fav ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>'; }; DOM.saveBtn.addEventListener('click', () => { const current = isExternalFavPlaying ? savedStations.find(s => s.url === DOM.audio.src) : stations[currentIndex]; if(!current) return; const stId = current.stationuuid || current.id; const existIdx = savedStations.findIndex(s => s.id === stId); if (existIdx > -1) { savedStations.splice(existIdx, 1); } else { savedStations.push({ id: stId, name: current.name, url: current.url_resolved || current.url, country: current.country || TARGET_COUNTRY }); } localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); checkFavState(stId); renderFavorites(); }); const renderFavorites = () => { DOM.favList.innerHTML = savedStations.length ? '' : '<li style="text-align:center; color:var(--text-sub); margin-top:20px;">No saved stations.</li>'; savedStations.forEach((f, i) => { const li = document.createElement('li'); li.className = 'fav-item'; const countryText = f.country ? ` (${f.country})` : ''; li.innerHTML = `<div class="fav-item-content"><i class="fas fa-play-circle fav-play-icon"></i><div class="fav-info" title="${f.name}">${f.name || 'Unknown'}${countryText}</div></div><button class="fav-remove" title="Remove"><i class="fas fa-trash-alt"></i></button>`; li.querySelector('.fav-item-content').addEventListener('click', () => { DOM.favModal.classList.remove('open'); const idx = stations.findIndex(s => s.stationuuid === f.id); if(idx > -1) { UIController.loadIndex(idx); audioController.play(); } else { UIController.loadExternalFav(f); } }); li.querySelector('.fav-remove').addEventListener('click', e => { e.stopPropagation(); savedStations.splice(i, 1); localStorage.setItem('radio_saved_list', JSON.stringify(savedStations)); renderFavorites(); const activeId = isExternalFavPlaying ? f.id : (stations[currentIndex]?.stationuuid); if (activeId === f.id) checkFavState(f.id); }); DOM.favList.appendChild(li); }); }; DOM.openFavs.addEventListener('click', () => { renderFavorites(); DOM.favModal.classList.add('open'); }); DOM.closeFavs.addEventListener('click', () => DOM.favModal.classList.remove('open'));
 
+
+
+
+
+
+        
+     //   async function bootApp() {
+     //       await fetchOTA();   
+      //      applyCustomPhoto(customImageUrl);    
+     //       DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
+       //     if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { UIController.emptyState(); DOM.loading.style.display = 'none'; return; }
+       //     stations = await radioService.fetchByStr(TARGET_COUNTRY);
+      //      if(stations.length) { UIController.loadIndex(0); } else { UIController.emptyState(); }
+        //    DOM.loading.style.display = 'none';
+      //  }
+
+
+
+
+
+
         async function bootApp() {
             await fetchOTA(); 
             
@@ -1090,10 +1111,22 @@ DOM.prevBtn.addEventListener('click', () => { window.navDirection = -1; UIContro
             DOM.headerCountry.textContent = TARGET_COUNTRY || 'Global Radio';
             if(!TARGET_COUNTRY || TARGET_COUNTRY.length < 2) { UIController.emptyState(); DOM.loading.style.display = 'none'; return; }
             stations = await radioService.fetchByStr(TARGET_COUNTRY);
-            if(stations.length) { UIController.loadIndex(0); } else { UIController.emptyState(); }
+            
+            // التعديل السحري هنا:
+            if(stations.length) { 
+                UIController.loadIndex(0); 
+                audioController.play(); // أجبرنا الراديو على العمل بمجرد تحميل المحطات
+            } else { 
+                UIController.emptyState(); 
+            }
+            
             DOM.loading.style.display = 'none';
         }
 
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                         
+        
         let totalListenSeconds = parseInt(localStorage.getItem('radio_listen_time')) || 0;
         let listenTimerInterval = null;
         const listenTimeDisplay = document.getElementById('listenTimeDisplay');
